@@ -1,0 +1,54 @@
+# ============================================================
+# HealthAlert - Base Configuration
+# ============================================================
+# Engineering Decision Log:
+#   - target_sr=50Hz: Both HIFD and WEDA_FALL natively at 50Hz
+#   - window_size=200 (4s @ 50Hz): Captures full fall event (~3s)
+#   - stride=50 (1s): Balances temporal resolution vs redundancy
+#   - PPG quality uses BUT_PPG annotations (binary Quality field)
+#   - Risk thresholds are initial heuristics; tune with real data
+# ============================================================
+
+project:
+  name: "HealthAlert"
+  version: "1.0.0"
+  seed: 42
+  device: "auto"  # auto | cpu | cuda | mps
+
+paths:
+  project_root: "${oc.env:HEALTHALERT_PROJECT_ROOT,.}"
+  data_root: "${oc.env:HEALTHALERT_DATA_ROOT,${paths.project_root}/../Data}"
+  output_root: "${oc.env:HEALTHALERT_OUTPUT_ROOT,${paths.project_root}/outputs}"
+  hifd_dir: "${paths.data_root}/HIFD"
+  but_ppg_dir: "${paths.data_root}/BUT_PPG"
+  weda_fall_dir: "${paths.data_root}/WEDA_FALL"
+  model_dir: "${paths.output_root}/models"
+  log_dir: "${paths.output_root}/logs"
+  report_dir: "${paths.output_root}/reports"
+  cache_dir: "${paths.output_root}/cache"
+
+signal:
+  target_sr: 50          # Hz - target sampling rate for all modalities
+  window_size: 200       # samples = 4 seconds @ 50Hz
+  window_stride: 50      # samples = 1 second overlap
+  imu_channels: 6        # accel_x/y/z + gyro_x/y/z
+  ppg_channels: 1        # raw PPG or heart rate
+  vitals_dim: 2          # heart_rate, spo2 (quality removed to prevent leakage)
+
+risk_thresholds:
+  # Engineering decisions: conservative initial thresholds
+  hr_low: 50             # bradycardia threshold (bpm)
+  hr_high: 120           # tachycardia threshold (bpm)
+  spo2_low: 92           # hypoxemia threshold (%)
+  fall_prob_warning: 0.5
+  fall_prob_critical: 0.8
+  instability_warning: 0.4
+  ppg_quality_min: 0.3   # below this, PPG is unreliable
+  early_risk_warning: 0.45
+  early_risk_critical: 0.7
+
+logging:
+  level: "INFO"
+  console: true
+  file: true
+  format: "%(asctime)s | %(name)-20s | %(levelname)-8s | %(message)s"

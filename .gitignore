@@ -1,0 +1,105 @@
+# HealthAlert — Git Ignore
+
+# ==========================================================
+# SECRETS / CREDENTIALS — NEVER COMMIT
+# ==========================================================
+*.env
+.env
+.env.*
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+service-account*.json
+firebase-key.json
+serviceAccountKey.json
+google-services.json
+GoogleService-Info.plist
+mobile/lib/firebase_options.dart
+
+# ==========================================================
+# PYTHON
+# ==========================================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+.venv*/
+venv/
+venv*/
+.ipynb_checkpoints/
+
+# ==========================================================
+# DATABASES
+# ==========================================================
+*.db
+*.db-journal
+*.sqlite3
+
+# ==========================================================
+# ML / AI ARTIFACTS
+# ==========================================================
+# Large datasets — use DVC or external storage
+Data/
+
+# Model weights & checkpoints
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+
+# Training outputs & generated reports
+outputs/
+reports/
+report_bundle/
+healthalert_final_ai/outputs/
+workspace/
+
+# ==========================================================
+# BUILD ARTIFACTS
+# ==========================================================
+# Firmware (PlatformIO)
+.pio/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+mobile/build/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/local.properties
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+
+# Node.js
+node_modules/
+
+# ==========================================================
+# LOGS & GENERATED FILES
+# ==========================================================
+*.log
+report_generation_log.txt
+mobile/analyze_output.txt
+chat_body.json
+backend/chat_body.json
+
+# ==========================================================
+# IDE
+# ==========================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==========================================================
+# OS
+# ==========================================================
+.DS_Store
+Thumbs.db
+
+mobile_backup/
+notes/dataset_paths.txt
+firmware/compile_commands.json

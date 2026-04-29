@@ -1,0 +1,70 @@
+# ============================================================
+# HealthAlert - Data Configuration
+# ============================================================
+# Engineering Decision Log:
+#   - HIFD near-fall scenarios: HIFD doesn't have explicit near-fall
+#     labels. We treat 'clap','zip','shoe' as near-fall-like (abrupt
+#     wrist motions). This is a soft-label proxy; fine-tune with real
+#     near-fall data later.
+#   - BUT_PPG Quality: 1=good, 0=poor (inverted from original where
+#     higher = better). We store as-is and map in loader.
+#   - WEDA_FALL: 50Hz preferred; F01-F08 = fall, D01-D11 = ADL
+# ============================================================
+
+datasets:
+  hifd:
+    enabled: true
+    role: "primary_multimodal"
+    sr: 50
+    format: "mat"
+    scenarios:
+      fall: ["fall1", "fall2", "fall3", "fall4", "fall5", "fall6"]
+      adl: ["bed", "chair", "eat", "hair", "stair", "teeth", "walk", "wash", "write"]
+      near_fall_proxy: ["clap", "cloth", "shoe", "zip"]
+    columns:
+      accel: ["ax", "ay", "az"]
+      gyro_quat: ["w", "x", "y", "z"]
+      gyro_angular: ["droll", "dpitch", "dyaw"]
+      heart: ["heart"]
+      time: ["time"]
+    subjects: 21
+    notes: >
+      Wrist-worn sensor. Gravity removed from accel.
+      Heart field is PPG raw, not BPM.
+
+  but_ppg:
+    enabled: true
+    role: "ppg_quality_gate"
+    format: "wfdb"
+    quality_csv: "quality-hr-ann.csv"
+    subject_csv: "subject-info.csv"
+    notes: >
+      Used to train PPG quality estimator.
+      Quality=1 means good signal, 0=poor.
+      Has SpO2 and HR ground truth per record.
+
+  weda_fall:
+    enabled: true
+    role: "imu_fall_augmentation"
+    sr: 50
+    frequency_dir: "50Hz"
+    format: "csv"
+    sensor_types: ["accel", "gyro"]
+    fall_codes: ["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08"]
+    adl_codes: ["D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11"]
+    timestamps_csv: "fall_timestamps.csv"
+    notes: >
+      Wrist-based dataset at 50Hz. Fall timestamps provided.
+      14 young + 11 elder participants.
+
+splitting:
+  strategy: "subject_wise"    # MANDATORY: no data leakage
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  min_subjects_test: 3
+
+label_mapping:
+  fall: 1
+  adl: 0
+  near_fall: 2               # multi-class extension

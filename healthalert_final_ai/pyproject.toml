@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "healthalert"
+version = "1.0.0"
+description = "HealthAlert: Multimodal Early Warning & Fall Detection System"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "HealthAlert Team"},
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "black", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"

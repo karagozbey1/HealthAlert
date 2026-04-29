@@ -1,0 +1,7 @@
+# HealthAlert Host-Side Tools
+# BLE reader, ingestion bridge, and replay tool
+
+bleak>=0.21.0
+requests>=2.31.0
+pydantic>=2.5.0
+click>=8.1.0

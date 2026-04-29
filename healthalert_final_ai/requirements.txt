@@ -1,0 +1,24 @@
+# Core ML
+torch>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+scikit-learn>=1.2.0
+
+# Config & logging
+omegaconf>=2.3.0
+pyyaml>=6.0
+
+# Data formats
+h5py>=3.8.0
+wfdb>=4.1.0
+
+# Visualization (optional, for reports)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Testing
+pytest>=7.0.0
+
+# Progress
+tqdm>=4.65.0

@@ -1,0 +1,64 @@
+# ============================================================
+# HealthAlert - Inference Configuration
+# ============================================================
+# Engineering Decision Log:
+#   - Sliding window with 50% overlap for real-time streaming
+#   - EMA smoothing prevents jittery predictions
+#   - Confidence threshold gates final alerts
+#   - Recommendation rules are clinical-guideline-inspired heuristics
+# ============================================================
+
+inference:
+  model_path: "${paths.model_dir}/best_final_fusion_model.pt"
+  batch_size: 1
+  device: "auto"
+
+streaming:
+  buffer_size: 200        # samples (= window_size)
+  stride: 100             # 50% overlap for smoothness
+  ema_alpha: 0.3          # exponential moving average for output smoothing
+  min_confidence: 0.6     # below this, output "uncertain"
+
+postprocessing:
+  risk_levels:
+    normal:
+      max_score: 0.3
+      color: "green"
+    watch:
+      max_score: 0.5
+      color: "yellow"
+    warning:
+      max_score: 0.7
+      color: "orange"
+    critical:
+      max_score: 1.0
+      color: "red"
+
+  # Weighted fusion for final risk
+  fusion_weights:
+    fall_probability: 0.35
+    instability_probability: 0.20
+    vital_risk: 0.25
+    ppg_quality_penalty: 0.20
+
+recommendations:
+  critical:
+    - "FALL RISK VERY HIGH - immediate assistance may be needed"
+    - "Emergency contacts have been automatically notified"
+    - "Do not move; help is on the way"
+  warning:
+    - "Instability detected - please be careful"
+    - "Heart rate / SpO2 values are abnormal - rest recommended"
+    - "Close contacts should be informed"
+  watch:
+    - "Mild instability signs detected - monitoring continues"
+    - "Vital signs are within acceptable range"
+  normal:
+    - "All values are normal"
+    - "System is actively monitoring"
+
+demo:
+  # Synthetic stream settings for demo/testing
+  duration_seconds: 60
+  scenario: "mixed"       # normal | fall | presyncope | mixed
+  synthetic_noise: 0.05

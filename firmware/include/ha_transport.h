@@ -1,0 +1,183 @@
+
+#ifndef HA_TRANSPORT_H
+#define HA_TRANSPORT_H
+
+#include <Arduino.h>
+#include "ha_config.h"
+#include "ha_ble.h"
+#include "ha_wifi_transport.h"
+
+class TransportOrchestrator {
+public:
+    enum ActiveTransport { NONE, BLE, WIFI, SERIAL_ONLY };
+
+    // Sensörü başlatır.
+    void begin() {
+        _mode = TRANSPORT_MODE;
+
+        switch (_mode) {
+            case 0:
+                Serial.println("[Transport] Mode: AUTO (BLE primary, Wi-Fi fallback)");
+                _ble.begin();
+                _activeTransport = BLE;
+                break;
+            case 1:
+                Serial.println("[Transport] Mode: BLE only");
+                _ble.begin();
+                _activeTransport = BLE;
+                break;
+            case 2:
+                Serial.println("[Transport] Mode: Wi-Fi only");
+                _wifi.begin();
+                _activeTransport = WIFI;
+                break;
+            case 3:
+                Serial.println("[Transport] Mode: Serial only (debug)");
+                _activeTransport = SERIAL_ONLY;
+                break;
+            default:
+                Serial.println("[Transport] Unknown mode, defaulting to AUTO");
+                _mode = 0;
+                _ble.begin();
+                _activeTransport = BLE;
+                break;
+        }
+
+        _initialized = true;
+    }
+
+    bool sendPacket(const char* jsonBuf) {
+        if (!_initialized) return false;
+
+        Serial.println(jsonBuf);
+
+        _updateTransportState();
+
+        bool sent = false;
+        switch (_activeTransport) {
+            case BLE:
+                sent = _ble.sendPacket(jsonBuf);
+                if (sent) _blePackets++;
+                break;
+            case WIFI:
+                sent = _wifi.sendPacket(jsonBuf);
+                if (sent) _wifiPackets++;
+                break;
+            case SERIAL_ONLY:
+                sent = true;
+                break;
+            default:
+                break;
+        }
+
+        _totalPackets++;
+        return sent;
+    }
+
+    ActiveTransport getActiveTransport() const { return _activeTransport; }
+
+    const char* getActiveTransportName() const {
+        switch (_activeTransport) {
+            case BLE:         return "BLE";
+            case WIFI:        return "Wi-Fi";
+            case SERIAL_ONLY: return "Serial";
+            default:          return "None";
+        }
+    }
+
+    HaBle& getBle() { return _ble; }
+
+    HaWifiTransport& getWifi() { return _wifi; }
+
+    uint32_t getTotalPackets() const { return _totalPackets; }
+    uint32_t getBlePackets() const { return _blePackets; }
+    uint32_t getWifiPackets() const { return _wifiPackets; }
+
+    void printStatus() {
+        Serial.println("─── Transport Status ───");
+        Serial.printf("  Mode:      %d (%s)\n", _mode, _getModeName());
+        Serial.printf("  Active:    %s\n", getActiveTransportName());
+        Serial.printf("  BLE:       %s (sent: %lu)\n",
+                       _bleStateName(), (unsigned long)_ble.getPacketsSent());
+        Serial.printf("  Wi-Fi:     %s (sent: %lu)\n",
+                       _wifiStateName(), (unsigned long)_wifi.getPacketsSent());
+        Serial.printf("  Total:     %lu packets\n", (unsigned long)_totalPackets);
+        Serial.println("────────────────────────");
+    }
+
+private:
+    HaBle _ble;
+    HaWifiTransport _wifi;
+    int _mode = 0;
+    bool _initialized = false;
+    ActiveTransport _activeTransport = NONE;
+    uint32_t _totalPackets = 0;
+    uint32_t _blePackets = 0;
+    uint32_t _wifiPackets = 0;
+
+    void _updateTransportState() {
+        if (_mode == 1 || _mode == 2 || _mode == 3) {
+            return;
+        }
+
+        if (_activeTransport == BLE) {
+            if (_ble.isClientTimedOut()) {
+                Serial.println("[Transport] BLE client timeout → switching to Wi-Fi fallback");
+                _switchToWifi();
+            }
+        } else if (_activeTransport == WIFI) {
+            if (_ble.isClientConnected()) {
+                Serial.println("[Transport] BLE client reconnected → switching back to BLE");
+                _switchToBle();
+            }
+        }
+    }
+
+    void _switchToWifi() {
+        bool connected = _wifi.begin();
+        if (connected) {
+            _activeTransport = WIFI;
+            Serial.println("[Transport] Wi-Fi fallback ACTIVE");
+        } else {
+            Serial.println("[Transport] Wi-Fi fallback FAILED – staying on BLE (advertising)");
+        }
+    }
+
+    void _switchToBle() {
+        _wifi.disconnect();
+        _activeTransport = BLE;
+        Serial.println("[Transport] BLE primary RESTORED");
+    }
+
+    const char* _getModeName() const {
+        switch (_mode) {
+            case 0: return "Auto";
+            case 1: return "BLE only";
+            case 2: return "Wi-Fi only";
+            case 3: return "Serial only";
+            default: return "Unknown";
+        }
+    }
+
+    const char* _bleStateName() const {
+        switch (_ble.getState()) {
+            case HaBle::OFF:         return "OFF";
+            case HaBle::ADVERTISING: return "Advertising";
+            case HaBle::CONNECTED:   return "Connected";
+            case HaBle::ERROR:       return "Error";
+            default:                 return "Unknown";
+        }
+    }
+
+    const char* _wifiStateName() const {
+        switch (_wifi.getState()) {
+            case HaWifiTransport::OFF:        return "OFF";
+            case HaWifiTransport::CONNECTING:  return "Connecting";
+            case HaWifiTransport::CONNECTED:   return "Connected";
+            case HaWifiTransport::FAILED:      return "Failed";
+            default:                           return "Unknown";
+        }
+    }
+};
+
+#endif

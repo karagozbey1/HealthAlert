@@ -1,16 +1,6 @@
-"""
-Firebase / Firestore concrete repository implementations.
-
-Each class wraps the synchronous ``google.cloud.firestore`` client from
-``firebase_admin``.  Calls are run in a thread-pool executor so they
 don't block the async event loop.
-
-Firestore collection layout (mirrors SQLAlchemy table names):
-    users, link_codes, user_relations, live_statuses, anomaly_events,
-    alert_events, post_event_sessions, history_items, notification_items,
-    clinical_notes, app_settings, simulation_states,
-    device_registrations, device_packet_logs
-"""
+# Firestore repository siniflari senkron istemciyi async akisa uyarlayarak kullanir.
+# Koleksiyon adlari SQLAlchemy tarafindaki tablo yapisiyla esitlenmistir.
 from __future__ import annotations
 
 import asyncio
@@ -23,6 +13,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from repositories.base import (
     AbstractAlertRepo,
     AbstractAnomalyRepo,
+    AbstractBaselineRepo,
     AbstractClinicalNoteRepo,
     AbstractDeviceRepo,
     AbstractHistoryRepo,
@@ -37,21 +28,21 @@ from repositories.base import (
 )
 
 
+# Bloklayici Firestore cagrilarini varsayilan executor uzerinden calistirir.
 def _run_sync(fn, *args, **kwargs):
-    """Run a blocking Firestore call in the default executor."""
     loop = asyncio.get_running_loop()
     return loop.run_in_executor(None, partial(fn, *args, **kwargs))
 
 
+# Firestore dokumanini id alani eklenmis duz dict yapisina cevirir.
 def _doc_to_dict(doc) -> Dict[str, Any]:
-    """Convert a Firestore DocumentSnapshot to a plain dict with its id."""
     d = doc.to_dict()
     d["id"] = doc.id
     return d
 
 
+# Python datetime nesnesini Firestore istemcisine dogrudan iletir.
 def _ts(dt: datetime | None) -> Any:
-    """Pass through datetime; Firestore client accepts Python datetimes natively."""
     return dt
 
 
@@ -593,3 +584,74 @@ class FirebaseDeviceRepo(AbstractDeviceRepo):
         ref = self.fs.collection(self.LOG_COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {"id": doc_id, "device_id": data.get("device_id"), "packet_seq": data.get("packet_seq")}
+
+
+# ===================================================================
+# User Baseline
+# ===================================================================
+
+class FirebaseBaselineRepo(AbstractBaselineRepo):
+    COLLECTION = "user_baselines"
+
+    def __init__(self, fs_client):
+        self.fs = fs_client
+
+    async def get_by_user_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        docs = await _run_sync(
+            self.fs.collection(self.COLLECTION)
+            .where(filter=FieldFilter("user_id", "==", user_id))
+            .limit(1)
+            .get
+        )
+        return _doc_to_dict(docs[0]) if docs else None
+
+    async def create_for_user(self, user_id: str) -> Dict[str, Any]:
+        from uuid import uuid4
+        from datetime import datetime
+        doc_id = str(uuid4())
+        now = datetime.utcnow()
+        data = {
+            "id": doc_id,
+            "user_id": user_id,
+            "hr_mean": 72.0,
+            "hr_std": 10.0,
+            "spo2_mean": 98.0,
+            "spo2_std": 1.5,
+            "motion_mean": 0.10,
+            "motion_std": 0.08,
+            "ppg_quality_mean": 0.85,
+            "sample_count": 0,
+            "is_ready": False,
+            "created_at": now,
+            "updated_at": now,
+            "last_updated": None,
+        }
+        ref = self.fs.collection(self.COLLECTION).document(doc_id)
+        await _run_sync(ref.set, data)
+        return data
+
+    async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        existing = await self.get_by_user_id(user_id)
+        if existing is not None:
+            return existing
+        return await self.create_for_user(user_id)
+
+    async def update_values(self, user_id: str, values: Dict[str, Any]) -> Dict[str, Any]:
+        docs = await _run_sync(
+            self.fs.collection(self.COLLECTION)
+            .where(filter=FieldFilter("user_id", "==", user_id))
+            .limit(1)
+            .get
+        )
+        if docs:
+            ref = docs[0].reference
+            await _run_sync(ref.update, values)
+            updated = await _run_sync(ref.get)
+            return _doc_to_dict(updated)
+        data = await self.create_for_user(user_id)
+        if values:
+            ref = self.fs.collection(self.COLLECTION).document(data["id"])
+            await _run_sync(ref.update, values)
+            updated = await _run_sync(ref.get)
+            return _doc_to_dict(updated)
+        return data

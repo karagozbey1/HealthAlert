@@ -12,6 +12,7 @@ from models import (
     AlertEvent,
     AnomalyEvent,
     AppSettings,
+    DeviceRegistration,
     HistoryItem,
     LinkCode,
     NotificationItem,
@@ -21,6 +22,9 @@ from models import (
 )
 
 logger = logging.getLogger("seed")
+
+# Firmware varsayilan cihaz kimligini tohum verisiyle ayni tutar.
+DEMO_DEVICE_ID = "ha-esp32-001"
 
 DEMO_USERS = [
     dict(
@@ -251,5 +255,26 @@ async def seed_demo_data() -> None:
                 ))
 
                 logger.info("Demo seed data created successfully.")
+
+        # ── Device registration ──────────────────────────────────────────
+        # Register the firmware demo device to the SELF user so that
+        # ingested packets are mapped to a real user_id.
+        if self_user:
+            dev_check = await db.execute(
+                select(DeviceRegistration).where(
+                    DeviceRegistration.device_id == DEMO_DEVICE_ID
+                )
+            )
+            existing_dev = dev_check.scalar_one_or_none()
+            if not existing_dev:
+                db.add(DeviceRegistration(
+                    id=str(uuid4()),
+                    device_id=DEMO_DEVICE_ID,
+                    user_id=self_user.id,
+                    is_active=True,
+                ))
+                logger.info(
+                    "Registered device '%s' to demo SELF user.", DEMO_DEVICE_ID
+                )
 
         await db.commit()

@@ -1,13 +1,3 @@
-"""Demo / simulation script for HealthAlert.
-
-Runs inference on synthetic data streams to demonstrate the full pipeline
-without requiring a trained model (uses random weights for demo).
-
-Usage:
-    python scripts/demo.py
-    python scripts/demo.py --scenario fall --duration 30
-"""
-
 import sys
 import argparse
 import time
@@ -30,6 +20,7 @@ from src.simulation.synthetic_stream import SyntheticStream
 from src.data.feature_engineering.imu_features import extract_imu_features
 
 
+# Komut satiri argumanlarini okuyup demo senaryosunu belirler.
 def parse_args():
     parser = argparse.ArgumentParser(description="HealthAlert Demo")
     parser.add_argument("--scenario", type=str, default="mixed",
@@ -40,7 +31,7 @@ def parse_args():
     return parser.parse_args()
 
 
-# ANSI colors for terminal output
+# Terminalde risk seviyelerini renkli gostermek icin ANSI kodlarini tutar.
 COLORS = {
     "normal": "\033[92m",     # Green
     "watch": "\033[93m",      # Yellow
@@ -52,10 +43,12 @@ COLORS = {
 }
 
 
+# Risk seviyesine uygun renkle metni bicimler.
 def colorize(text: str, level: str) -> str:
     return f"{COLORS.get(level, '')}{text}{COLORS['reset']}"
 
 
+# Demo acilis basligini ekrana yazar.
 def print_header():
     print("\n" + "=" * 70)
     print(f"{COLORS['bold']}  🏥 HealthAlert AI - Gerçek Zamanlı Demo{COLORS['reset']}")
@@ -63,6 +56,7 @@ def print_header():
     print("=" * 70 + "\n")
 
 
+# Tek pencere sonucunu risk ve onerilerle birlikte yazdirir.
 def print_result(window_time: float, result: dict, recommendations: list, elapsed_ms: float):
     level = result["final_risk_level"]
     color = COLORS.get(level, "")
@@ -88,6 +82,7 @@ def print_result(window_time: float, result: dict, recommendations: list, elapse
         print(f"    → {rec}")
 
 
+# Sentetik akis uzerinden uc uca demo calistirir.
 def main():
     args = parse_args()
     set_seed(42)
@@ -100,7 +95,7 @@ def main():
     print(f"  Süre: {args.duration}s")
     print(f"  Cihaz: {device}")
 
-    # Create model (use trained if available, else random weights for demo)
+    # Egitilmis agirlik varsa onu, yoksa demo icin rastgele modeli kullanir.
     if args.model_path and Path(args.model_path).exists():
         predictor = HealthAlertPredictor.from_checkpoint(args.model_path, str(device))
         print("  Model: Eğitilmiş model yüklendi ✓")
@@ -114,7 +109,7 @@ def main():
     recommender = RecommendationEngine()
     explainer = ExplainableOutput()
 
-    # Generate synthetic stream
+    # Secilen senaryo icin sentetik pencere akisi uretir.
     stream = SyntheticStream(sr=50, noise_std=0.05)
     window_gen = stream.generate_stream(
         scenario=args.scenario,
@@ -130,7 +125,7 @@ def main():
     for window_data in window_gen:
         t0 = time.time()
 
-        # Prepare inputs
+        # Ham pencereyi modelin bekledigi girdi bicimine cevirir.
         imu = np.column_stack([
             window_data["accel_x"], window_data["accel_y"], window_data["accel_z"],
             window_data["gyro_x"], window_data["gyro_y"], window_data["gyro_z"],
@@ -142,17 +137,14 @@ def main():
         spo2_mean = float(np.nanmean(window_data["spo2"])) / 100.0
         vitals = np.array([hr_mean, spo2_mean, 0.8], dtype=np.float32)
 
-        # Predict
         predictions = predictor.predict(imu, ppg, vitals, smooth=True)
 
-        # Postprocess
         vitals_dict = {
             "heart_rate": hr_mean,
             "spo2": float(np.nanmean(window_data["spo2"])),
         }
         result = postprocessor.process(predictions, vitals_dict)
 
-        # Recommendations
         recommendations = recommender.get_recommendations(result)
 
         elapsed_ms = (time.time() - t0) * 1000
@@ -160,7 +152,7 @@ def main():
 
         print_result(window_time, result, recommendations, elapsed_ms)
 
-        # Simulate real-time delay
+    # Ciktiyi canli akis gibi gostermek icin kisa gecikme ekler.
         time.sleep(0.5)
 
     print(f"\n{'=' * 70}")

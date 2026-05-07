@@ -61,5 +61,6 @@ _ROLE_PROMPTS = {
 }
 
 
+# Kullanici rolune uygun sistem istemini secip dondurur.
 def get_system_prompt(role: str) -> str:
     return _ROLE_PROMPTS.get(role.upper(), SYSTEM_PROMPT_SELF)

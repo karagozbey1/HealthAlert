@@ -8,6 +8,13 @@ from config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Ilk bcrypt dogrulamasinda backend yukleme hatasini onler.
+try:
+    from passlib.handlers.bcrypt import bcrypt as _bcrypt_cls  # type: ignore
+    _bcrypt_cls.set_backend("bcrypt")
+except Exception:
+    pass
+
 # Bcrypt ile şifre doğrular.
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)

@@ -1,5 +1,3 @@
-"""Logging configuration for HealthAlert."""
-
 import logging
 import sys
 from pathlib import Path
@@ -9,16 +7,13 @@ from typing import Optional
 _CONFIGURED = False
 
 
+# Tekrarsiz handler kurulumuyla logger nesnesi hazirlar.
 def setup_logger(
     name: str = "healthalert",
     level: str = "INFO",
     log_file: Optional[str] = None,
     fmt: str = "%(asctime)s | %(name)-20s | %(levelname)-8s | %(message)s",
 ) -> logging.Logger:
-    """Configure and return a logger.
-
-    Only configures root handlers once to avoid duplicate log lines.
-    """
     global _CONFIGURED
     logger = logging.getLogger(name)
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
@@ -26,12 +21,12 @@ def setup_logger(
     if not _CONFIGURED:
         formatter = logging.Formatter(fmt, datefmt="%Y-%m-%d %H:%M:%S")
 
-        # Console handler
+        # Standart cikti icin konsol handler kurar.
         ch = logging.StreamHandler(sys.stdout)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
 
-        # File handler
+        # Log dosyasi istenirse dosya handler da ekler.
         if log_file:
             log_path = Path(log_file)
             log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -44,6 +39,6 @@ def setup_logger(
     return logger
 
 
+# Var olan logger nesnesini ada gore geri dondurur.
 def get_logger(name: str = "healthalert") -> logging.Logger:
-    """Get an existing logger by name."""
     return logging.getLogger(name)

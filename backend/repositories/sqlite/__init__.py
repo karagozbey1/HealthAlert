@@ -12,6 +12,10 @@ from .repos import (
     SqliteSettingsRepo,
     SqliteSimulationStateRepo,
     SqliteDeviceRepo,
+    SqliteBaselineRepo,
+    SqliteLearningRepo,
+    SqlitePersonalizationRepo,
+    SqliteAssistantRepo,
 )
 
 __all__ = [
@@ -28,4 +32,8 @@ __all__ = [
     "SqliteSettingsRepo",
     "SqliteSimulationStateRepo",
     "SqliteDeviceRepo",
+    "SqliteBaselineRepo",
+    "SqliteLearningRepo",
+    "SqlitePersonalizationRepo",
+    "SqliteAssistantRepo",
 ]

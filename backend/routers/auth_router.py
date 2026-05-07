@@ -13,6 +13,7 @@ from schemas import LoginRequest, RegisterRequest, TokenResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# Yeni kullanici olusturup erisim tokeni dondurur.
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     body: RegisterRequest,
@@ -48,6 +49,7 @@ async def register(
         full_name=body.full_name.strip(),
     )
 
+# E-posta ve parola ile giris yapip erisim tokeni dondurur.
 @router.post("/login", response_model=TokenResponse)
 async def login(
     body: LoginRequest,

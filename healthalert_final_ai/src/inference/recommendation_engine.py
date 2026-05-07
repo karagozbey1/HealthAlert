@@ -1,9 +1,7 @@
-"""Recommendation engine based on risk level."""
-
 from typing import Dict, List
 
 
-# Default recommendations in Turkish
+# Risk seviyesine gore varsayilan onerileri tutar.
 DEFAULT_RECOMMENDATIONS = {
     "critical": [
         "DÜŞME RİSKİ ÇOK YÜKSEK - Acil müdahale gerekebilir",
@@ -31,9 +29,10 @@ DEFAULT_RECOMMENDATIONS = {
 }
 
 
+# Risk sonucuna gore kullanici onerileri uretir.
 class RecommendationEngine:
-    """Generate context-aware recommendations based on risk assessment."""
 
+    # Ozellestirilmis oneriler verilmezse varsayilan seti kullanir.
     def __init__(self, custom_recommendations: Dict[str, List[str]] = None):
         self.recommendations = custom_recommendations or DEFAULT_RECOMMENDATIONS
 
@@ -41,21 +40,13 @@ class RecommendationEngine:
         self,
         risk_assessment: Dict,
     ) -> List[str]:
-        """Generate recommendations based on risk assessment.
-
-        Args:
-            risk_assessment: Output from RiskPostprocessor.
-
-        Returns:
-            List of recommendation strings.
-        """
         risk_level = risk_assessment.get("final_risk_level", "normal")
         base_recs = self.recommendations.get(risk_level, self.recommendations["normal"])
 
-        # Add context-specific recommendations
+        # Risk seviyesine uygun temel onerileri kopyalar.
         recs = list(base_recs)
 
-        # Quality warning
+        # Sinyal kalitesi dustugunde ek yonlendirme ekler.
         quality = risk_assessment.get("ppg_quality_score", 1.0)
         if quality < 0.3:
             recs.append("Sensör teması kontrol edilmeli - sinyal kalitesi düşük")

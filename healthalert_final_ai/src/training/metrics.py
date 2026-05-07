@@ -1,10 +1,3 @@
-"""Evaluation metrics for all tasks.
-
-Includes standard classification metrics, MCC, macro-F1,
-calibration confidence summary, threshold calibration,
-risk-level ordinal evaluation, and per-task report generation.
-"""
-
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -18,23 +11,13 @@ from sklearn.metrics import (
 logger = logging.getLogger("healthalert.training.metrics")
 
 
+# Ikili siniflandirma icin temel performans metriklerini uretir.
 def compute_binary_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     y_prob: np.ndarray = None,
     prefix: str = "",
 ) -> Dict[str, float]:
-    """Compute standard binary classification metrics.
-
-    Args:
-        y_true: Ground truth binary labels.
-        y_pred: Predicted binary labels.
-        y_prob: Predicted probabilities (for AUC).
-        prefix: Prefix for metric names.
-
-    Returns:
-        Dict of metric_name → value.
-    """
     metrics: Dict[str, float] = {}
     p = prefix + "_" if prefix else ""
 
@@ -44,13 +27,13 @@ def compute_binary_metrics(
     metrics[f"{p}precision"] = float(precision_score(y_true, y_pred, zero_division=0))
     metrics[f"{p}recall"] = float(recall_score(y_true, y_pred, zero_division=0))
 
-    # Matthews Correlation Coefficient
+    # MCC dengesiz veri dagilimlarinda ek ayirim gucu saglar.
     try:
         metrics[f"{p}mcc"] = float(matthews_corrcoef(y_true, y_pred))
     except Exception:
         metrics[f"{p}mcc"] = 0.0
 
-    # AUC
+    # Olasiliklar varsa ROC AUC degerini hesaplar.
     if y_prob is not None and len(np.unique(y_true)) > 1:
         try:
             metrics[f"{p}auc"] = float(roc_auc_score(y_true, y_prob))
@@ -59,7 +42,7 @@ def compute_binary_metrics(
     else:
         metrics[f"{p}auc"] = 0.0
 
-    # Confusion matrix
+    # Karisiklik matrisi uzerinden sinif bazli ozetleri cikarir.
     cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
     if cm.shape == (2, 2):
         tn, fp, fn, tp = cm.ravel()
@@ -69,11 +52,11 @@ def compute_binary_metrics(
         metrics[f"{p}tp"] = int(tp)
         metrics[f"{p}specificity"] = float(tn / (tn + fp + 1e-8))
 
-    # Calibration confidence summary
+    # Olasilik dagiliminin ortalama ve dagilim ozetini ekler.
     if y_prob is not None and len(y_prob) > 0:
         metrics[f"{p}conf_mean"] = float(np.mean(y_prob))
         metrics[f"{p}conf_std"] = float(np.std(y_prob))
-        # Expected calibration: mean predicted prob of positives vs actual rate
+        # Pozitif ve negatif etiketlerde ortalama guveni ayri hesaplar.
         pos_mask = y_true == 1
         if pos_mask.sum() > 0:
             metrics[f"{p}conf_pos_mean"] = float(np.mean(y_prob[pos_mask]))
@@ -84,12 +67,12 @@ def compute_binary_metrics(
     return metrics
 
 
+# Surekli hedefler icin temel regresyon metriklerini hesaplar.
 def compute_regression_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     prefix: str = "",
 ) -> Dict[str, float]:
-    """Compute regression metrics."""
     p = prefix + "_" if prefix else ""
     return {
         f"{p}mse": float(mean_squared_error(y_true, y_pred)),
@@ -98,28 +81,18 @@ def compute_regression_metrics(
     }
 
 
+# Tum gorev ciktilarindan tek bir duz metric sozlugu uretir.
 def compute_all_metrics(
     all_outputs: Dict[str, np.ndarray],
     all_targets: Dict[str, np.ndarray],
     threshold: float = 0.5,
     calibrated_thresholds: Optional[Dict[str, float]] = None,
 ) -> Dict[str, float]:
-    """Compute metrics for all tasks.
-
-    Args:
-        all_outputs: Model outputs {task: predictions array}.
-        all_targets: Ground truth {task: labels array}.
-        threshold: Default threshold for binary classification.
-        calibrated_thresholds: Per-task calibrated thresholds (overrides default).
-
-    Returns:
-        Flat dict of all metrics.
-    """
     metrics: Dict[str, float] = {}
     if calibrated_thresholds is None:
         calibrated_thresholds = {}
 
-    # Fall detection
+    # Dusme gorevi metriklerini ve kullanilan esigi ekler.
     if "fall" in all_outputs and "fall" in all_targets and len(all_outputs["fall"]) > 0:
         fall_prob = all_outputs["fall"]
         t = calibrated_thresholds.get("fall", threshold)
@@ -128,7 +101,7 @@ def compute_all_metrics(
         metrics.update(compute_binary_metrics(fall_true, fall_pred, fall_prob, prefix="fall"))
         metrics["fall_threshold"] = t
 
-    # Instability
+    # Dengesizlik gorevi icin ayni metrik setini hesaplar.
     if "instability" in all_outputs and "instability" in all_targets and len(all_outputs["instability"]) > 0:
         inst_prob = all_outputs["instability"]
         t = calibrated_thresholds.get("instability", threshold)
@@ -137,7 +110,7 @@ def compute_all_metrics(
         metrics.update(compute_binary_metrics(inst_true, inst_pred, inst_prob, prefix="instability"))
         metrics["instability_threshold"] = t
 
-    # Quality
+    # PPG kalitesi gorevinin siniflandirma metriklerini toplar.
     if "quality" in all_outputs and "quality" in all_targets and len(all_outputs["quality"]) > 0:
         q_prob = all_outputs["quality"]
         t = calibrated_thresholds.get("quality", threshold)
@@ -146,7 +119,7 @@ def compute_all_metrics(
         metrics.update(compute_binary_metrics(q_true, q_pred, q_prob, prefix="quality"))
         metrics["quality_threshold"] = t
 
-    # Risk score (regression)
+    # Risk skoru icin hem regresyon hem ordinal seviye metriklerini ekler.
     if "risk" in all_outputs and "risk" in all_targets and len(all_outputs["risk"]) > 0:
         metrics.update(compute_regression_metrics(
             all_targets["risk"], all_outputs["risk"], prefix="risk"
@@ -159,23 +132,13 @@ def compute_all_metrics(
     return metrics
 
 
+# Dogrulama verisi uzerinde en uygun siniflandirma esigini arar.
 def calibrate_threshold(
     y_true: np.ndarray,
     y_prob: np.ndarray,
     objective: str = "f1",
     n_steps: int = 200,
 ) -> Tuple[float, float]:
-    """Find the optimal threshold on validation data.
-
-    Args:
-        y_true: Binary ground truth.
-        y_prob: Predicted probabilities.
-        objective: 'f1' or 'youden' (Youden's J = sens + spec - 1).
-        n_steps: Number of threshold candidates.
-
-    Returns:
-        (best_threshold, best_score).
-    """
     best_t, best_score = 0.5, 0.0
     for t in np.linspace(0.05, 0.95, n_steps):
         pred = (y_prob > t).astype(int)
@@ -192,13 +155,12 @@ def calibrate_threshold(
     return best_t, best_score
 
 
-# ── Risk-level ordinal evaluation ────────────────────────────────────
 RISK_LEVEL_NAMES = ["normal", "watch", "warning", "critical"]
-RISK_LEVEL_THRESHOLDS = [0.0, 0.25, 0.50, 0.70]  # boundaries
+RISK_LEVEL_THRESHOLDS = [0.0, 0.25, 0.50, 0.70]
 
 
+# Surekli risk skorunu ayrik risk seviyesine esler.
 def _risk_score_to_level(score: float) -> int:
-    """Map continuous risk to ordinal level index. 0=normal..3=critical."""
     if score >= 0.70:
         return 3
     elif score >= 0.50:
@@ -208,16 +170,12 @@ def _risk_score_to_level(score: float) -> int:
     return 0
 
 
+# Risk skorlarini ayrik seviye gozunden degerlendirir.
 def compute_risk_level_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     prefix: str = "risk_level",
 ) -> Dict[str, float]:
-    """Compute ordinal risk-level classification metrics.
-
-    Both y_true and y_pred are continuous [0,1] risk scores.
-    They are binned into ordinal levels first.
-    """
     p = prefix + "_" if prefix else ""
     metrics: Dict[str, float] = {}
 
@@ -233,7 +191,7 @@ def compute_risk_level_metrics(
     metrics[f"{p}weighted_f1"] = float(f1_score(true_levels, pred_levels, average="weighted",
                                                  labels=labels, zero_division=0))
 
-    # Weighted kappa (ordinal-aware)
+    # Sirali seviye uyumunu olcecek agirlikli kappa ekler.
     try:
         metrics[f"{p}weighted_kappa"] = float(
             cohen_kappa_score(true_levels, pred_levels, weights="quadratic")
@@ -241,7 +199,7 @@ def compute_risk_level_metrics(
     except Exception:
         metrics[f"{p}weighted_kappa"] = 0.0
 
-    # Per-class precision/recall/f1
+    # Her risk seviyesi icin ayri kesinlik ve duyarlilik hesaplar.
     for level_idx, level_name in enumerate(RISK_LEVEL_NAMES):
         mask_true = (true_levels == level_idx)
         mask_pred = (pred_levels == level_idx)
@@ -256,18 +214,15 @@ def compute_risk_level_metrics(
         metrics[f"{p}{level_name}_f1"] = float(f1)
         metrics[f"{p}{level_name}_support"] = int(mask_true.sum())
 
-    # Confusion matrix (4x4)
+    # Dort seviye arasindaki gecisleri karisiklik matrisi olarak saklar.
     cm = confusion_matrix(true_levels, pred_levels, labels=labels)
     metrics[f"{p}confusion_matrix"] = cm.tolist()
 
     return metrics
 
 
+# Metric sozlugunu okunabilir rapor metnine cevirir.
 def generate_task_report(metrics: Dict[str, float]) -> str:
-    """Generate a formatted per-task metrics report.
-
-    Returns a multi-line string suitable for logging or file output.
-    """
     lines: List[str] = []
     lines.append("=" * 60)
     lines.append("  HealthAlert Evaluation Report")
@@ -294,7 +249,7 @@ def generate_task_report(metrics: Dict[str, float]) -> str:
             else:
                 lines.append(f"  {short_key:20s}: {v}")
 
-    # Risk-level confusion matrix
+    # Risk seviyeleri arasindaki gecisleri tablo halinde ekler.
     cm_key = "risk_level_confusion_matrix"
     if cm_key in metrics:
         lines.append("\n--- Risk Level Confusion Matrix ---")

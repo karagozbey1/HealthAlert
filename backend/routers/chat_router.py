@@ -47,8 +47,8 @@ class ChatStatusResponse(BaseModel):
     llm_status: str
     fallback_available: bool = True
 
+# Sohbet istegini isleyip ilgili kullanici baglamiyla asistan yanitini dondurur.
 @router.post("/chat", response_model=ChatResponse)
-# LLM API'ye asenkron sohbet isteği gönderir.
 async def chat(
     body: ChatRequest,
     db: AsyncSession = Depends(get_db),
@@ -108,12 +108,14 @@ async def chat(
 
     return ChatResponse(**result)
 
+# Oturum baslatmak icin role uygun hazir soru onerilerini dondurur.
 @router.get("/suggestions", response_model=SuggestionsResponse)
 async def suggestions(
     current_user: User = Depends(get_current_user),
 ):
     return SuggestionsResponse(suggestions=get_suggestions(current_user.role))
 
+# Secilen kullanici icin asistanin gorecegi baglam metnini onizleme olarak uretir.
 @router.get("/context-preview")
 async def context_preview(
     target_user_id: Optional[str] = None,
@@ -155,6 +157,7 @@ async def context_preview(
     )
     return {"context": text}
 
+# LLM baglantisinin ve yerel yedek akisin kullanilabilirlik durumunu raporlar.
 @router.get("/chat-status", response_model=ChatStatusResponse)
 async def chat_status(
     current_user: User = Depends(get_current_user),

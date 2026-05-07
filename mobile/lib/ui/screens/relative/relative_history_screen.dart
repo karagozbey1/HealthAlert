@@ -36,7 +36,7 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
       if (app.monitoredUsers.isNotEmpty && _selectedUser == null) {
         _selectedUser = app.monitoredUsers.first;
         await _loadHistory();
-        return; // _loadHistory handles its own finally
+        return;
       }
     } catch (e) {
       debugPrint('[RelativeHistory] _init error: $e');

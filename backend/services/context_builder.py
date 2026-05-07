@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+# Sohbet ekranina gidecek mevcut kullanici baglamini metin olarak kurar.
 def build_chat_context(
     *,
     role: str,
@@ -112,6 +113,7 @@ def build_chat_context(
 
     return "\n".join(lines)
 
+# Farkli zaman alanlarindan kisa ve okunur tarih metni uretir.
 def _short_ts(item: dict) -> str:
     for key in ("detected_at", "created_at", "timestamp"):
         val = item.get(key)

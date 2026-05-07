@@ -1,5 +1,3 @@
-"""Reproducibility utilities."""
-
 import os
 import random
 from typing import Optional
@@ -7,8 +5,8 @@ from typing import Optional
 import numpy as np
 
 
+# Tum kutuphanelerde tekrar uretilebilirligi saglayacak tohum ayarini yapar.
 def set_seed(seed: int = 42) -> None:
-    """Set random seed for reproducibility across all libraries."""
     random.seed(seed)
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
@@ -22,8 +20,8 @@ def set_seed(seed: int = 42) -> None:
         pass
 
 
+# Ortamda kullanilabilecek en uygun hesaplama cihazini secer.
 def get_device(preference: str = "auto") -> "torch.device":
-    """Get the best available compute device."""
     import torch
     if preference == "auto":
         if torch.cuda.is_available():

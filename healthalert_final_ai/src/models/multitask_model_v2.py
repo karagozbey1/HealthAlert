@@ -1,21 +1,3 @@
-"""HealthAlert Multi-Task Model (v2).
-
-Architecture overview:
-    IMU → IMUEncoder (CRNN) → imu_embed
-    PPG → PPGEncoder (CNN1D) → ppg_embed → QualityGate → gated_ppg
-    Vitals → VitalsMLP → vitals_embed
-    Handcrafted → HandcraftedMLP → hc_embed
-    [imu_embed, gated_ppg, vitals_embed, hc_embed] → FusionAttention → fused
-    fused → FallHead    → fall_probability
-    fused → InstabilityHead → instability_probability
-    fused → QualityHead → ppg_quality_score
-    fused → RiskHead    → early_risk_score
-
-Missing-modality aware:
-    If a modality is entirely zero / missing, the fusion attention
-    learns to down-weight it via the CLS token mechanism.
-"""
-
 from typing import Dict
 
 import torch
@@ -33,13 +15,10 @@ from src.models.heads.quality_head import QualityHead
 from src.models.heads.risk_head import RiskHead
 
 
+# El yapimi ozellik kolunu da ekleyerek cok modalli v2 modeli kurar.
 class HealthAlertModelV2(nn.Module):
-    """Multi-task, multi-modal health alert model (v2).
 
-    Adds handcrafted feature MLP branch and missing-modality support
-    on top of the original HealthAlertModel.
-    """
-
+    # V2 encoder, birlesim ve cikti basliklarini baslatir.
     def __init__(self, cfg=None):
         super().__init__()
 
@@ -48,7 +27,7 @@ class HealthAlertModelV2(nn.Module):
 
         model_cfg = cfg if not hasattr(cfg, "model") else cfg.model
 
-        # === Encoders ===
+        # IMU, PPG ve vital encoderlarini olusturur.
         imu_cfg = model_cfg.get("imu_encoder", {})
         self.imu_encoder = IMUEncoder(
             in_channels=imu_cfg.get("in_channels", 6),
@@ -75,7 +54,7 @@ class HealthAlertModelV2(nn.Module):
             dropout=vitals_cfg.get("dropout", 0.2),
         )
 
-        # Handcrafted feature branch (new in v2)
+        # El yapimi ozellikleri ayri bir MLP kolunda isler.
         hc_cfg = model_cfg.get("handcrafted_mlp", {})
         self.handcrafted_mlp = HandcraftedMLP(
             input_dim=hc_cfg.get("input_dim", 38),
@@ -91,7 +70,7 @@ class HealthAlertModelV2(nn.Module):
             hidden_dim=qg_cfg.get("hidden_dim", 64),
         )
 
-        # === Fusion ===
+        # Tum modaliteleri ortak dikkat katmaninda birlestirir.
         fusion_cfg = model_cfg.get("fusion", {})
         embed_dim = fusion_cfg.get("embed_dim", 128)
 
@@ -107,30 +86,19 @@ class HealthAlertModelV2(nn.Module):
             dropout=fusion_cfg.get("dropout", 0.2),
         )
 
-        # === Task Heads ===
+        # Gorev bazli cikti basliklarini kurar.
         self.fall_head = FallHead(input_dim=embed_dim)
         self.instability_head = InstabilityHead(input_dim=embed_dim)
         self.quality_head = QualityHead(input_dim=embed_dim)
         self.risk_head = RiskHead(input_dim=embed_dim)
 
+    # Batch girdilerini encode edip v2 ciktilarini olusturur.
     def forward(self, batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """Forward pass.
-
-        Args:
-            batch: Dict with keys:
-                - imu: (B, T, 6)
-                - ppg: (B, T, 1)
-                - vitals: (B, 3)
-                - handcrafted_features: (B, D_hc)  — optional, zeros if missing
-
-        Returns:
-            Dict with all task outputs.
-        """
         imu = batch["imu"]
         ppg = batch["ppg"]
         vitals = batch["vitals"]
 
-        # Handcrafted features (optional)
+        # El yapimi ozellik yoksa sifirlarla doldurulmus giris kullanir.
         if "handcrafted_features" in batch:
             hc_input = batch["handcrafted_features"]
         else:
@@ -139,7 +107,7 @@ class HealthAlertModelV2(nn.Module):
                 device=imu.device, dtype=imu.dtype,
             )
 
-        # Modality availability masks (B,)
+        # Modalite varlik maskelerini batch icinden alir veya kendisi uretir.
         modality_mask = {}
         if "modality_mask" in batch:
             modality_mask = {
@@ -149,7 +117,6 @@ class HealthAlertModelV2(nn.Module):
                 "handcrafted": batch["modality_mask"][:, 3],
             }
         else:
-            # Fallback heuristic if mask not provided by the dataset.
             modality_mask = {
                 "imu": (imu.abs().sum(dim=(1, 2)) > 0).float(),
                 "ppg": (ppg.abs().sum(dim=(1, 2)) > 0).float(),
@@ -157,17 +124,16 @@ class HealthAlertModelV2(nn.Module):
                 "handcrafted": (hc_input.abs().sum(dim=1) > 0).float(),
             }
 
-        # Encode each modality
-        imu_embed = self.imu_encoder(imu)            # (B, D_imu)
-        ppg_embed = self.ppg_encoder(ppg)             # (B, D_ppg)
-        vitals_embed = self.vitals_mlp(vitals)        # (B, D_vitals)
-        hc_embed = self.handcrafted_mlp(hc_input)     # (B, D_hc)
+        imu_embed = self.imu_encoder(imu)
+        ppg_embed = self.ppg_encoder(ppg)
+        vitals_embed = self.vitals_mlp(vitals)
+        hc_embed = self.handcrafted_mlp(hc_input)
 
-        # Quality gate on PPG
+        # PPG kolunu kalite kapisiyla agirliklandirir.
         gated_ppg, quality_score = self.quality_gate(ppg_embed, vitals)
         gated_ppg = gated_ppg * modality_mask["ppg"].unsqueeze(1)
 
-        # Fuse all modalities
+        # Tum modaliteleri tek bir temsil halinde birlestirir.
         fused = self.fusion(
             {
                 "imu": imu_embed,
@@ -178,7 +144,7 @@ class HealthAlertModelV2(nn.Module):
             modality_mask=modality_mask,
         )
 
-        # Task heads
+        # Gorev basliklari uzerinden son logitleri hesaplar.
         fall_logit = self.fall_head(fused)
         instability_logit = self.instability_head(fused)
         quality_logit = self.quality_head(fused)
@@ -193,8 +159,8 @@ class HealthAlertModelV2(nn.Module):
             "fused_embedding": fused,
         }
 
+    # Varsayilan v2 model yapisini ayarlar halinde dondurur.
     def _default_config(self):
-        """Return default model config as a dict."""
         from omegaconf import OmegaConf
         return OmegaConf.create({
             "model": {
@@ -217,17 +183,17 @@ class HealthAlertModelV2(nn.Module):
             }
         })
 
+    # Egitilebilir parametre sayisini hesaplar.
     def count_parameters(self) -> int:
-        """Count total trainable parameters."""
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+    # Asamali egitimde encoder agirliklarini dondurur.
     def freeze_encoders(self) -> None:
-        """Freeze encoder weights (useful for stage-wise training)."""
         for module in [self.imu_encoder, self.ppg_encoder]:
             for param in module.parameters():
                 param.requires_grad = False
 
+    # Tum parametreleri yeniden egitilebilir hale getirir.
     def unfreeze_all(self) -> None:
-        """Unfreeze all parameters."""
         for param in self.parameters():
             param.requires_grad = True

@@ -9,6 +9,9 @@ import '../../ui/widgets/recommendations_card.dart';
 import '../../ui/widgets/severity_badge.dart';
 import '../../ui/widgets/trend_card.dart';
 import '../../ui/widgets/empty_state_widget.dart';
+import '../../ui/widgets/assistant_card.dart';
+import '../../core/models/assistant_state.dart';
+import '../../core/services/care_assistant_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'self/history_detail_screen.dart';
 import 'health_assistant_screen.dart';
@@ -241,8 +244,52 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              if (live != null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Final risk skoru: ${(live.finalRiskScore ?? live.riskScore).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (live.mlAdjustment != null)
+                        Text(
+                          'ML kanit katkisi: ${live.mlAdjustment! >= 0 ? '+' : ''}${live.mlAdjustment!.toStringAsFixed(2)}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      if (live.modelWindowStatus != null)
+                        Text(
+                          'Model penceresi: ${live.modelWindowStatus}',
+                          style: const TextStyle(color: Colors.white54, fontSize: 12),
+                        )
+                      else
+                        const Text(
+                          'Model penceresi: 50Hz / 200 sample',
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 24),
-
+              // Part 5C — Care Assistant Orchestrator card
+              if (app.user != null && app.apiClient != null)
+                _AssistantCardLoader(
+                  userId: app.user!.id,
+                  service: CareAssistantService(app.apiClient!),
+                ),
               RecommendationsCard(live: live),
               const SizedBox(height: 16),
 
@@ -542,6 +589,52 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// AssistantCard verisini durumlu olarak yukleyip yeniler.
+class _AssistantCardLoader extends StatefulWidget {
+  final String userId;
+  final CareAssistantService service;
+
+  const _AssistantCardLoader({
+    required this.userId,
+    required this.service,
+  });
+
+  @override
+  State<_AssistantCardLoader> createState() => _AssistantCardLoaderState();
+}
+
+class _AssistantCardLoaderState extends State<_AssistantCardLoader> {
+  AssistantState? _state;
+  List<AssistantAction> _actions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final state = await widget.service.getAssistantState(widget.userId);
+    final actions = await widget.service.getAssistantActions(widget.userId);
+    if (mounted) {
+      setState(() {
+        _state = state;
+        _actions = actions;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AssistantCard(
+      state: _state,
+      actions: _actions,
+      service: widget.service,
+      onAckSent: _load,
     );
   }
 }

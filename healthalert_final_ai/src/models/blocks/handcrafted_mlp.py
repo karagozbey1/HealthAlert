@@ -1,22 +1,12 @@
-"""Handcrafted feature MLP branch.
-
-Small feedforward network for the handcrafted feature vector.
-Sits alongside the learned encoders (IMU, PPG, vitals) and
-contributes to the attention fusion.
-"""
-
 import torch
 import torch.nn as nn
 from typing import List
 
 
+# El yapimi ozellik vektorunu ortak temsil uzayina tasir.
 class HandcraftedMLP(nn.Module):
-    """MLP for handcrafted feature embedding.
 
-    Input: (B, feature_dim) — flat feature vector with possible NaN→0
-    Output: (B, output_dim) — embedded representation
-    """
-
+    # Gizli katmanlari ve cikis boyutunu baslatir.
     def __init__(
         self,
         input_dim: int = 38,
@@ -41,14 +31,6 @@ class HandcraftedMLP(nn.Module):
         self.mlp = nn.Sequential(*layers)
         self.output_dim = hidden_dims[-1]
 
+    # Duz ozellik vektorunu MLP uzerinden gomulu temsile cevirir.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass.
-
-        Args:
-            x: (B, feature_dim) tensor. NaN values should have been
-               replaced with 0.0 before calling.
-
-        Returns:
-            (B, output_dim) embedded features.
-        """
         return self.mlp(x)

@@ -15,6 +15,7 @@ from schemas import DeviceTokenResponse, NotificationResponse, RegisterDeviceTok
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
+# Mevcut kullaniciya ait bildirimleri listeler.
 @router.get("", response_model=list[NotificationResponse])
 async def get_notifications(
     db: AsyncSession = Depends(get_db),
@@ -23,6 +24,7 @@ async def get_notifications(
 ):
     return await repos.notifications.list_by_recipient(current_user.id)
 
+# Mevcut kullanicinin tum bildirimlerini okundu isaretler.
 @router.put("/read-all", status_code=204)
 async def mark_all_read(
     db: AsyncSession = Depends(get_db),
@@ -32,6 +34,7 @@ async def mark_all_read(
     await repos.notifications.mark_all_read(current_user.id)
     await db.commit()
 
+# Tek bir bildirimi okundu durumuna getirir.
 @router.put("/{notif_id}/read", status_code=204)
 async def mark_one_read(
     notif_id: str,
@@ -44,6 +47,7 @@ async def mark_one_read(
         raise HTTPException(status_code=404, detail="Notification not found")
     await db.commit()
 
+# Push bildirim tokenini ekler veya platformunu gunceller.
 @router.post("/register-token", response_model=DeviceTokenResponse)
 async def register_device_token(
     req: RegisterDeviceTokenRequest,
@@ -75,6 +79,7 @@ async def register_device_token(
     await db.refresh(dt)
     return dt
 
+# Mevcut kullaniciya ait push token kaydini siler.
 @router.delete("/unregister-token", status_code=204)
 async def unregister_device_token(
     req: RegisterDeviceTokenRequest,

@@ -1,13 +1,3 @@
-"""Inference demo script for HealthAlert.
-
-Runs all six canonical scenarios using synthetic data and prints
-structured risk output with reasons and recommendations.
-
-Usage:
-    python scripts/run_infer_demo.py
-    python scripts/run_infer_demo.py --model_path outputs/models/best_final_fusion_model.pt
-"""
-
 import sys
 import time
 import argparse
@@ -29,6 +19,7 @@ from src.simulation.extended_scenarios import ExtendedScenarioGenerator
 from src.data.feature_engineering.feature_pipeline import extract_all_handcrafted_features
 
 
+# Demo cagrisi icin model yolu ve cihaz secimini okur.
 def parse_args():
     parser = argparse.ArgumentParser(description="HealthAlert Inference Demo")
     parser.add_argument("--model_path", type=str, default=None,
@@ -37,7 +28,7 @@ def parse_args():
     return parser.parse_args()
 
 
-# ANSI colors
+# Terminal ciktilarini risk seviyesine gore renklendirir.
 C = {
     "normal": "\033[92m", "watch": "\033[93m",
     "warning": "\033[33m", "critical": "\033[91m",
@@ -45,6 +36,7 @@ C = {
 }
 
 
+# Demo basligini ekrana yazar.
 def print_header():
     print("\n" + "=" * 70)
     print(f"{C['bold']}  🏥 HealthAlert AI — Inference Demo (6 Scenarios){C['reset']}")
@@ -52,6 +44,7 @@ def print_header():
     print("=" * 70)
 
 
+# Tek senaryonun yapilandirilmis sonucunu ayrintili sekilde yazdirir.
 def print_scenario_result(scenario_name: str, description: str,
                           result: dict, recommendations: list,
                           explanation: dict, elapsed_ms: float):
@@ -88,6 +81,7 @@ def print_scenario_result(scenario_name: str, description: str,
             print(f"    {dir_icon} {contrib['explanation']} (importance: {contrib['importance']:.2f})")
 
 
+# Alti temel senaryoda cikarim, aciklama ve oneri akislarini calistirir.
 def main():
     args = parse_args()
     set_seed(42)
@@ -96,7 +90,7 @@ def main():
     print_header()
     print(f"  Device: {device}")
 
-    # Load or create model
+    # Checkpoint varsa onu yukler, yoksa demo modeliyle devam eder.
     if args.model_path and Path(args.model_path).exists():
         predictor = HealthAlertPredictor.from_checkpoint(args.model_path, str(device))
         print("  Model: Trained model loaded ✓")
@@ -110,7 +104,7 @@ def main():
     recommender = RecommendationEngineV2()
     explainer = ExplainableOutputV2()
 
-    # Generate all six scenarios
+    # Alti temel senaryoyu sentetik olarak uretir.
     gen = ExtendedScenarioGenerator(sr=50, seed=42)
     scenarios = gen.generate_all()
 
@@ -122,7 +116,7 @@ def main():
         data = scenario["data"]
         description = scenario["description"]
 
-        # Take last window_size samples
+        # Son pencereyi model girdisi olarak kullanir.
         window_size = 200
         n = len(data["timestamp"])
         start = max(0, n - window_size)
@@ -142,7 +136,7 @@ def main():
         spo2_mean = float(np.nanmean(data["spo2"][start:start+window_size]))
         vitals = np.array([hr_mean, spo2_mean / 100.0, 0.8], dtype=np.float32)
 
-        # Pad if needed
+        # Pencere kisa kalirsa sifir dolguyla sabit boyuta tamamlar.
         if imu.shape[0] < window_size:
             pad = np.zeros((window_size - imu.shape[0], 6), dtype=np.float32)
             imu = np.vstack([imu, pad])
@@ -151,10 +145,9 @@ def main():
 
         t0 = time.time()
 
-        # Predict
         predictions = predictor.predict(imu, ppg, vitals, smooth=False)
 
-        # Extract handcrafted features for explainability
+    # Aciklanabilirlik katmani icin el yapimi ozellikleri cikarir.
         hc_vec, hc_names = extract_all_handcrafted_features(
             accel=imu[:, :3], gyro=imu[:, 3:6],
             hr_signal=ppg.flatten(),
@@ -163,14 +156,11 @@ def main():
         )
         hc_dict = dict(zip(hc_names, hc_vec.tolist()))
 
-        # Postprocess
         vitals_dict = {"heart_rate": hr_mean, "spo2": spo2_mean}
         result = postprocessor.process(predictions, vitals_dict)
 
-        # Recommendations
         recommendations = recommender.get_recommendations(result)
 
-        # Explainability
         explanation = explainer.explain(predictions, vitals_dict, hc_dict)
 
         elapsed_ms = (time.time() - t0) * 1000

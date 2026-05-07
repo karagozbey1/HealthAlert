@@ -1,24 +1,9 @@
-"""Risk postprocessor: converts raw predictions to clinical risk levels (v2).
-
-Enhanced output format:
-    - fall_probability
-    - instability_probability
-    - ppg_quality_score
-    - vital_confidence_score
-    - early_risk_score
-    - final_risk_level (normal/watch/warning/critical)
-    - immediate_alert (bool)
-    - reasons (list)
-    - recommendations (list)
-    - raw_scores (dict)
-"""
-
 import logging
 from typing import Dict, List
 
 logger = logging.getLogger("healthalert.inference.postprocessor_v2")
 
-# ── Default thresholds (config-overridable) ──────────────────────────
+# Varsayilan esik degerlerini tek yerde toplar.
 DEFAULT_THRESHOLDS = {
     "hr_low": 50,
     "hr_high": 120,
@@ -43,7 +28,7 @@ DEFAULT_FUSION_WEIGHTS = {
     "ppg_quality_penalty": 0.20,
 }
 
-# ── English recommendations ──────────────────────────────────────────
+# Risk seviyesine gore varsayilan onerileri tutar.
 RECOMMENDATIONS = {
     "critical": [
         "FALL RISK VERY HIGH — immediate assistance may be needed",
@@ -71,13 +56,10 @@ RECOMMENDATIONS = {
 }
 
 
+# Gelismis risk isleyicisiyle alert ve onerileri bir arada uretir.
 class RiskPostprocessorV2:
-    """Converts raw model outputs to structured risk assessment.
 
-    Enhanced version with immediate_alert, recommendations, and
-    raw_scores in the output.
-    """
-
+    # Esik ve agirlik degerlerini yukleyip v2 isleyiciyi hazirlar.
     def __init__(self, cfg=None):
         if cfg is None:
             cfg = {}
@@ -97,15 +79,6 @@ class RiskPostprocessorV2:
         predictions: Dict[str, float],
         vitals: Dict[str, float] = None,
     ) -> Dict:
-        """Process raw predictions into structured risk output.
-
-        Args:
-            predictions: Raw model outputs.
-            vitals: Current vital values {heart_rate, spo2}.
-
-        Returns:
-            Complete risk assessment dict.
-        """
         vitals = vitals or {}
 
         fall_prob = predictions.get("fall_prob", 0.0)
@@ -113,13 +86,13 @@ class RiskPostprocessorV2:
         quality_score = predictions.get("quality_score", 1.0)
         risk_score = predictions.get("risk_score", 0.0)
 
-        # ── Vital risk ───────────────────────────────────────────
+        # Vital bulgularin olusturdugu riski hesaplar.
         vital_risk = self._compute_vital_risk(vitals)
 
-        # ── Quality penalty ──────────────────────────────────────
+        # Dusuk kalite durumunda ek ceza uygular.
         quality_penalty = max(0.0, 1.0 - quality_score)
 
-        # ── Weighted early risk score ────────────────────────────
+        # Erken risk skorunu agirlikli olarak birlestirir.
         early_risk = (
             self.w_fall * fall_prob
             + self.w_instability * instability_prob
@@ -128,7 +101,7 @@ class RiskPostprocessorV2:
         )
         early_risk = min(1.0, max(0.0, early_risk))
 
-        # ── Multi-signal deterioration boost ─────────────────────
+        # Birden fazla sinyal bozulduysa skoru bir miktar guclendirir.
         n_elevated = sum([
             fall_prob >= self.thresholds["fall_prob_warning"],
             instability_prob >= self.thresholds["instability_warning"],
@@ -137,13 +110,12 @@ class RiskPostprocessorV2:
         if n_elevated >= 2:
             early_risk = min(1.0, early_risk * 1.15)
 
-        # ── Single-sensor spike dampening ────────────────────────
-        # Prevent over-trusting isolated spikes from one modality.
+        # Tek kanalli ani sicrama durumunda asiri guveni azaltir.
         if n_elevated <= 1:
             dampen = float(self.thresholds.get("single_signal_dampen", 0.9))
             early_risk = max(0.0, min(1.0, early_risk * dampen))
 
-        # ── Risk level ───────────────────────────────────────────
+        # Son skora gore risk seviyesini belirler.
         if early_risk >= self.thresholds["risk_critical"] or fall_prob >= self.thresholds["fall_prob_critical"]:
             risk_level = "critical"
         elif early_risk >= self.thresholds["risk_warning"]:
@@ -153,26 +125,26 @@ class RiskPostprocessorV2:
         else:
             risk_level = "normal"
 
-        # ── Immediate alert ──────────────────────────────────────
+        # Acil bildirim gerekip gerekmedigini ayrica hesaplar.
         immediate_alert = (
             fall_prob >= self.thresholds["immediate_alert_fall"]
             or early_risk >= self.thresholds["immediate_alert_risk"]
             or (instability_prob >= 0.7 and vital_risk >= 0.5)
         )
 
-        # ── Reasons ──────────────────────────────────────────────
+        # Aciklayici nedenleri bir liste halinde toplar.
         reasons = self._build_reasons(
             fall_prob, instability_prob, quality_score, vital_risk, vitals
         )
 
-        # ── Recommendations ──────────────────────────────────────
+        # Risk seviyesine uygun onerileri secip kaliteye gore zenginlestirir.
         recommendations = list(RECOMMENDATIONS.get(risk_level, RECOMMENDATIONS["normal"]))
         if quality_score < self.thresholds["quality_unreliable"]:
             recommendations.append("Sensor contact should be checked — signal quality is low")
         elif quality_score < self.thresholds["quality_low"]:
             recommendations.append("Please check sensor positioning")
 
-        # ── Confidence ───────────────────────────────────────────
+        # Sonucun guven derecesini hesaplar.
         confidence = quality_score * 0.7 + 0.3
 
         return {
@@ -197,8 +169,8 @@ class RiskPostprocessorV2:
             "confidence": round(confidence, 4),
         }
 
+    # Vital verilerin toplam risk katkisini hesaplar.
     def _compute_vital_risk(self, vitals: Dict) -> float:
-        """Compute risk contribution from vital signs."""
         risk = 0.0
         hr = vitals.get("heart_rate", 75)
         spo2 = vitals.get("spo2", 98)
@@ -213,6 +185,7 @@ class RiskPostprocessorV2:
 
         return min(1.0, risk)
 
+    # Kullaniciya gosterilecek neden metinlerini toplar.
     def _build_reasons(
         self,
         fall_prob: float,
@@ -221,7 +194,6 @@ class RiskPostprocessorV2:
         vital_risk: float,
         vitals: Dict,
     ) -> List[str]:
-        """Build human-readable English reason strings."""
         reasons: List[str] = []
 
         if fall_prob >= self.thresholds["fall_prob_critical"]:
@@ -247,7 +219,7 @@ class RiskPostprocessorV2:
         elif quality_score < self.thresholds["quality_low"]:
             reasons.append("SpO2 reliability is low")
 
-        # Multi-signal deterioration
+        # Birden fazla sinyal birlikte bozulduysa bunu vurgular.
         if vital_risk > 0.3 and instability_prob > 0.3:
             reasons.append("Combined deterioration pattern observed")
 

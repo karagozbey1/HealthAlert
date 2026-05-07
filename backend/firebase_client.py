@@ -140,11 +140,13 @@ def get_firestore_client():
         init_firebase()
     return _firestore_client
 
+# Firebase ilk durumunu ve hata bilgisini ozette dondurur.
 def get_firebase_status() -> Dict[str, Any]:
     if not _initialised:
         init_firebase()
     return dict(_firebase_status)
 
+# Firestore baglantisini yazma-okuma-silme turu ile sinar.
 async def firebase_smoke_test() -> Dict[str, Any]:
     client = get_firestore_client()
     if client is None:

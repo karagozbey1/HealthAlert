@@ -1,15 +1,3 @@
-"""Multi-stage training pipeline for HealthAlert.
-
-Five training stages:
-    Stage 1: Data inspection & validation
-    Stage 2: Quality head pre-training (BUT_PPG)
-    Stage 3: IMU/fall/instability backbone (HIFD + WEDA_FALL)
-    Stage 4: Fusion training with risk proxy head
-    Stage 5: Final joint fine-tuning
-
-Each stage produces a named checkpoint.
-"""
-
 import logging
 import sys
 import time
@@ -29,7 +17,7 @@ from src.utils.io import save_checkpoint
 logger = logging.getLogger("healthalert.training.stage_trainer")
 
 
-# ── Utility ──────────────────────────────────────────────────────────
+# Batch icindeki tensor alanlarini verilen cihaza tasir.
 def _to_device(batch: Dict, device: torch.device) -> Dict:
     return {
         k: v.to(device) if isinstance(v, torch.Tensor) else v
@@ -37,6 +25,7 @@ def _to_device(batch: Dict, device: torch.device) -> Dict:
     }
 
 
+# Tek bir stage icin egitim epoch'unu calistirir.
 def _train_one_epoch(
     model: torch.nn.Module,
     loader: DataLoader,
@@ -46,12 +35,6 @@ def _train_one_epoch(
     gradient_clip: float = 1.0,
     active_tasks: Optional[List[str]] = None,
 ) -> Dict[str, float]:
-    """Run one training epoch.
-
-    Args:
-        active_tasks: If set, only compute loss for these tasks.
-            Options: 'fall', 'instability', 'quality', 'risk'.
-    """
     model.train()
     total_loss = 0.0
     loss_components: Dict[str, float] = {}
@@ -87,13 +70,13 @@ def _train_one_epoch(
 
 
 @torch.no_grad()
+# Stage icin dogrulama yukleyicisinden metric ve ham ciktilari toplar.
 def _evaluate(
     model: torch.nn.Module,
     loader: DataLoader,
     criterion: MultiTaskLoss,
     device: torch.device,
 ) -> Tuple[Dict[str, float], Dict]:
-    """Evaluate on a data loader."""
     model.eval()
     all_out = {"fall": [], "instability": [], "quality": [], "risk": []}
     all_tgt = {"fall": [], "instability": [], "quality": [], "risk": []}
@@ -132,6 +115,7 @@ def _evaluate(
     return metrics, {"outputs": all_out, "targets": all_tgt}
 
 
+# Verilen stage ayarlariyla tam epoch dongusunu yonetir.
 def _run_stage(
     stage_name: str,
     model: torch.nn.Module,
@@ -145,7 +129,6 @@ def _run_stage(
     max_epochs: Optional[int] = None,
     lr_override: Optional[float] = None,
 ) -> Dict[str, float]:
-    """Generic stage runner."""
     logger.info(f"\n{'='*60}")
     logger.info(f"  STAGE: {stage_name}")
     logger.info(f"{'='*60}")
@@ -223,10 +206,8 @@ def _run_stage(
     return best_metrics
 
 
-# ── Public stage runners ─────────────────────────────────────────────
-
+# Ilk asamada veri seti ozetlerini ve temel dagilimlari raporlar.
 def stage1_inspect(registry: Dict[str, list], cfg) -> None:
-    """Stage 1: Data inspection and validation."""
     logger.info("\n" + "=" * 60)
     logger.info("  STAGE 1: Data Inspection")
     logger.info("=" * 60)
@@ -254,6 +235,7 @@ def stage1_inspect(registry: Dict[str, list], cfg) -> None:
     logger.info("\nStage 1 complete.")
 
 
+# Kalite gorevini ayri pretrain asamasinda egitir.
 def stage2_quality_pretrain(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -261,7 +243,6 @@ def stage2_quality_pretrain(
     cfg,
     device: torch.device,
 ) -> Dict[str, float]:
-    """Stage 2: Pre-train quality head on BUT_PPG."""
     return _run_stage(
         stage_name="Stage2_QualityPretrain",
         model=model,
@@ -276,6 +257,7 @@ def stage2_quality_pretrain(
     )
 
 
+# Dusme ve dengesizlik gorevlerini ortak omurgada egitir.
 def stage3_fall_instability_train(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -283,7 +265,6 @@ def stage3_fall_instability_train(
     cfg,
     device: torch.device,
 ) -> Dict[str, float]:
-    """Stage 3: Train fall + instability on HIFD + WEDA_FALL."""
     return _run_stage(
         stage_name="Stage3_FallInstability",
         model=model,
@@ -298,6 +279,7 @@ def stage3_fall_instability_train(
     )
 
 
+# Encoderleri dondurup birlesim ve risk basliklarini egitir.
 def stage4_fusion_risk_train(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -305,12 +287,6 @@ def stage4_fusion_risk_train(
     cfg,
     device: torch.device,
 ) -> Dict[str, float]:
-    """Stage 4: Freeze encoders, train fusion + risk + all heads.
-
-    Encoders (IMU, PPG) are frozen so fusion attention and task heads
-    learn to combine already-useful representations without disrupting
-    the encoder weights established in stages 2-3.
-    """
     model.freeze_encoders()
     logger.info("[Stage4] Encoders FROZEN — training fusion + heads only")
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -331,6 +307,7 @@ def stage4_fusion_risk_train(
     )
 
 
+# Tum modeli dusuk ogrenme oraninda birlikte ince ayara alir.
 def stage5_joint_finetune(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -338,17 +315,11 @@ def stage5_joint_finetune(
     cfg,
     device: torch.device,
 ) -> Dict[str, float]:
-    """Stage 5: Unfreeze all, joint fine-tuning with lower LR.
-
-    All parameters are unfrozen and trained together with a reduced
-    learning rate (1/10 of base) so the whole model is refined jointly
-    without catastrophic forgetting of earlier stages.
-    """
     model.unfreeze_all()
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logger.info(f"[Stage5] All parameters UNFROZEN — {n_trainable:,} trainable")
 
-    # Override LR to 1/10 of base for fine-tuning
+    # Ince ayarda taban ogrenme oraninin onda birini kullanir.
     finetune_cfg = dict(cfg)
     base_lr = cfg.get("optimizer", {}).get("lr", 0.001)
     finetune_lr = base_lr * 0.1

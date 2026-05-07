@@ -15,7 +15,9 @@ AcquisitionManager acq;
 SerialCmd serialCmd;
 TransportOrchestrator transport;
 static char jsonBuf[1024];
+static char rawJsonBuf[1024];
 static unsigned long lastPacketTime = 0;
+static unsigned long lastRawSampleTime = 0;
 static bool useMock = true;
 
 static void printBanner() {
@@ -76,6 +78,7 @@ void setup() {
     Serial.println();
 
     lastPacketTime = millis();
+    lastRawSampleTime = millis();
 }
 
 // Ana döngü: paket topla, JSON'a çevir, gönder.
@@ -104,8 +107,17 @@ void loop() {
         }
     }
 
+    if (transport.getBle().consumeRequestMockMode()) {
+        acq.setMockMode(true);
+        useMock = true;
+    }
+    if (transport.getBle().consumeRequestRealMode()) {
+        acq.setMockMode(false);
+        useMock = false;
+    }
+
     unsigned long now = millis();
-    if (now - lastPacketTime >= PACKET_INTERVAL_MS) {
+    if (now - lastPacketTime >= SUMMARY_PACKET_INTERVAL_MS) {
         lastPacketTime = now;
 
         DevicePacket pkt = acq.collect();
@@ -113,4 +125,18 @@ void loop() {
 
         transport.sendPacket(jsonBuf);
     }
+
+#if BLE_MODEL_STREAM_ENABLED
+    uint16_t rawRateHz = transport.getBle().getRawRateHz();
+    if (rawRateHz == 0) rawRateHz = MODEL_STREAM_RATE_HZ;
+    unsigned long rawIntervalMs = 1000UL / rawRateHz;
+    if (rawIntervalMs == 0) rawIntervalMs = 1;
+
+    if (now - lastRawSampleTime >= rawIntervalMs) {
+        lastRawSampleTime = now;
+        RawSensorSample raw = acq.collectRawSample(rawRateHz);
+        PacketFormatter::rawToJsonLine(raw, rawJsonBuf, sizeof(rawJsonBuf));
+        transport.getBle().sendRawSample(rawJsonBuf);
+    }
+#endif
 }

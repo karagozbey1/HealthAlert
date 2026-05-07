@@ -1,5 +1,3 @@
-"""Main training loop for HealthAlert multi-task model."""
-
 import logging
 import time
 from typing import Dict, Optional, Tuple
@@ -17,9 +15,10 @@ from src.training.callbacks import EarlyStopping, ModelCheckpoint
 logger = logging.getLogger("healthalert.training.trainer")
 
 
+# Tek asamali egitim dongusunu ve dogrulamayi yoneten siniftir.
 class Trainer:
-    """Multi-task trainer for HealthAlert model."""
 
+    # Model, kayip, optimizer ve callback bilesenlerini kurar.
     def __init__(
         self,
         model: torch.nn.Module,
@@ -52,15 +51,15 @@ class Trainer:
         self.gradient_clip = train_cfg.get("gradient_clip", 1.0)
         self.epochs = train_cfg.get("epochs", 100)
 
+    # Bir epoch boyunca ileri ve geri yayilim adimlarini calistirir.
     def train_epoch(self, dataloader: DataLoader) -> Dict[str, float]:
-        """Train for one epoch."""
         self.model.train()
         total_loss = 0
         loss_components = {}
         n_batches = 0
 
         for batch in tqdm(dataloader, desc="Training", leave=False):
-            # Move to device
+            # Tensorel alanlari hedef cihaza tasir.
             batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v
                      for k, v in batch.items()}
 
@@ -96,8 +95,8 @@ class Trainer:
         return avg_losses
 
     @torch.no_grad()
+    # Dogrulama ya da test yukleyicisi uzerinde metric ve tahmin toplar.
     def evaluate(self, dataloader: DataLoader) -> Tuple[Dict[str, float], Dict[str, float]]:
-        """Evaluate on validation/test set."""
         self.model.eval()
         all_outputs = {"fall": [], "instability": [], "quality": [], "risk": []}
         all_targets = {"fall": [], "instability": [], "quality": [], "risk": []}
@@ -120,7 +119,7 @@ class Trainer:
             total_loss += loss.item()
             n_batches += 1
 
-            # Collect predictions
+            # Tum gorevler icin tahmin ve hedefleri toplar.
             all_outputs["fall"].append(torch.sigmoid(outputs["fall_logit"]).cpu().numpy())
             all_outputs["instability"].append(torch.sigmoid(outputs["instability_logit"]).cpu().numpy())
             all_outputs["quality"].append(torch.sigmoid(outputs["quality_logit"]).cpu().numpy())
@@ -131,7 +130,7 @@ class Trainer:
             all_targets["quality"].append(batch["quality_label"].cpu().numpy())
             all_targets["risk"].append(batch["risk_label"].cpu().numpy())
 
-        # Concatenate
+        # Batch ciktilarini tek dizide birlestirir.
         for k in all_outputs:
             all_outputs[k] = np.concatenate(all_outputs[k])
             all_targets[k] = np.concatenate(all_targets[k])
@@ -141,12 +140,12 @@ class Trainer:
 
         return metrics, {"outputs": all_outputs, "targets": all_targets}
 
+    # Egitim ve dogrulamayi epoch bazinda donguye alir.
     def fit(
         self,
         train_loader: DataLoader,
         val_loader: DataLoader,
     ) -> Dict[str, float]:
-        """Full training loop."""
         logger.info(f"Starting training for {self.epochs} epochs")
         logger.info(f"Model parameters: {self.model.count_parameters():,}")
 
@@ -155,13 +154,11 @@ class Trainer:
         for epoch in range(1, self.epochs + 1):
             t0 = time.time()
 
-            # Train
             train_losses = self.train_epoch(train_loader)
 
-            # Validate
             val_metrics, _ = self.evaluate(val_loader)
 
-            # Scheduler step
+            # Scheduler varsa izlenen metriye gore bir adim ilerletir.
             if self.scheduler is not None:
                 if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                     self.scheduler.step(val_metrics.get("fall_f1", 0))
@@ -179,12 +176,10 @@ class Trainer:
                 f"lr={lr:.6f} | {elapsed:.1f}s"
             )
 
-            # Checkpoint
             saved = self.checkpoint(val_metrics, self.model, self.optimizer, epoch)
             if saved:
                 best_metrics = val_metrics.copy()
 
-            # Early stopping
             monitor = val_metrics.get("fall_f1", 0)
             if self.early_stopping(monitor):
                 break

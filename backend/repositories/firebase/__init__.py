@@ -12,6 +12,7 @@ from .repos import (
     FirebaseSettingsRepo,
     FirebaseSimulationStateRepo,
     FirebaseDeviceRepo,
+    FirebaseBaselineRepo,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "FirebaseSettingsRepo",
     "FirebaseSimulationStateRepo",
     "FirebaseDeviceRepo",
+    "FirebaseBaselineRepo",
 ]

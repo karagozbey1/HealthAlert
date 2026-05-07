@@ -1,17 +1,12 @@
-"""PPG Encoder: 1D CNN for PPG/heart rate signal encoding."""
-
 import torch
 import torch.nn as nn
 from typing import List
 
 
+# Tek kanalli PPG sinyalini CNN ile ozet temsile cevirir.
 class PPGEncoder(nn.Module):
-    """1D CNN encoder for PPG signal.
 
-    Input: (B, T, 1) - single-channel PPG
-    Output: (B, output_dim) - encoded representation
-    """
-
+    # PPG icin konvolusyonel kodlayici yapisini kurar.
     def __init__(
         self,
         in_channels: int = 1,
@@ -39,16 +34,10 @@ class PPGEncoder(nn.Module):
         self.adaptive_pool = nn.AdaptiveAvgPool1d(1)
         self.dropout = nn.Dropout(dropout)
 
+    # PPG penceresini sabit boyutlu ozellige indirger.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            x: (B, T, 1) PPG tensor.
-
-        Returns:
-            (B, output_dim) encoded representation.
-        """
-        x = x.permute(0, 2, 1)  # (B, 1, T)
-        x = self.cnn(x)          # (B, C, T')
-        x = self.adaptive_pool(x).squeeze(-1)  # (B, C)
+        x = x.permute(0, 2, 1)
+        x = self.cnn(x)
+        x = self.adaptive_pool(x).squeeze(-1)
         x = self.dropout(x)
         return x

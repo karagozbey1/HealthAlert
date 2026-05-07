@@ -11,6 +11,7 @@ from schemas import LiveStatusResponse
 
 router = APIRouter(prefix="/live", tags=["live-status"])
 
+# Kullaniciya ait son canli durum kaydini dondurur.
 @router.get("/{user_id}", response_model=LiveStatusResponse)
 async def get_live_status(
     user_id: str,

@@ -1,16 +1,3 @@
-"""HealthAlert Multi-Task Model.
-
-Architecture overview:
-    IMU → IMUEncoder (CRNN) → imu_embed
-    PPG → PPGEncoder (CNN1D) → ppg_embed → QualityGate → gated_ppg
-    Vitals → VitalsMLP → vitals_embed
-    [imu_embed, gated_ppg, vitals_embed] → FusionAttention → fused
-    fused → FallHead    → fall_probability
-    fused → InstabilityHead → instability_probability
-    fused → QualityHead → ppg_quality_score
-    fused → RiskHead    → early_risk_score
-"""
-
 import torch
 import torch.nn as nn
 from typing import Dict, Optional
@@ -26,24 +13,20 @@ from src.models.heads.quality_head import QualityHead
 from src.models.heads.risk_head import RiskHead
 
 
+# IMU, PPG ve vital girdilerini birlestirip coklu gorev ciktilari uretir.
 class HealthAlertModel(nn.Module):
-    """Multi-task, multi-modal health alert model.
 
-    Processes IMU (6-axis), PPG (1-channel), and scalar vitals
-    through specialized encoders, fuses with attention, and produces
-    four task-specific outputs.
-    """
-
+    # Encoder ve gorev basliklarini varsayilan ayarlarla kurar.
     def __init__(self, cfg=None):
         super().__init__()
 
-        # Default config
+        # Ayar verilmezse varsayilan model yapisini kullanir.
         if cfg is None:
             cfg = self._default_config()
 
         model_cfg = cfg if not hasattr(cfg, "model") else cfg.model
 
-        # === Encoders ===
+        # Modalite encoderlarini ayri ayri olusturur.
         imu_cfg = model_cfg.get("imu_encoder", {})
         self.imu_encoder = IMUEncoder(
             in_channels=imu_cfg.get("in_channels", 6),
@@ -78,7 +61,7 @@ class HealthAlertModel(nn.Module):
             hidden_dim=qg_cfg.get("hidden_dim", 64),
         )
 
-        # === Fusion ===
+        # Encoded temsilleri dikkat tabanli birlesim katmanina baglar.
         fusion_cfg = model_cfg.get("fusion", {})
         embed_dim = fusion_cfg.get("embed_dim", 128)
 
@@ -93,47 +76,36 @@ class HealthAlertModel(nn.Module):
             dropout=fusion_cfg.get("dropout", 0.2),
         )
 
-        # === Task Heads ===
+        # Her gorev icin ayri cikti basligini tanimlar.
         self.fall_head = FallHead(input_dim=embed_dim)
         self.instability_head = InstabilityHead(input_dim=embed_dim)
         self.quality_head = QualityHead(input_dim=embed_dim)
         self.risk_head = RiskHead(input_dim=embed_dim)
 
+    # Girdi batch'ini encode edip tum gorev ciktilarini uretir.
     def forward(self, batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """
-        Args:
-            batch: Dict with keys 'imu', 'ppg', 'vitals'
-                - imu: (B, T, 6)
-                - ppg: (B, T, 1)
-                - vitals: (B, 3)
-
-        Returns:
-            Dict with all task outputs.
-        """
         imu = batch["imu"]
         ppg = batch["ppg"]
         vitals = batch["vitals"]
 
-        # Encode each modality
-        imu_embed = self.imu_encoder(imu)          # (B, D_imu)
-        ppg_embed = self.ppg_encoder(ppg)           # (B, D_ppg)
-        vitals_embed = self.vitals_mlp(vitals)      # (B, D_vitals)
+        imu_embed = self.imu_encoder(imu)
+        ppg_embed = self.ppg_encoder(ppg)
+        vitals_embed = self.vitals_mlp(vitals)
 
-        # Quality gate on PPG
+        # PPG temsilini kalite kapisindan gecirir.
         gated_ppg, quality_score = self.quality_gate(ppg_embed, vitals)
 
-        # Fuse modalities
+        # Tum modaliteleri tek temsilde birlestirir.
         fused = self.fusion({
             "imu": imu_embed,
             "ppg": gated_ppg,
             "vitals": vitals_embed,
         })
 
-        # Task heads
-        fall_logit = self.fall_head(fused)              # (B, 1)
-        instability_logit = self.instability_head(fused) # (B, 1)
-        quality_logit = self.quality_head(fused)         # (B, 1)
-        risk_score = self.risk_head(fused)               # (B, 1)
+        fall_logit = self.fall_head(fused)
+        instability_logit = self.instability_head(fused)
+        quality_logit = self.quality_head(fused)
+        risk_score = self.risk_head(fused)
 
         return {
             "fall_logit": fall_logit.squeeze(-1),
@@ -144,8 +116,8 @@ class HealthAlertModel(nn.Module):
             "fused_embedding": fused,
         }
 
+    # Varsayilan model ayarlarini OmegaConf biciminde dondurur.
     def _default_config(self):
-        """Return default model config as a dict."""
         from omegaconf import OmegaConf
         return OmegaConf.create({
             "model": {
@@ -158,6 +130,6 @@ class HealthAlertModel(nn.Module):
             }
         })
 
+    # Egitilebilir parametre sayisini hesaplar.
     def count_parameters(self) -> int:
-        """Count total trainable parameters."""
         return sum(p.numel() for p in self.parameters() if p.requires_grad)

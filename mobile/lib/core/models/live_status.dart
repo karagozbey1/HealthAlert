@@ -8,6 +8,12 @@ class LiveStatus {
     required this.riskScore,
     required this.scenario,
     required this.timestamp,
+    this.finalRiskScore,
+    this.personalizedRiskScore,
+    this.mlEvidenceScore,
+    this.mlAdjustment,
+    this.fusionApplied,
+    this.modelWindowStatus,
   });
 
   final String id;
@@ -18,6 +24,12 @@ class LiveStatus {
   final double riskScore;
   final String scenario;
   final DateTime timestamp;
+  final double? finalRiskScore;
+  final double? personalizedRiskScore;
+  final double? mlEvidenceScore;
+  final double? mlAdjustment;
+  final bool? fusionApplied;
+  final String? modelWindowStatus;
 
   static LiveStatus fromJson(Map<String, dynamic> json) => LiveStatus(
         id: json['id'] as String? ?? '',
@@ -30,6 +42,15 @@ class LiveStatus {
         timestamp: json['timestamp'] != null
             ? DateTime.parse(json['timestamp'] as String)
             : DateTime.now(),
+        finalRiskScore: (json['final_risk_score'] as num?)?.toDouble(),
+        personalizedRiskScore:
+            (json['personalized_risk_score'] as num?)?.toDouble(),
+        mlEvidenceScore: (json['ml_evidence_score'] as num?)?.toDouble(),
+        mlAdjustment: (json['ml_adjustment'] as num?)?.toDouble(),
+        fusionApplied: json['fusion_applied'] as bool?,
+        modelWindowStatus: json['model_window_status'] != null
+            ? json['model_window_status'].toString()
+            : null,
       );
 
   String get scenarioLabel {

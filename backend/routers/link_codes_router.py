@@ -23,9 +23,11 @@ from schemas import (
 
 router = APIRouter(prefix="/link-codes", tags=["link-codes"])
 
+# Sayisal baglanti kodu uretir.
 def _generate_numeric_code(length: int = 6) -> str:
     return "".join(random.choices(string.digits, k=length))
 
+# Cakismayan yeni bir baglanti kodu bulur.
 async def _unique_code(repos: RepoSet) -> str:
     for _ in range(20):
         code = _generate_numeric_code(6)
@@ -34,6 +36,7 @@ async def _unique_code(repos: RepoSet) -> str:
             return code
     raise RuntimeError("Could not generate unique code after 20 attempts")
 
+# SELF kullanicisi icin yeni baglanti kodu olusturur.
 @router.post("/generate", response_model=LinkCodeResponse, status_code=201)
 async def generate_code(
     body: LinkCodeGenerateRequest,
@@ -62,6 +65,7 @@ async def generate_code(
     await db.commit()
     return result
 
+# Mevcut kullanicinin sahip oldugu kodlari listeler.
 @router.get("/mine", response_model=list[LinkCodeResponse])
 async def get_my_codes(
     db: AsyncSession = Depends(get_db),
@@ -70,6 +74,7 @@ async def get_my_codes(
 ):
     return await repos.link_codes.list_by_owner(current_user.id)
 
+# Kod kaydini pasife alip kullanim haklarini sifirlar.
 @router.delete("/{code_id}", status_code=204)
 async def revoke_code(
     code_id: str,
@@ -83,6 +88,7 @@ async def revoke_code(
     await repos.link_codes.update(code_id, {"is_active": False, "uses_remaining": 0})
     await db.commit()
 
+# Gecerli kodu kullanip iki hesap arasinda iliski kurar.
 @router.post("/redeem", response_model=RedeemCodeResponse, status_code=201)
 async def redeem_code(
     body: RedeemCodeRequest,
@@ -165,6 +171,7 @@ async def redeem_code(
         linked_user_name=owner["full_name"] if owner else "Unknown",
     )
 
+# Rolune gore aktif iliskileri gorunen adlarla listeler.
 @router.get("/relations", response_model=list[UserRelationResponse])
 async def get_my_relations(
     db: AsyncSession = Depends(get_db),
@@ -202,6 +209,7 @@ async def get_my_relations(
             ))
         return out
 
+# Iliski kaydini pasife cekerek baglantiyi kaldirir.
 @router.delete("/relations/{relation_id}", status_code=204)
 async def remove_relation(
     relation_id: str,

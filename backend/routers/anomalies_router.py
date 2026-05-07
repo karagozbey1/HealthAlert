@@ -11,6 +11,7 @@ from schemas import AnomalyResponse
 
 router = APIRouter(prefix="/anomalies", tags=["anomalies"])
 
+# Mevcut SELF kullanicisina ait anomali listesini dondurur.
 @router.get("", response_model=list[AnomalyResponse])
 async def get_my_anomalies(
     db: AsyncSession = Depends(get_db),
@@ -21,6 +22,7 @@ async def get_my_anomalies(
         raise HTTPException(status_code=403, detail="Only SELF users own anomalies")
     return await repos.anomalies.list_by_user(current_user.id)
 
+# Yetkili baglantilar icin kullanicinin anomali gecmisini dondurur.
 @router.get("/{user_id}", response_model=list[AnomalyResponse])
 async def get_user_anomalies(
     user_id: str,

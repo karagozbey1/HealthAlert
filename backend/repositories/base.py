@@ -159,3 +159,138 @@ class AbstractDeviceRepo(ABC):
 
     @abstractmethod
     async def log_packet(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+
+class AbstractBaselineRepo(ABC):
+    @abstractmethod
+    async def get_by_user_id(self, user_id: str) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def create_for_user(self, user_id: str) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def get_or_create(self, user_id: str) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def update_values(self, user_id: str, values: Dict[str, Any]) -> Dict[str, Any]: ...
+
+
+# ---------------------------------------------------------------------------
+# Part 5A — Learning Loop repository
+# ---------------------------------------------------------------------------
+
+class AbstractLearningRepo(ABC):
+    @abstractmethod
+    async def create_session(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def close_session(self, session_id: str, ended_at) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def create_window(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def list_windows(
+        self,
+        user_id: Optional[str] = None,
+        training_candidate: Optional[bool] = None,
+        source: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def get_window(self, window_id: str) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def mark_window_candidate(
+        self, window_id: str, status: str
+    ) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def update_window_feedback(
+        self, window_id: str, feedback_label: str
+    ) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def create_feedback(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def get_feedback_for_window(self, window_id: str) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def create_model_version(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def list_model_versions(self) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def get_active_model_version(self) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def list_windows_for_export(
+        self,
+        user_id: Optional[str] = None,
+        include_demo: bool = False,
+        min_quality_confidence: float = 0.0,
+        limit: int = 1000,
+    ) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def mark_windows_exported(self, window_ids: List[str]) -> int: ...
+
+
+# ---------------------------------------------------------------------------
+# Part 5B — Adaptive Personalization repository
+# ---------------------------------------------------------------------------
+
+class AbstractPersonalizationRepo(ABC):
+    @abstractmethod
+    async def get_or_create_profile(self, user_id: str) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def update_profile(self, user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def add_risk_memory(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def list_risk_memory(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def create_trend_snapshot(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def get_latest_trend_snapshot(self, user_id: str) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def summarize_personalization(self, user_id: str) -> Dict[str, Any]: ...
+
+
+# ---------------------------------------------------------------------------
+# Part 5C — Care Assistant Orchestrator repository
+# ---------------------------------------------------------------------------
+
+class AbstractAssistantRepo(ABC):
+    @abstractmethod
+    async def get_or_create_state(self, user_id: str) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def update_state(self, user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def create_action(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def list_active_actions(self, user_id: str) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def complete_action(self, action_id: str) -> Optional[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def create_ack(self, data: Dict[str, Any]) -> Dict[str, Any]: ...
+
+    @abstractmethod
+    async def get_due_ack_timeouts(self, now: Any) -> List[Dict[str, Any]]: ...
+
+    @abstractmethod
+    async def list_assistant_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]: ...

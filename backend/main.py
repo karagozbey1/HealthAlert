@@ -22,8 +22,11 @@ from routers.settings_router import router as settings_router
 from routers.ingestion_router import router as ingestion_router
 from routers.assistant_router import router as assistant_router
 from routers.chat_router import router as chat_router
+from routers.learning_router import router as learning_router
+from routers.personalization_router import router as personalization_router
+from routers.model_window_router import router as model_window_router
 from services.simulation import run_simulation_loop
-from services.firestore_watcher import run_firestore_watcher_loop
+# firestore_watcher import'u sqlite modunda gereksiz bagimlilik yuklemez.
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
@@ -70,12 +73,15 @@ app.include_router(settings_router)
 app.include_router(ingestion_router)
 app.include_router(assistant_router)
 app.include_router(chat_router)
+app.include_router(learning_router)
+app.include_router(personalization_router)
+app.include_router(model_window_router)
 
 _sim_task: asyncio.Task | None = None
 _firestore_watcher_task: asyncio.Task | None = None
 
+# Uygulama baslangicinda DB, seed ve arka plan gorevlerini hazirlar.
 @app.on_event("startup")
-# Uygulama başlangıcında DB, Firebase, simülasyon ve seed'i başlatır.
 async def startup() -> None:
     log_startup_config()
 
@@ -102,6 +108,7 @@ async def startup() -> None:
 
     if settings.DATA_MODE in ("firebase", "hybrid"):
         from database import AsyncSessionLocal
+        from services.firestore_watcher import run_firestore_watcher_loop
         global _firestore_watcher_task
         _firestore_watcher_task = asyncio.create_task(
             run_firestore_watcher_loop(None, AsyncSessionLocal)
@@ -116,8 +123,8 @@ async def startup() -> None:
 
     logger.info("HealthAlert API ready — APP_MODE=%s", settings.APP_MODE)
 
+# Uygulama kapanirken arka plan gorevlerini durdurur.
 @app.on_event("shutdown")
-# Uygulama kapanırken arka plan görevlerini durdurur.
 async def shutdown() -> None:
     if _sim_task:
         _sim_task.cancel()
@@ -126,11 +133,12 @@ async def shutdown() -> None:
         _firestore_watcher_task.cancel()
         logger.info("Firestore watcher stopped.")
 
+# Temel servis saglik bilgisini dondurur.
 @app.get("/health")
-# Sunucu sağlık durumunu döndürür.
 async def health_check():
     return {"status": "ok", "service": "HealthAlert API", "version": "2.0.0"}
 
+# Bagimlilik ve fallback durumlarini birlikte raporlar.
 @app.get("/readiness")
 async def readiness_check():
     from firebase_client import get_firebase_status
@@ -187,6 +195,7 @@ async def readiness_check():
         },
     }
 
+# Bulut baglantisinin temel okuma-yazma sagligini sinar.
 @app.get("/cloud/smoke")
 async def cloud_smoke_test():
     from firebase_client import firebase_smoke_test, get_firebase_status
@@ -205,6 +214,7 @@ async def cloud_smoke_test():
     result = await firebase_smoke_test()
     return {**result, "firebase_status": status_info}
 
+# Push altyapisinin etkin durumunu ornek istekle dogrular.
 @app.get("/push/smoke")
 async def push_notification_smoke_test():
     from database import AsyncSessionLocal

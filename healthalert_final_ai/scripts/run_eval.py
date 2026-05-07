@@ -1,12 +1,3 @@
-"""Evaluation script for HealthAlert.
-
-Load a checkpoint and evaluate on the test set with per-task metrics report.
-
-Usage:
-    python scripts/run_eval.py --checkpoint outputs/models/best_final_fusion_model.pt
-    python scripts/run_eval.py --checkpoint outputs/models/best_fall_model.pt
-"""
-
 import sys
 import argparse
 from pathlib import Path
@@ -30,6 +21,7 @@ from src.training.losses import MultiTaskLoss
 from src.training.metrics import compute_all_metrics, generate_task_report, calibrate_threshold
 
 
+# Degerlendirme icin gereken komut satiri seceneklerini okur.
 def parse_args():
     parser = argparse.ArgumentParser(description="HealthAlert Evaluation")
     parser.add_argument("--checkpoint", type=str, required=True, help="Model checkpoint path")
@@ -39,6 +31,7 @@ def parse_args():
     return parser.parse_args()
 
 
+# Kaydedilmis modeli test bolmesinde degerlendirip raporlar.
 def main():
     args = parse_args()
 
@@ -57,7 +50,7 @@ def main():
     print(f"  Checkpoint: {args.checkpoint}")
     print(f"  Device: {device}")
 
-    # Load model
+    # Checkpoint'ten modeli yukleyip cihaza tasir.
     model = HealthAlertModelV2(cfg)
     ckpt = load_checkpoint(args.checkpoint, device=str(device))
     model.load_state_dict(ckpt["model_state_dict"])
@@ -81,7 +74,7 @@ def main():
         logger.error("No data loaded. Cannot evaluate.")
         return
 
-    # Get train/val/test split (same global split as training)
+    # Egitimle ayni denek bazli bolmeyi yeniden kurar.
     split_cfg = cfg.get("splitting", {})
     train_data, val_data, test_data = subject_wise_split(
         all_records,
@@ -91,7 +84,7 @@ def main():
         seed=seed,
     )
 
-    # Verify no overlap
+    # Denek sizintisi olmadigini acik sekilde dogrular.
     train_subjects = set(r["subject_id"] for r in train_data)
     val_subjects = set(r["subject_id"] for r in val_data)
     test_subjects = set(r["subject_id"] for r in test_data)
@@ -119,7 +112,7 @@ def main():
         fit_scaler_on_init=True,
     )
 
-    # ── Calibrate thresholds on validation set ───────────────────
+    # Dogrulama bolmesinde gorev bazli en iyi esikleri kalibre eder.
     val_ds = HealthAlertDataset(
         val_data,
         window_size=window_size,
@@ -160,7 +153,7 @@ def main():
             calibrated[task] = 0.5
     print()
 
-    # ── Evaluate on test set ─────────────────────────────────────
+            # Test bolmesinde nihai ciktilari ve kaybi hesaplar.
     test_ds = HealthAlertDataset(
         test_data,
         window_size=window_size,
@@ -173,7 +166,6 @@ def main():
 
     logger.info(f"Test set: {len(test_ds)} windows")
 
-    # Evaluate
     criterion = MultiTaskLoss(cfg.get("loss", {}))
 
     all_out = {"fall": [], "instability": [], "quality": [], "risk": []}
@@ -216,7 +208,7 @@ def main():
     report = generate_task_report(metrics)
     print(report)
 
-    # Save report
+    # Raporu diske yazarak sonraki incelemeler icin saklar.
     report_dir = Path(cfg.get("paths", {}).get("report_dir", "outputs/reports"))
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / "evaluation_report.txt"

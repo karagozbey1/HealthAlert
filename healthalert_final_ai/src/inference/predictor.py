@@ -1,5 +1,3 @@
-"""Real-time predictor for streaming inference."""
-
 import logging
 from typing import Dict, Optional
 
@@ -11,13 +9,10 @@ from src.data.feature_engineering.feature_pipeline import extract_all_handcrafte
 logger = logging.getLogger("healthalert.inference.predictor")
 
 
+# Canli veri pencereleri uzerinden model ciktisi ureten tahmin motorudur.
 class HealthAlertPredictor:
-    """Real-time inference engine for HealthAlert.
 
-    Accepts raw sensor windows and produces risk assessments.
-    Supports EMA smoothing for stable output.
-    """
-
+    # Model, cihaz ve EMA ayarlarini baslangicta hazirlar.
     def __init__(
         self,
         model: torch.nn.Module,
@@ -29,7 +24,7 @@ class HealthAlertPredictor:
         self.device = device
         self.ema_alpha = ema_alpha
 
-        # EMA state
+        # Tahminleri yumusatmak icin EMA durumunu saklar.
         self._ema_state = {
             "fall_prob": 0.0,
             "instability_prob": 0.0,
@@ -45,18 +40,7 @@ class HealthAlertPredictor:
         vitals: np.ndarray,
         smooth: bool = True,
     ) -> Dict[str, float]:
-        """Run inference on a single window.
-
-        Args:
-            imu: (T, 6) IMU array.
-            ppg: (T, 1) PPG array.
-            vitals: (3,) vitals vector [hr, spo2_norm, quality].
-            smooth: Apply EMA smoothing.
-
-        Returns:
-            Dict with all prediction outputs.
-        """
-        # Build handcrafted branch input for fusion parity with training.
+        # Tek pencere icin model girdilerini hazirlayip tahmin uretir.
         spo2_scalar = float(vitals[1] * 100.0) if vitals.shape[0] > 1 else 98.0
         quality_scalar = float(vitals[2]) if vitals.shape[0] > 2 else 1.0
         hc_vec, _ = extract_all_handcrafted_features(
@@ -78,14 +62,14 @@ class HealthAlertPredictor:
             dtype=np.float32,
         )
 
-        # Prepare tensors
+        # Numpy girdilerini modelin bekledigi tensör yapisina cevirir.
         imu_t = torch.from_numpy(imu).float().unsqueeze(0).to(self.device)
         ppg_t = torch.from_numpy(ppg).float().unsqueeze(0).to(self.device)
         vitals_t = torch.from_numpy(vitals).float().unsqueeze(0).to(self.device)
         hc_t = torch.from_numpy(np.nan_to_num(hc_vec, nan=0.0).astype(np.float32)).unsqueeze(0).to(self.device)
         mask_t = torch.from_numpy(modality_mask).unsqueeze(0).to(self.device)
 
-        # Forward
+        # Model ileri gecisini tek cagriyla calistirir.
         outputs = self.model({
             "imu": imu_t,
             "ppg": ppg_t,
@@ -94,7 +78,7 @@ class HealthAlertPredictor:
             "modality_mask": mask_t,
         })
 
-        # Extract probabilities
+        # Ham model ciktilarini olasilik alanlarina donusturur.
         raw = {
             "fall_prob": float(torch.sigmoid(outputs["fall_logit"]).item()),
             "instability_prob": float(torch.sigmoid(outputs["instability_logit"]).item()),
@@ -112,8 +96,8 @@ class HealthAlertPredictor:
 
         return raw
 
+    # Yeni oturum icin EMA birikimini sifirlar.
     def reset(self):
-        """Reset EMA state for a new session."""
         self._ema_state = {
             "fall_prob": 0.0,
             "instability_prob": 0.0,
@@ -128,7 +112,7 @@ class HealthAlertPredictor:
         device: str = "cpu",
         ema_alpha: float = 0.3,
     ) -> "HealthAlertPredictor":
-        """Create predictor from saved checkpoint."""
+        # Kaydedilmis agirliklardan tahmin motoru olusturur.
         from src.models.multitask_model_v2 import HealthAlertModelV2
         from src.utils.io import load_checkpoint
 

@@ -1,5 +1,3 @@
-"""Training callbacks for early stopping and checkpointing."""
-
 import logging
 from pathlib import Path
 from typing import Dict, Optional
@@ -7,9 +5,10 @@ from typing import Dict, Optional
 logger = logging.getLogger("healthalert.training.callbacks")
 
 
+# Ilerleme durunca egitimi sonlandiran erken durdurma yardimcisidir.
 class EarlyStopping:
-    """Early stopping to prevent overfitting."""
 
+    # Sabir, kip ve iyilesme esigini tutar.
     def __init__(self, patience: int = 15, mode: str = "max", min_delta: float = 1e-4):
         self.patience = patience
         self.mode = mode
@@ -18,6 +17,7 @@ class EarlyStopping:
         self.best_score = None
         self.should_stop = False
 
+    # Yeni skoru onceki en iyi degerle karsilastirip durma karari verir.
     def __call__(self, score: float) -> bool:
         if self.best_score is None:
             self.best_score = score
@@ -41,9 +41,10 @@ class EarlyStopping:
         return False
 
 
+# Izlenen metriye gore en iyi modeli diske kaydeder.
 class ModelCheckpoint:
-    """Save best model based on monitored metric."""
 
+    # Kayit klasoru ve izlenecek metric bilgisini baslatir.
     def __init__(
         self,
         save_dir: str,
@@ -56,8 +57,8 @@ class ModelCheckpoint:
         self.mode = mode
         self.best_score = None
 
+    # Yeni en iyi sonuc olusursa model ve optimizer durumunu kaydeder.
     def __call__(self, metrics: Dict, model, optimizer, epoch: int) -> bool:
-        """Check if current metrics are best and save if so."""
         import torch
 
         score = metrics.get(self.metric_name, 0)

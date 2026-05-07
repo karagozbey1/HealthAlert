@@ -11,6 +11,7 @@ from schemas import HistoryResponse
 
 router = APIRouter(prefix="/history", tags=["history"])
 
+# Mevcut SELF kullanicisina ait tarihce kayitlarini dondurur.
 @router.get("", response_model=list[HistoryResponse])
 async def get_my_history(
     db: AsyncSession = Depends(get_db),
@@ -21,6 +22,7 @@ async def get_my_history(
         raise HTTPException(status_code=403, detail="SELF role required")
     return await repos.history.list_by_user(current_user.id)
 
+# Yetkili baglantilar icin kullanici tarihcesini dondurur.
 @router.get("/{user_id}", response_model=list[HistoryResponse])
 async def get_user_history(
     user_id: str,

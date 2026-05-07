@@ -20,18 +20,26 @@ class RepoSet:
     app_settings: Any
     simulation: Any
     devices: Any
+    baselines: Any
+    learning: Any
+    personalization: Any
+    assistant: Any
 
 # SQLite repository setini oluşturur.
 def _build_sqlite(db) -> RepoSet:
     from repositories.sqlite import (
         SqliteAlertRepo,
         SqliteAnomalyRepo,
+        SqliteAssistantRepo,
+        SqliteBaselineRepo,
         SqliteClinicalNoteRepo,
         SqliteDeviceRepo,
         SqliteHistoryRepo,
+        SqliteLearningRepo,
         SqliteLinkCodeRepo,
         SqliteLiveStatusRepo,
         SqliteNotificationRepo,
+        SqlitePersonalizationRepo,
         SqlitePostEventRepo,
         SqliteRelationRepo,
         SqliteSettingsRepo,
@@ -52,6 +60,10 @@ def _build_sqlite(db) -> RepoSet:
         app_settings=SqliteSettingsRepo(db),
         simulation=SqliteSimulationStateRepo(db),
         devices=SqliteDeviceRepo(db),
+        baselines=SqliteBaselineRepo(db),
+        learning=SqliteLearningRepo(db),
+        personalization=SqlitePersonalizationRepo(db),
+        assistant=SqliteAssistantRepo(db),
     )
 
 # Firebase repository setini oluşturur.
@@ -60,6 +72,7 @@ def _build_firebase() -> RepoSet:
     from repositories.firebase import (
         FirebaseAlertRepo,
         FirebaseAnomalyRepo,
+        FirebaseBaselineRepo,
         FirebaseClinicalNoteRepo,
         FirebaseDeviceRepo,
         FirebaseHistoryRepo,
@@ -87,10 +100,16 @@ def _build_firebase() -> RepoSet:
         app_settings=FirebaseSettingsRepo(fs),
         simulation=FirebaseSimulationStateRepo(fs),
         devices=FirebaseDeviceRepo(fs),
+        baselines=FirebaseBaselineRepo(fs),
+        # Ogrenme dongusu Firebase modunda henuz yalnizca SQLite tarafinda calisir.
+        learning=None,
+        personalization=None,
+        assistant=None,
     )
 
 class _HybridRepo:
 
+    # Birincil ve ikincil repository örneklerini saklar.
     def __init__(self, primary, secondary):
         self._primary = primary
         self._secondary = secondary
@@ -106,6 +125,7 @@ class _HybridRepo:
         if secondary_fn is None:
             return primary_fn
 
+        # Yazma işlemlerini önce yerel depoya, sonra ikincil depoya yollar.
         async def _hybrid_write(*args, **kwargs):
             result = await primary_fn(*args, **kwargs)
             try:
@@ -138,6 +158,11 @@ def _build_hybrid(db) -> RepoSet:
         app_settings=_HybridRepo(sq.app_settings, fb.app_settings),
         simulation=_HybridRepo(sq.simulation, fb.simulation),
         devices=_HybridRepo(sq.devices, fb.devices),
+        baselines=sq.baselines,
+        # Ogrenme dongusu hibrit modda SQLite birincil olarak kullanilir.
+        learning=sq.learning,
+        personalization=sq.personalization,
+        assistant=sq.assistant,
     )
 
 # DATA_MODE'a göre RepoSet döndürür.

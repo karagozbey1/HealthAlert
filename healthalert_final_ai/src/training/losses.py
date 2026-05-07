@@ -1,22 +1,18 @@
-"""Multi-task loss functions for HealthAlert."""
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
+# Dengesiz siniflar icin odaklanmis ikili kaybi hesaplar.
 class FocalLoss(nn.Module):
-    """Focal Loss for handling class imbalance in fall detection.
 
-    Focal Loss = -alpha * (1 - p_t)^gamma * log(p_t)
-    Reduces loss contribution from well-classified samples.
-    """
-
+    # Focal loss agirlik parametrelerini saklar.
     def __init__(self, alpha: float = 0.75, gamma: float = 2.0):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
 
+    # Logit ve hedeflerden odaklanmis BCE kaybini hesaplar.
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction="none")
         probs = torch.sigmoid(logits)
@@ -26,16 +22,10 @@ class FocalLoss(nn.Module):
         return (focal_weight * bce_loss).mean()
 
 
+# Dort gorev icin agirlikli toplam kaybi tek yerde toplar.
 class MultiTaskLoss(nn.Module):
-    """Combined loss for all four tasks with configurable weights.
 
-    Tasks:
-    1. Fall detection (focal loss)
-    2. Instability detection (BCE)
-    3. PPG quality (BCE)
-    4. Risk score (MSE)
-    """
-
+    # Kayip turlerini ve gorev agirliklarini ayarlardan yukler.
     def __init__(self, cfg=None):
         super().__init__()
 
@@ -68,34 +58,23 @@ class MultiTaskLoss(nn.Module):
         self.risk_type = str(risk_cfg.get("type", "mse")).lower()
         self.risk_weight = risk_cfg.get("weight", 0.4)
 
+    # Etkin gorevlere gore toplam ve alt kayiplari hesaplar.
     def forward(
         self,
         outputs: dict,
         targets: dict,
         active_tasks: list = None,
     ) -> tuple:
-        """Compute weighted multi-task loss.
-
-        Args:
-            outputs: Model outputs dict.
-            targets: Ground truth dict.
-            active_tasks: If set, only compute loss for these tasks.
-                Options: 'fall', 'instability', 'quality', 'risk'.
-                If None, all tasks are active.
-
-        Returns:
-            (total_loss, loss_dict) for logging.
-        """
         if active_tasks is None:
             active_tasks = ["fall", "instability", "quality", "risk"]
 
         losses = {}
         total = torch.tensor(0.0, device=outputs["fall_logit"].device)
 
-        # Fall detection
+        # Dusme gorevi icin secilen kayip tipini uygular.
         if "fall" in active_tasks:
             if self.fall_type == "ce":
-                # Convert single-logit binary output to 2-class logits.
+            # Tek logit cikisini iki sinifli CE bicimine cevirir.
                 fall_logits_2c = torch.stack([-outputs["fall_logit"], outputs["fall_logit"]], dim=1)
                 fall_target_int = targets["fall_label"].long()
                 losses["fall"] = F.cross_entropy(fall_logits_2c, fall_target_int)
@@ -107,7 +86,7 @@ class MultiTaskLoss(nn.Module):
                 losses["fall"] = self.fall_loss(outputs["fall_logit"], targets["fall_label"])
             total = total + self.fall_weight * losses["fall"]
 
-        # Instability
+        # Dengesizlik gorevi icin sinif agirlikli BCE uygular.
         if "instability" in active_tasks:
             pw = self.instability_pos_weight.to(outputs["instability_logit"].device)
             losses["instability"] = F.binary_cross_entropy_with_logits(
@@ -116,7 +95,7 @@ class MultiTaskLoss(nn.Module):
             )
             total = total + self.instability_weight * losses["instability"]
 
-        # PPG quality
+        # PPG kalitesi icin CE ya da BCE tabanli kaybi hesaplar.
         if "quality" in active_tasks:
             if self.quality_type == "ce":
                 quality_logits_2c = torch.stack([-outputs["quality_logit"], outputs["quality_logit"]], dim=1)
@@ -132,7 +111,7 @@ class MultiTaskLoss(nn.Module):
                 )
             total = total + self.quality_weight * losses["quality"]
 
-        # Risk score (regression)
+        # Risk skoru icin secilen regresyon kaybini uygular.
         if "risk" in active_tasks:
             if self.risk_type == "mae":
                 losses["risk"] = F.l1_loss(outputs["risk_score"], targets["risk_label"])

@@ -25,25 +25,14 @@ from sklearn.metrics import (
     average_precision_score,
 )
 
-# Headless backend for PNG generation
+# PNG uretiminde arayuz gerektirmeyen matplotlib kipini acar.
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-# ============================================================
-# MAT parser (robust)
-# ============================================================
+# MAT dosyalarindaki farkli sinyal duzenlerini tolere eden cozumleyicidir.
 def _mat_get_signals(mat: Dict) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Supports:
-    1) direct keys: ax, ay, az, heart (+ optional droll/dpitch/dyaw)
-    2) fallback: largest numeric 2D matrix, interpreted as:
-       ax ay az w x y z droll dpitch dyaw heart time
-    Output:
-      ppg: (N,1)  heart
-      imu: (N,6)  ax ay az droll dpitch dyaw
-    """
     keys = {k.lower(): k for k in mat.keys() if not k.startswith("__")}
     need = ["ax", "ay", "az", "heart"]
 
@@ -77,7 +66,7 @@ def _mat_get_signals(mat: Dict) -> Tuple[np.ndarray, np.ndarray]:
     _, M = sorted(candidates, key=lambda x: x[1].size, reverse=True)[0]
     M = np.asarray(M)
 
-    # (F,N) -> (N,F)
+    # Ozellik once geliyorsa matrisi zaman once olacak sekilde dondurur.
     if M.shape[0] <= 20 and M.shape[1] > M.shape[0]:
         M = M.T
 
@@ -93,6 +82,7 @@ def _mat_get_signals(mat: Dict) -> Tuple[np.ndarray, np.ndarray]:
     return ppg, imu
 
 
+# Dosya yolundan ikili etiket adini cikarir.
 def _label_from_path(fp: Path) -> str:
     parent = fp.parent.name.lower()
     if parent == "fall":
@@ -107,6 +97,7 @@ class WindowCfg:
     stride_sec: float = 0.5
 
 
+# MAT kayitlarini pencerelere bolup etiket ve pencere ayarlarini dondurur.
 def make_windows(data_root: Path, cfg: WindowCfg):
     mat_files = sorted(list(data_root.rglob("*.mat")))
     if not mat_files:
@@ -115,11 +106,11 @@ def make_windows(data_root: Path, cfg: WindowCfg):
     win_len = int(cfg.fs * cfg.window_sec)
     stride = int(cfg.fs * cfg.stride_sec)
 
-    windows = []  # (ppg(T,1), imu(T,6), y_name, subject_str)
+    windows = []
     labels = []
 
     for fp in mat_files:
-        subject = fp.parents[1].name  # ...\subject_01\fall\file.mat
+        subject = fp.parents[1].name
         label_name = _label_from_path(fp)
 
         mat = loadmat(fp)
@@ -141,6 +132,7 @@ def make_windows(data_root: Path, cfg: WindowCfg):
     return windows, uniq_labels, win_len, stride
 
 
+# Denek bazli sekilde egitim, dogrulama ve test bolmelerini ayirir.
 def split_by_subject(windows, seed=42):
     rng = np.random.default_rng(seed)
     subjects = sorted(list(set([w[3] for w in windows])))
@@ -180,6 +172,7 @@ def split_by_subject(windows, seed=42):
     return tr, va, te, tr_sub, va_sub, te_sub
 
 
+# Egitim bolmesinden normalizasyon istatistiklerini hesaplar.
 def compute_norm_stats(train_windows):
     ppg_all = np.concatenate([w[0] for w in train_windows], axis=0)
     imu_all = np.concatenate([w[1] for w in train_windows], axis=0)
@@ -191,6 +184,7 @@ def compute_norm_stats(train_windows):
     return (ppg_mu, ppg_sd, imu_mu, imu_sd)
 
 
+# Pencere veri setini tensor ciktilarina ceviren Dataset sinifidir.
 class HIFDWindowDS(Dataset):
     def __init__(self, windows, label2id, norm_stats):
         self.windows = windows
@@ -206,8 +200,8 @@ class HIFDWindowDS(Dataset):
         ppg = (ppg - self.ppg_mu) / self.ppg_sd
         imu = (imu - self.imu_mu) / self.imu_sd
 
-        ppg_t = torch.from_numpy(ppg.T).float()  # (1,T)
-        imu_t = torch.from_numpy(imu.T).float()  # (6,T)
+        ppg_t = torch.from_numpy(ppg.T).float()
+        imu_t = torch.from_numpy(imu.T).float()
         y = torch.tensor(self.label2id[y_name], dtype=torch.long)
         return ppg_t, imu_t, y
 
@@ -250,29 +244,23 @@ class CRNN(nn.Module):
         )
 
     def forward(self, ppg, imu):
-        p = self.ppg_cnn(ppg)       # (B,32,T')
-        p = p.transpose(1, 2)       # (B,T',32)
-        p_out, _ = self.ppg_rnn(p)  # (B,T',128)
-        p_feat = p_out[:, -1, :]    # (B,128)
+        p = self.ppg_cnn(ppg)
+        p = p.transpose(1, 2)
+        p_out, _ = self.ppg_rnn(p)
+        p_feat = p_out[:, -1, :]
 
-        x = self.imu_cnn(imu)       # (B,64,T')
-        x = x.transpose(1, 2)       # (B,T',64)
-        x_out, _ = self.imu_rnn(x)  # (B,T',128)
-        x_feat = x_out[:, -1, :]    # (B,128)
+        x = self.imu_cnn(imu)
+        x = x.transpose(1, 2)
+        x_out, _ = self.imu_rnn(x)
+        x_feat = x_out[:, -1, :]
 
         feat = torch.cat([p_feat, x_feat], dim=1)
         return self.head(feat)
 
 
 @torch.no_grad()
+# Yukleyici uzerinden tahmin, etiket ve gerekirse pozitif skor toplar.
 def eval_model_with_scores(model, loader, device, num_classes: int):
-    """
-    Returns:
-      y_true (N,)
-      y_pred (N,)
-      y_score (N,) only for binary (probability of class 1). Else None.
-      avg_loss (float) if criterion passed via closure, else 0.
-    """
     model.eval()
     ys, ps, scores = [], [], []
 
@@ -286,7 +274,6 @@ def eval_model_with_scores(model, loader, device, num_classes: int):
         ps.append(pred)
 
         if num_classes == 2:
-            # probability of positive class (class id = 1)
             scores.append(probs[:, 1].detach().cpu().numpy())
 
     if len(ys) == 0:
@@ -299,6 +286,7 @@ def eval_model_with_scores(model, loader, device, num_classes: int):
 
 
 @torch.no_grad()
+# Bir yukleyici icin ortalama kaybi ornek sayisina gore hesaplar.
 def compute_loader_loss(model, loader, device, criterion):
     model.eval()
     total = 0.0
@@ -312,15 +300,8 @@ def compute_loader_loss(model, loader, device, criterion):
     return total / max(1, n)
 
 
+# Siniflandirma ciktilarindan saglam bir metric paketi uretir.
 def compute_metrics(y_true, y_pred, y_score: Optional[np.ndarray], class_names: List[str]) -> Dict[str, float]:
-    """
-    Computes robust set of metrics.
-    For binary classification (len(class_names)==2):
-      - Sensitivity (Recall for positive)
-      - Specificity
-      - ROC-AUC
-      - PR-AUC (Average Precision)
-    """
     metrics: Dict[str, float] = {}
     if len(y_true) == 0:
         return metrics
@@ -334,13 +315,11 @@ def compute_metrics(y_true, y_pred, y_score: Optional[np.ndarray], class_names: 
     metrics["MCC"] = float(matthews_corrcoef(y_true, y_pred))
     metrics["Kappa"] = float(cohen_kappa_score(y_true, y_pred))
 
-    # Binary extras
+    # Ikili siniflandirmada ek duyarlilik, ozgulluk ve AUC metrikleri ekler.
     if len(class_names) == 2:
-        # by our label2id ordering: class id 1 corresponds to second label in uniq_labels.
-        # In your dataset uniq_labels sorted -> ['ADL','FALL'] usually => positive=FALL (id=1). Good.
         cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
         tn, fp, fn, tp = cm.ravel()
-        sensitivity = tp / (tp + fn + 1e-12)  # recall positive
+        sensitivity = tp / (tp + fn + 1e-12)
         specificity = tn / (tn + fp + 1e-12)
 
         metrics["Sensitivity_pos"] = float(sensitivity)

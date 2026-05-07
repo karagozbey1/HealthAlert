@@ -1,14 +1,11 @@
-"""PPG quality prediction head."""
 import torch
 import torch.nn as nn
 
 
+# PPG sinyal kalitesini tek skora indirgeyen cikti basligidir.
 class QualityHead(nn.Module):
-    """PPG signal quality classification head.
 
-    Input: (B, D) fused or PPG-specific features
-    Output: (B, 1) quality score
-    """
+    # PPG kalite tahmini icin kompakt cikti katmanini kurar.
     def __init__(self, input_dim: int = 128, hidden_dim: int = 32):
         super().__init__()
         self.head = nn.Sequential(
@@ -17,5 +14,6 @@ class QualityHead(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
+    # Verilen temsilden kalite logitini hesaplar.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.head(x)

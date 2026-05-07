@@ -9,8 +9,10 @@ from config import settings
 
 logger = logging.getLogger("healthalert.llm")
 
+# LLM ayarlarini tek yerde toplayan hafif istemciyi tanimlar.
 class LLMClient:
 
+    # Varsayilan ayarlar veya verilen parametrelerle istemciyi hazirlar.
     def __init__(
         self,
         api_key: str | None = None,
@@ -25,8 +27,8 @@ class LLMClient:
         self.max_tokens = max_tokens or settings.LLM_MAX_TOKENS
         self.timeout = timeout or settings.LLM_TIMEOUT
 
-    @property
     # API anahtarı yapılandırılmış mı kontrol eder.
+    @property
     def is_configured(self) -> bool:
         return bool(self.api_key)
 
@@ -101,6 +103,7 @@ class LLMClient:
 
 _default_client: Optional[LLMClient] = None
 
+# Uygulama genelinde paylasilan varsayilan LLM istemcisini dondurur.
 def get_llm_client() -> LLMClient:
     global _default_client
     if _default_client is None:

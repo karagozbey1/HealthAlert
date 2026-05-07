@@ -1,15 +1,8 @@
-"""Explainability module for model predictions (v2 — English).
-
-Generates human-readable explanations using English reason templates.
-Provides feature importance and decision reasoning without complex
-SHAP/LIME (can be added later).
-"""
-
 import numpy as np
 from typing import Dict, List
 
 
-# Reason templates (English)
+# V2 aciklama katmani icin neden sablonlarini tutar.
 REASON_TEMPLATES = {
     "fall_high": "Fall probability is very high ({prob:.0%})",
     "fall_elevated": "Fall risk is elevated ({prob:.0%})",
@@ -29,13 +22,10 @@ REASON_TEMPLATES = {
 }
 
 
+# V2 tahmin sonucunu kullaniciya aciklanabilir hale getirir.
 class ExplainableOutputV2:
-    """Generate human-readable explanations of model predictions.
 
-    Uses rule-based feature importance to produce English-language
-    explanations suitable for display in a mobile app or report.
-    """
-
+    # Esik degerlerini ayarlayip v2 aciklayiciyi kurar.
     def __init__(self, risk_thresholds: Dict = None):
         self.thresholds = risk_thresholds or {
             "hr_low": 50, "hr_high": 120,
@@ -48,22 +38,12 @@ class ExplainableOutputV2:
         vitals: Dict[str, float] = None,
         imu_features: Dict[str, float] = None,
     ) -> Dict:
-        """Generate explainability report.
-
-        Args:
-            predictions: Model output probabilities.
-            vitals: Current vital values.
-            imu_features: Extracted IMU features.
-
-        Returns:
-            Dict with importance scores and natural language explanations.
-        """
         vitals = vitals or {}
         imu_features = imu_features or {}
 
         contributions: List[Dict] = []
 
-        # ── Fall detection ───────────────────────────────────────
+        # Dusme olasiligi yuksekse bunu ana katkilar arasina ekler.
         fall_prob = predictions.get("fall_prob", 0.0)
         if fall_prob > 0.8:
             contributions.append({
@@ -80,7 +60,7 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["fall_elevated"].format(prob=fall_prob),
             })
 
-        # ── Instability ──────────────────────────────────────────
+        # Denge bozulmasi sinyalini ayri katkı olarak ele alir.
         inst_prob = predictions.get("instability_prob", 0.0)
         if inst_prob > 0.4:
             contributions.append({
@@ -90,7 +70,7 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["instability"].format(prob=inst_prob),
             })
 
-        # ── IMU features ─────────────────────────────────────────
+        # IMU tarafindaki ani ivme ve darbe ozelliklerini degerlendirir.
         svm_max = imu_features.get("svm_max", imu_features.get("accel_magnitude_max", 0))
         if svm_max > 3.0:
             contributions.append({
@@ -118,7 +98,7 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["inactivity_after_motion"],
             })
 
-        # ── Heart rate ───────────────────────────────────────────
+        # Nabiz degerleri ve egilimini aciklama listesine ekler.
         hr = vitals.get("heart_rate", 75)
         if hr < self.thresholds["hr_low"]:
             contributions.append({
@@ -144,7 +124,7 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["hr_rising"],
             })
 
-        # ── SpO2 ─────────────────────────────────────────────────
+        # SpO2 dususunu bagimsiz risk etkisi olarak ele alir.
         spo2 = vitals.get("spo2", 98)
         if spo2 < self.thresholds["spo2_low"]:
             contributions.append({
@@ -154,7 +134,7 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["hypoxemia"].format(spo2=spo2),
             })
 
-        # ── Signal quality ───────────────────────────────────────
+        # Sinyal kalitesine gore guven azaltici katkilar ekler.
         quality = predictions.get("quality_score", 1.0)
         if quality < 0.3:
             contributions.append({
@@ -171,7 +151,7 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["ppg_moderate"],
             })
 
-        # ── Combined ─────────────────────────────────────────────
+        # Birden fazla bozulma birlikte varsa bunu da ozet katkıya ekler.
         risk_factors = [c for c in contributions if c["direction"] == "risk_increase"]
         if len(risk_factors) >= 3:
             contributions.append({
@@ -181,10 +161,10 @@ class ExplainableOutputV2:
                 "explanation": REASON_TEMPLATES["combined_deterioration"],
             })
 
-        # Sort by importance
+        # Katkilari onem derecesine gore siralar.
         contributions.sort(key=lambda x: x["importance"], reverse=True)
 
-        # Summary
+        # Katkilardan tek cumlelik bir ozet cikarir.
         if not contributions:
             summary = REASON_TEMPLATES["all_normal"]
         else:

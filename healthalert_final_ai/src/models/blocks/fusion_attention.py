@@ -1,26 +1,13 @@
-"""Multi-head Attention Fusion for combining modality embeddings.
-
-Engineering Decision:
-  Uses scaled dot-product multi-head attention to learn cross-modal
-  importance weights. A learnable CLS token aggregates information.
-"""
-
 from typing import Dict, List, Optional
 
 import torch
 import torch.nn as nn
 
 
+# Modalite temsillerini dikkat mekanizmasiyla ortak bir uzaya birlestirir.
 class FusionAttention(nn.Module):
-    """Attention-based fusion of multiple modality embeddings.
 
-    Projects each modality to a common dimension, then applies
-    multi-head self-attention followed by a CLS-token readout.
-
-    Input: List of (B, dim_i) tensors from each encoder
-    Output: (B, embed_dim) fused representation
-    """
-
+    # Projeksiyon, CLS token ve attention katmanlarini baslatir.
     def __init__(
         self,
         modality_dims: dict = None,
@@ -34,17 +21,17 @@ class FusionAttention(nn.Module):
 
         self.embed_dim = embed_dim
 
-        # Projection layers for each modality
+    # Her modaliteyi ortak boyuta tasiyacak projeksiyonlari kurar.
         self.modality_order: List[str] = list(modality_dims.keys())
         self.projections = nn.ModuleDict({
             name: nn.Linear(dim, embed_dim)
             for name, dim in modality_dims.items()
         })
 
-        # CLS token
+        # Birlesik ozeti tasiyacak ogrenilebilir CLS tokenini tanimlar.
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim) * 0.02)
 
-        # Multi-head self-attention
+        # Cok baslikli attention ve cikis normunu olusturur.
         self.attention = nn.MultiheadAttention(
             embed_dim=embed_dim,
             num_heads=num_heads,
@@ -59,31 +46,22 @@ class FusionAttention(nn.Module):
         modality_dict: Dict[str, torch.Tensor],
         modality_mask: Optional[Dict[str, torch.Tensor]] = None,
     ) -> torch.Tensor:
-        """
-        Args:
-            modality_dict: {"imu": (B, D1), "ppg": (B, D2), "vitals": (B, D3)}
-            modality_mask: optional {"imu": (B,), "ppg": (B,), ...} with
-                1.0 meaning available and 0.0 meaning missing.
-
-        Returns:
-            (B, embed_dim) fused representation.
-        """
         B = next(iter(modality_dict.values())).size(0)
 
-        # Project each modality to common dimension
+        # Her modaliteyi ortak embed boyutuna tasir.
         tokens = []
         key_padding_mask = []
 
-        # CLS token is always valid
+        # CLS token her ornekte gecerli kabul edilir.
         key_padding_mask.append(torch.zeros(B, dtype=torch.bool, device=next(iter(modality_dict.values())).device))
 
         for name in self.modality_order:
             if name not in modality_dict:
                 continue
 
-            token = self.projections[name](modality_dict[name]).unsqueeze(1)  # (B, 1, E)
+            token = self.projections[name](modality_dict[name]).unsqueeze(1)
 
-            # Missing modality samples are represented as zero tokens and masked.
+            # Eksik modaliteleri maskeleyip sifir agirlikla temsil eder.
             if modality_mask is not None and name in modality_mask:
                 sample_mask = modality_mask[name].float().view(B, 1, 1)
                 token = token * sample_mask
@@ -93,19 +71,16 @@ class FusionAttention(nn.Module):
 
             tokens.append(token)
 
-        # Add CLS token
-        cls = self.cls_token.expand(B, -1, -1)  # (B, 1, E)
+        cls = self.cls_token.expand(B, -1, -1)
         tokens.insert(0, cls)
 
-        # Concatenate all tokens
-        x = torch.cat(tokens, dim=1)  # (B, N+1, E)
-        attn_mask = torch.stack(key_padding_mask, dim=1)  # (B, N+1)
+        x = torch.cat(tokens, dim=1)
+        attn_mask = torch.stack(key_padding_mask, dim=1)
 
-        # Self-attention
+        # Attention cikisini artik baglanti ile normalize eder.
         attn_out, _ = self.attention(x, x, x, key_padding_mask=attn_mask)
         x = self.norm(x + attn_out)
 
-        # Return CLS token output
-        fused = x[:, 0, :]  # (B, E)
+        fused = x[:, 0, :]
         fused = self.dropout(fused)
         return fused

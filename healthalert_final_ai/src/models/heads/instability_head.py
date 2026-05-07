@@ -1,14 +1,11 @@
-"""Instability / near-fall prediction head."""
 import torch
 import torch.nn as nn
 
 
+# Dengesizlik veya dusme oncesi sinyalini skorlayan cikti basligidir.
 class InstabilityHead(nn.Module):
-    """Binary instability detection head.
 
-    Input: (B, D) fused representation
-    Output: (B, 1) instability probability
-    """
+    # Dengesizlik tahmini icin gizli katmanli basi kurar.
     def __init__(self, input_dim: int = 128, hidden_dim: int = 64):
         super().__init__()
         self.head = nn.Sequential(
@@ -18,5 +15,6 @@ class InstabilityHead(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
+    # Birlesik temsilden dengesizlik logitini uretir.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.head(x)

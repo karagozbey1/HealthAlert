@@ -1,16 +1,11 @@
-"""Explainability module for model predictions."""
-
 import numpy as np
 from typing import Dict, List
 
 
+# Tahmin sonucunu nedenleriyle birlikte yorumlanabilir hale getirir.
 class ExplainableOutput:
-    """Generate human-readable explanations of model predictions.
 
-    Provides feature importance and decision reasoning without
-    requiring complex SHAP/LIME (those can be added later).
-    """
-
+    # Esik degerlerini ayarlayip aciklama ureticisini baslatir.
     def __init__(self, risk_thresholds: Dict = None):
         self.thresholds = risk_thresholds or {
             "hr_low": 50, "hr_high": 120,
@@ -23,20 +18,10 @@ class ExplainableOutput:
         vitals: Dict[str, float] = None,
         imu_features: Dict[str, float] = None,
     ) -> Dict:
-        """Generate explainability report.
-
-        Args:
-            predictions: Model output probabilities.
-            vitals: Current vital values.
-            imu_features: Extracted IMU features.
-
-        Returns:
-            Dict with importance scores and natural language explanations.
-        """
         vitals = vitals or {}
         imu_features = imu_features or {}
 
-        # Feature contributions (rule-based approximation)
+        # Kurala dayali katkilarla aciklama listesini olusturur.
         contributions = []
 
         fall_prob = predictions.get("fall_prob", 0.0)
@@ -100,10 +85,10 @@ class ExplainableOutput:
                 "explanation": "Düşük sinyal kalitesi - sonuçlar güvenilir olmayabilir",
             })
 
-        # Sort by importance
+        # En onemli katkilarin basta gelmesi icin siralar.
         contributions.sort(key=lambda x: x["importance"], reverse=True)
 
-        # Summary
+        # Sonucu tek cumlelik bir ozet haline getirir.
         if not contributions:
             summary = "Tüm parametreler normal sınırlarda. Risk tespit edilmedi."
         else:

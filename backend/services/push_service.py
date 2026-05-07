@@ -28,6 +28,7 @@ _push_stats: Dict[str, Any] = {
     "last_error": None,
 }
 
+# Push altyapisinin mevcut durumunu ve temel sayaçlarini ozetler.
 def get_push_status() -> Dict[str, Any]:
     fcm_key_set = bool(settings.FCM_SERVER_KEY)
     push_mode = settings.NOTIFICATION_MODE == "push"
@@ -44,6 +45,7 @@ def get_push_status() -> Dict[str, Any]:
         "stats": dict(_push_stats),
     }
 
+# Tek bir cihaza FCM istegi gonderip sonucu fail-open bicimde dondurur.
 async def _send_fcm_message(
     token: str,
     title: str,
@@ -115,6 +117,7 @@ async def _send_fcm_message(
 
     return {"ok": False, "token_invalid": False, "detail": last_error}
 
+# Gecersiz hale gelen token kaydini veritabanindan temizler.
 async def _cleanup_invalid_token(db: AsyncSession, token: str, user_id: str) -> None:
     try:
         await db.execute(
@@ -131,6 +134,7 @@ async def _cleanup_invalid_token(db: AsyncSession, token: str, user_id: str) -> 
     except Exception as exc:
         logger.warning("Failed to clean invalid token: %s", exc)
 
+# Kullaniciya ait tum cihaz tokenlarina push bildirimini yollar.
 async def push_to_user(
     db: AsyncSession,
     user_id: str,
@@ -181,6 +185,7 @@ async def push_to_user(
     logger.info("Push delivery for user %s: %d/%d tokens.", user_id, sent, len(tokens))
     return sent
 
+# FCM anahtari ve erisilebilirligi icin temel smoke kontrolunu calistirir.
 async def push_smoke_test(db: AsyncSession) -> Dict[str, Any]:
     checks = {
         "notification_mode_is_push": settings.NOTIFICATION_MODE == "push",

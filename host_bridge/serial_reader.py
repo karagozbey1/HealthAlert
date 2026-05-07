@@ -35,6 +35,7 @@ CSV_FIELDS = [
 
 _partial_buf: str = ""
 
+# BLE cihazini ada gore bulup adresini dondurur.
 async def _scan_for_device(name: str, timeout: float = 10.0) -> str:
     logger.info("Scanning for BLE device '%s' (%.0fs timeout)...", name, timeout)
     device = await BleakScanner.find_device_by_name(name, timeout=timeout)
@@ -46,6 +47,7 @@ async def _scan_for_device(name: str, timeout: float = 10.0) -> str:
 
 class PacketWriter:
 
+    # Hedef dosyayi ve cikti bicimini hazirlar.
     def __init__(self, path: Path | None, fmt: str):
         self._file = None
         self._csv_writer = None
@@ -59,6 +61,7 @@ class PacketWriter:
             elif fmt == "csv":
                 self._csv_writer = csv.DictWriter(self._file, fieldnames=CSV_FIELDS)
 
+    # Dogrulanmis paketi secilen dosya bicimine yazar.
     def write(self, pkt: DevicePacketSchema) -> None:
         if self._file is None:
             return
@@ -69,10 +72,12 @@ class PacketWriter:
             self._csv_writer.writerow(data)
         self._file.flush()
 
+    # Acik dosya taniticisini kapatir.
     def close(self) -> None:
         if self._file:
             self._file.close()
 
+# Paketi terminalde okunabilir bir satir olarak gosterir.
 def _pretty_print(pkt: DevicePacketSchema) -> None:
     hr_str = f"{pkt.heart_rate:.1f}" if pkt.hr_valid else "---"
     spo2_str = f"{pkt.spo2:.1f}" if pkt.spo2_valid else "---"
@@ -86,9 +91,11 @@ def _pretty_print(pkt: DevicePacketSchema) -> None:
         finger, imu, ppg, pkt.accel_x, pkt.accel_y, pkt.accel_z, pkt.state_hint,
     )
 
+# BLE bildirim akisini paket dogrulama ve yazma adimlarina baglar.
 def _make_notification_handler(writer: PacketWriter, quiet: bool, counters: dict):
     partial_buf = [""]
 
+    # Bildirim parcalarini tam satirlar halinde isler.
     def on_notification(sender, data: bytearray) -> None:
         try:
             chunk = data.decode("utf-8", errors="replace")
@@ -119,6 +126,7 @@ def _make_notification_handler(writer: PacketWriter, quiet: bool, counters: dict
 
     return on_notification
 
+# BLE kaynagindan gelen paketleri dinler ve yazar.
 async def _run_ble(address: str, writer: PacketWriter, quiet: bool) -> None:
     counters = {"valid": 0, "invalid": 0, "fw_lines": 0}
     handler = _make_notification_handler(writer, quiet, counters)
@@ -143,6 +151,7 @@ async def _run_ble(address: str, writer: PacketWriter, quiet: bool) -> None:
                 counters["valid"], counters["invalid"], counters["fw_lines"],
             )
 
+# Mock TCP kaynagindan gelen paketleri ayni cikti hattina yazar.
 async def _run_mock_tcp(host: str, port: int, writer: PacketWriter, quiet: bool) -> None:
     counters = {"valid": 0, "invalid": 0}
     logger.info("Connecting to mock TCP server at %s:%d ...", host, port)
@@ -171,6 +180,7 @@ async def _run_mock_tcp(host: str, port: int, writer: PacketWriter, quiet: bool)
     finally:
         logger.info("Stopped. Valid=%d  Invalid=%d", counters["valid"], counters["invalid"])
 
+# BLE veya mock akisini secip yakalama islemini baslatir.
 @click.command()
 @click.option("--device", default="HealthAlert-ESP32", help="BLE device name to scan for")
 @click.option("--address", default=None, help="BLE MAC address (skips scan, e.g. AA:BB:CC:DD:EE:FF)")
@@ -191,6 +201,7 @@ def main(
     out_path = Path(output) if output else None
     writer = PacketWriter(out_path, fmt)
 
+    # Secilen kaynaga gore asenkron okuyucuyu calistirir.
     async def run():
         try:
             if mock_tcp_host:

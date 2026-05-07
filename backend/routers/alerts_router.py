@@ -18,6 +18,7 @@ from schemas import (
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
+# Ham alert sozlugunu API semasina donusturur.
 def _dict_to_alert_response(d: dict) -> AlertResponse:
     recs = d.get("recommendations", [])
     if isinstance(recs, str):
@@ -41,6 +42,7 @@ def _dict_to_alert_response(d: dict) -> AlertResponse:
         resolved_at=d.get("resolved_at"),
     )
 
+# SELF kullanicisinin kendi alert listesini dondurur.
 @router.get("", response_model=list[AlertResponse])
 async def get_my_alerts(
     db: AsyncSession = Depends(get_db),
@@ -52,6 +54,7 @@ async def get_my_alerts(
     alerts = await repos.alerts.list_by_user(current_user.id)
     return [_dict_to_alert_response(a) for a in alerts]
 
+# SELF kullanicisinin aktif alert kaydini dondurur.
 @router.get("/active", response_model=AlertResponse | None)
 async def get_active_alert(
     db: AsyncSession = Depends(get_db),
@@ -63,6 +66,7 @@ async def get_active_alert(
     alert = await repos.alerts.get_active_by_user(current_user.id)
     return _dict_to_alert_response(alert) if alert else None
 
+# Yetkili bagli kullanicilar icin hedef kisinin alertlerini listeler.
 @router.get("/{user_id}/for-linked", response_model=list[AlertResponse])
 async def get_alerts_for_linked(
     user_id: str,
@@ -76,6 +80,7 @@ async def get_alerts_for_linked(
     alerts = await repos.alerts.list_by_user(user_id, limit=30)
     return [_dict_to_alert_response(a) for a in alerts]
 
+# Kullanici yanitina gore alert durumunu gunceller ve bildirim uretir.
 @router.put("/{alert_id}/respond", response_model=AlertResponse)
 async def respond_to_alert(
     alert_id: str,
@@ -144,6 +149,7 @@ async def respond_to_alert(
     await db.commit()
     return _dict_to_alert_response(updated)
 
+# Alert icin post-event izleme oturumu baslatir.
 @router.post("/{alert_id}/post-event", response_model=PostEventSessionResponse, status_code=201)
 async def start_post_event(
     alert_id: str,
@@ -166,6 +172,7 @@ async def start_post_event(
     await db.commit()
     return session
 
+# Post-event oturumunu kapatip alerti cozulmus sayar.
 @router.put("/post-event/{session_id}/close", response_model=PostEventSessionResponse)
 async def close_post_event(
     session_id: str,

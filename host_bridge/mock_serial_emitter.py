@@ -26,11 +26,13 @@ SCENARIOS = {
     "recovery_state":       {"hr": (74, 84), "spo2": (95, 98), "acc": 0.04, "gyro": 1.5, "sq": 0.85},
 }
 
-DEVICE_ID = "ha-esp32-mock"
+DEVICE_ID = "ha-esp32-001"
 
+# Kucuk rasgele sapma uretir.
 def _noise(amp: float) -> float:
     return random.uniform(-amp, amp)
 
+# Senaryoya gore sahte cihaz paketi uretir.
 def _generate_packet(seq: int, scenario_name: str, t: float) -> dict:
     s = SCENARIOS[scenario_name]
     hr_lo, hr_hi = s["hr"]
@@ -70,6 +72,7 @@ def _generate_packet(seq: int, scenario_name: str, t: float) -> dict:
         "state_hint": scenario_name,
     }
 
+# Paketi stdout veya TCP uzerinden yayinlar.
 @click.command()
 @click.option("--scenario", default="normal", type=click.Choice(list(SCENARIOS.keys())),
               help="Mock scenario")
@@ -87,6 +90,7 @@ def main(scenario: str, interval: float, count: int, cycle: bool, cycle_packets:
     else:
         _run_stdout(scenario, interval, count, cycle, cycle_packets)
 
+# Paketi satir bazli olarak stdout'a basar.
 def _run_stdout(scenario: str, interval: float, count: int, cycle: bool, cycle_packets: int) -> None:
     scenario_list = list(SCENARIOS.keys())
     current_scenario = scenario
@@ -119,6 +123,7 @@ def _run_stdout(scenario: str, interval: float, count: int, cycle: bool, cycle_p
     except KeyboardInterrupt:
         logger.info("Stopped after %d packets.", seq)
 
+# TCP istemcilerine ayni mock akisini dagitir.
 async def _run_tcp_server(
     port: int,
     scenario: str,
@@ -129,6 +134,7 @@ async def _run_tcp_server(
 ) -> None:
     clients: list[asyncio.StreamWriter] = []
 
+    # Yeni TCP istemcisini kaydedip baglantiyi izler.
     async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info("peername")
         logger.info("Client connected: %s", addr)

@@ -1,13 +1,11 @@
-"""Data and config validators."""
-
 from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 
 
+# Pencere verisinin beklenen uzunluk ve NaN kurallarini denetler.
 def validate_window(data: np.ndarray, expected_length: int, name: str = "window") -> bool:
-    """Validate a windowed data array has expected shape."""
     if data.shape[0] != expected_length:
         raise ValueError(
             f"{name}: expected length {expected_length}, got {data.shape[0]}"
@@ -17,20 +15,20 @@ def validate_window(data: np.ndarray, expected_length: int, name: str = "window"
     return True
 
 
+# Veri tablosunda zorunlu sutunlarin mevcut oldugunu denetler.
 def validate_dataframe(
     df: pd.DataFrame,
     required_cols: List[str],
     name: str = "dataframe",
 ) -> bool:
-    """Validate a DataFrame has required columns."""
     missing = set(required_cols) - set(df.columns)
     if missing:
         raise ValueError(f"{name}: missing columns {missing}")
     return True
 
 
+# Yapilandirmadaki veri yollarinin mevcut olup olmadigini kontrol eder.
 def validate_config_paths(cfg) -> List[str]:
-    """Check that configured data paths exist. Returns list of warnings."""
     from pathlib import Path
     warnings = []
     if hasattr(cfg, "paths"):

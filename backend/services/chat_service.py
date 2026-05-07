@@ -50,6 +50,7 @@ class UIAction:
     label: str
     route: str
 
+    # Arayuzde kullanilacak eylem bilgisini API yanitina uygun bicime cevirir.
     def to_dict(self) -> Dict[str, str]:
         return {"label": self.label, "route": self.route}
 
@@ -62,6 +63,7 @@ class ChatMessage:
     content: str
     timestamp: float = field(default_factory=time.time)
 
+    # Mesaji LLM istemcisinin bekledigi rol-icerik yapisina donusturur.
     def to_llm_format(self) -> Dict[str, str]:
         return {"role": self.role, "content": self.content}
 
@@ -74,27 +76,31 @@ class ChatSession:
     messages: List[ChatMessage] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
 
-    # Sohbet oturumuna mesaj ekler.
+    # Sohbet oturumuna yeni bir mesaj ekler ve gecmis boyutunu sinirlar.
     def add_message(self, role: str, content: str) -> None:
         self.messages.append(ChatMessage(role=role, content=content))
         if len(self.messages) > MAX_MESSAGES_PER_SESSION:
             self.messages = self.messages[-MAX_MESSAGES_PER_SESSION:]
 
+    # Oturum gecmisini LLM istemcisine gonderilecek listeye donusturur.
     def conversation_for_llm(self) -> List[Dict[str, str]]:
         return [m.to_llm_format() for m in self.messages]
 
 class SessionStore:
 
+    # Oturum deposunu belirlenen kapasiteyle baslatir.
     def __init__(self, max_size: int = MAX_SESSIONS) -> None:
         self._store: OrderedDict[str, ChatSession] = OrderedDict()
         self._max = max_size
 
+    # Kimlige gore oturumu getirir ve kullanildiysa sona tasir.
     def get(self, session_id: str) -> Optional[ChatSession]:
         session = self._store.get(session_id)
         if session:
             self._store.move_to_end(session_id)
         return session
 
+    # Yeni bir sohbet oturumu olusturur ve kapasite doluysa en eskisini siler.
     def create(self, user_id: str, target_user_id: str, role: str) -> ChatSession:
         sid = str(uuid4())
         session = ChatSession(
@@ -108,6 +114,7 @@ class SessionStore:
             self._store.popitem(last=False)
         return session
 
+    # Gecerli bir oturum varsa onu kullanir, yoksa yeni bir oturum olusturur.
     def get_or_create(
         self, session_id: Optional[str], user_id: str, target_user_id: str, role: str
     ) -> ChatSession:
@@ -119,6 +126,7 @@ class SessionStore:
 
 session_store = SessionStore()
 
+# Kullanici mesajini isleyip baglam, yanit ve olasi arayuz eylemleriyle birlikte dondurur.
 async def process_chat_message(
     *,
     message: str,
@@ -195,9 +203,11 @@ async def process_chat_message(
         "context_summary": _brief_context_summary(live_status, recent_alerts, trend),
     }
 
+# Rolle iliskili hazir sohbet onerilerini dondurur.
 def get_suggestions(role: str) -> List[str]:
     return SUGGESTIONS.get(role.upper(), SUGGESTIONS["SELF"])
 
+# Mevcut kullanici baglamini metinsel bir onizleme olarak uretir.
 def get_context_preview(
     *,
     role: str,
@@ -224,6 +234,7 @@ def get_context_preview(
         is_demo_mode=is_demo_mode,
     )
 
+# LLM kullanilamadiginda kurallara dayali yedek yaniti olusturur.
 def _rule_based_fallback(
     *,
     message: str,
@@ -271,6 +282,7 @@ def _rule_based_fallback(
     text += f"\n\n({DISCLAIMER})"
     return text
 
+# Kullanici mesajina gore uygulamada acilabilecek kisa yol eylemlerini seçer.
 def _suggest_ui_actions(
     message: str,
     live_status: Optional[Dict[str, Any]],
@@ -294,6 +306,7 @@ def _suggest_ui_actions(
 
     return actions[:3]
 
+# Canli veri, alarm ve trend bilgisini tek satirlik ozet haline getirir.
 def _brief_context_summary(
     live: Optional[Dict[str, Any]],
     alerts: Optional[List[Dict[str, Any]]],

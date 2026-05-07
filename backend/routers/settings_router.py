@@ -11,6 +11,7 @@ from schemas import SettingsResponse, SettingsUpdate
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
+# Mevcut kullanicinin uygulama ayarlarini getirir.
 @router.get("", response_model=SettingsResponse)
 async def get_settings(
     db: AsyncSession = Depends(get_db),
@@ -19,6 +20,7 @@ async def get_settings(
 ):
     return await repos.app_settings.get_or_create(current_user.id)
 
+# Mevcut kullanicinin guncellenebilir ayarlarini kaydeder.
 @router.put("", response_model=SettingsResponse)
 async def update_settings(
     body: SettingsUpdate,
@@ -35,6 +37,11 @@ async def update_settings(
         updates["background_monitoring"] = body.background_monitoring
     if body.update_interval_seconds is not None:
         updates["update_interval_seconds"] = body.update_interval_seconds
+    if body.alert_sensitivity is not None:
+        if body.alert_sensitivity not in ("high", "normal", "low"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=422, detail="alert_sensitivity must be 'high', 'normal', or 'low'")
+        updates["alert_sensitivity"] = body.alert_sensitivity
 
     result = await repos.app_settings.update(current_user.id, updates)
     await db.commit()

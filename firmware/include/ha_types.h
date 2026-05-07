@@ -63,4 +63,28 @@ struct DevicePacket {
     uint32_t packet_seq;
 };
 
+struct RawSensorSample {
+    const char* device_id;
+    unsigned long timestamp_ms;
+    const char* mode;
+    uint32_t sample_seq;
+    uint32_t window_seq;
+    uint16_t sample_rate_hz;
+
+    float accel_x;
+    float accel_y;
+    float accel_z;
+    float gyro_x;
+    float gyro_y;
+    float gyro_z;
+
+    uint32_t red_value;
+    uint32_t ir_value;
+
+    bool imu_ok;
+    bool ppg_ok;
+    bool finger_detected;
+    float signal_quality;
+};
+
 #endif

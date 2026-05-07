@@ -251,6 +251,7 @@ def generate_daily_summary(
         "has_live_data": live_status is not None,
     }
 
+# Standart asistan yanit govdesini rol baglamiyla birlikte kurar.
 def _build_response(
     summary_lines: List[str],
     recommendations: List[Dict[str, str]],

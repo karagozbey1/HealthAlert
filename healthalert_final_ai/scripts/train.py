@@ -1,16 +1,9 @@
-"""Main training script for HealthAlert.
-
-Usage:
-    python scripts/train.py
-    python scripts/train.py --epochs 50 --batch_size 32
-"""
-
 import sys
 import argparse
 import logging
 from pathlib import Path
 
-# Add project root to path
+# Proje kokunu import yolu icine ekleyerek yerel paketleri acik hale getirir.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -26,6 +19,7 @@ from src.models.multitask_model import HealthAlertModel
 from src.training.trainer import Trainer
 
 
+# Tek asamali egitim betigi icin komut satiri seceneklerini okur.
 def parse_args():
     parser = argparse.ArgumentParser(description="Train HealthAlert model")
     parser.add_argument("--config_dir", type=str, default=None, help="Config directory")
@@ -38,14 +32,14 @@ def parse_args():
     return parser.parse_args()
 
 
+# Veriyi yukleyip temel modeli klasik egitim dongusunde calistirir.
 def main():
     args = parse_args()
 
-    # Load config
+    # Ayarlari yukleyip komut satiri ustunden gelen degisiklikleri uygular.
     config_dir = args.config_dir or str(PROJECT_ROOT / "config")
     cfg = load_all_configs(config_dir)
 
-    # Override from args
     if args.epochs:
         cfg.training.epochs = args.epochs
     if args.batch_size:
@@ -53,7 +47,7 @@ def main():
     if args.lr:
         cfg.optimizer.lr = args.lr
 
-    # Setup
+    # Tohum, logger ve cihaz secimini baslatir.
     seed = cfg.get("project", {}).get("seed", 42)
     set_seed(seed)
 
@@ -67,11 +61,10 @@ def main():
     logger.info(f"Device: {device}")
     logger.info(f"Seed: {seed}")
 
-    # Load data
     logger.info("Loading datasets...")
     registry = build_registry(cfg)
 
-    # Combine HIFD and WEDA_FALL for training
+    # Ana egitim omurgasina hareket veri setlerini dahil eder.
     train_records = []
     if "HIFD" in registry:
         train_records.extend(registry["HIFD"])
@@ -82,7 +75,7 @@ def main():
         logger.error("No training records loaded. Check data paths.")
         sys.exit(1)
 
-    # Subject-wise split
+    # Denek bazli bolme ile egitim ve dogrulamayi ayirir.
     split_cfg = cfg.get("splitting", {})
     train_data, val_data, test_data = subject_wise_split(
         train_records,
@@ -92,15 +85,14 @@ def main():
         seed=seed,
     )
 
-    # Add BUT_PPG quality data to training
+    # PPG kalite gorevi icin BUT_PPG orneklerini egitim ve dogrulamaya ekler.
     if "BUT_PPG" in registry:
-        # Use ~70% for training, rest for validation
         ppg_records = registry["BUT_PPG"]
         n_ppg_train = int(len(ppg_records) * 0.7)
         train_data.extend(ppg_records[:n_ppg_train])
         val_data.extend(ppg_records[n_ppg_train:])
 
-    # Create datasets
+    # Pencereleme ve arttirma ayarlariyla veri setlerini kurar.
     signal_cfg = cfg.get("signal", {})
     window_size = signal_cfg.get("window_size", 200)
     stride = signal_cfg.get("window_stride", 50)
@@ -118,7 +110,7 @@ def main():
 
     logger.info(f"Train: {len(train_dataset)} windows, Val: {len(val_dataset)} windows")
 
-    # DataLoaders
+    # Veri yukleyicilerini batch ayarlariyla olusturur.
     train_cfg = cfg.get("training", {})
     train_loader = DataLoader(
         train_dataset,
@@ -135,15 +127,13 @@ def main():
         num_workers=min(train_cfg.get("num_workers", 4), 4),
     )
 
-    # Model
     model = HealthAlertModel(cfg)
     logger.info(f"Model parameters: {model.count_parameters():,}")
 
-    # Train
     trainer = Trainer(model, cfg, device)
     best_metrics = trainer.fit(train_loader, val_loader)
 
-    # Final test evaluation
+    # Ayrilan test bolmesi varsa son metriikleri ayrica hesaplar.
     if test_data:
         test_dataset = HealthAlertDataset(
             test_data, window_size=window_size, stride=stride, normalize=True

@@ -13,6 +13,7 @@ from bleak.exc import BleakError
 
 from packet_schema import validate_packet
 
+# Kopru kayitlarini terminale yazar.
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -25,6 +26,7 @@ NUS_TX_UUID = "6e400003-b5b3-f393-e0a9-e50e24dcca9e"
 DEFAULT_INGEST_PATH = "/ingest/device-packet"
 MAX_RETRY_QUEUE = 50
 
+# BLE cihazini ada gore bulup adresini dondurur.
 async def _scan_for_device(name: str, timeout: float = 10.0) -> str:
     logger.info("Scanning for BLE device '%s' (%.0fs)...", name, timeout)
     device = await BleakScanner.find_device_by_name(name, timeout=timeout)
@@ -34,6 +36,7 @@ async def _scan_for_device(name: str, timeout: float = 10.0) -> str:
     logger.info("Found: %s  [%s]", device.name, device.address)
     return device.address
 
+# Paketi backend'e gonderip sonucunu bool olarak dondurur.
 def _post_packet(
     session: requests.Session,
     url: str,
@@ -54,9 +57,11 @@ def _post_packet(
         logger.warning("HTTP error: %s", exc)
         return False
 
+# Bildirim satirlarini parse edip backend'e ileten callback'i kurar.
 def _make_forward_handler(session, ingest_url, token, quiet, retry_queue, counters):
     partial_buf = [""]
 
+    # BLE bildirim parcaciklarini tam JSON satirlarina cevirir.
     def on_notification(sender, data: bytearray) -> None:
         try:
             chunk = data.decode("utf-8", errors="replace")
@@ -100,6 +105,7 @@ def _make_forward_handler(session, ingest_url, token, quiet, retry_queue, counte
 
     return on_notification
 
+# BLE akisini dinleyip dogrulanmis paketleri backend'e aktarir.
 async def _run_ble(address: str, ingest_url: str, token: str | None, quiet: bool) -> None:
     session = requests.Session()
     retry_queue: deque[dict] = deque(maxlen=MAX_RETRY_QUEUE)
@@ -127,6 +133,7 @@ async def _run_ble(address: str, ingest_url: str, token: str | None, quiet: bool
             )
             session.close()
 
+# Mock TCP kaynagindan paket alip ayni aktarim yolunu kullanir.
 async def _run_mock_tcp(host: str, port: int, ingest_url: str, token: str | None, quiet: bool) -> None:
     session = requests.Session()
     retry_queue: deque[dict] = deque(maxlen=MAX_RETRY_QUEUE)
@@ -175,6 +182,7 @@ async def _run_mock_tcp(host: str, port: int, ingest_url: str, token: str | None
         )
         session.close()
 
+# BLE veya mock akisini secip komut satirindan calistirir.
 @click.command()
 @click.option("--device", default="HealthAlert-ESP32", help="BLE device name to scan for")
 @click.option("--address", default=None, help="BLE MAC address (skips scan)")
@@ -196,6 +204,7 @@ def main(
 ) -> None:
     ingest_url = backend.rstrip("/") + path
 
+    # Secilen kaynak tipine gore asenkron kopruyu baslatir.
     async def run():
         try:
             if mock_tcp_host:
@@ -212,79 +221,6 @@ def main(
         asyncio.run(run())
     except KeyboardInterrupt:
         pass
-
-if __name__ == "__main__":
-    main()
-@click.option("--token", default=None, help="JWT bearer token for auth")
-@click.option("--path", default=DEFAULT_INGEST_PATH, help="Ingestion endpoint path")
-@click.option("--quiet", is_flag=True, help="Suppress per-packet logging")
-def main(port: str, baud: int, backend: str, token: str | None, path: str, quiet: bool) -> None:
-    ingest_url = backend.rstrip("/") + path
-    logger.info("Forwarding to: %s", ingest_url)
-
-    ser = _open_serial(port, baud)
-    session = requests.Session()
-    retry_queue: deque[dict] = deque(maxlen=MAX_RETRY_QUEUE)
-
-    sent = 0
-    failed = 0
-
-    try:
-        while True:
-            while retry_queue:
-                queued = retry_queue[0]
-                if _post_packet(session, ingest_url, queued, token):
-                    retry_queue.popleft()
-                    sent += 1
-                else:
-                    break
-
-            try:
-                raw = ser.readline()
-            except serial.SerialException:
-                logger.warning("Serial disconnected. Reconnecting...")
-                ser.close()
-                time.sleep(2)
-                ser = _open_serial(port, baud)
-                continue
-
-            if not raw:
-                continue
-
-            try:
-                line = raw.decode("utf-8", errors="replace").strip()
-            except Exception:
-                continue
-
-            if not line.startswith("{"):
-                if line and not quiet:
-                    print(f"  [FW] {line}")
-                continue
-
-            try:
-                data = json.loads(line)
-                pkt = validate_packet(data)
-                pkt_dict = pkt.model_dump()
-            except Exception as exc:
-                logger.warning("Bad packet: %s", exc)
-                failed += 1
-                continue
-
-            if _post_packet(session, ingest_url, pkt_dict, token):
-                sent += 1
-                if not quiet:
-                    logger.info("→ seq=%d OK (total=%d)", pkt.packet_seq, sent)
-            else:
-                retry_queue.append(pkt_dict)
-                failed += 1
-                if not quiet:
-                    logger.info("→ seq=%d QUEUED (queue=%d)", pkt.packet_seq, len(retry_queue))
-
-    except KeyboardInterrupt:
-        logger.info("Stopped. Sent=%d  Failed=%d  Queued=%d", sent, failed, len(retry_queue))
-    finally:
-        ser.close()
-        session.close()
 
 if __name__ == "__main__":
     main()

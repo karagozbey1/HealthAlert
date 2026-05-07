@@ -1,17 +1,8 @@
-"""Data exploration and validation script.
-
-Validates that all three datasets can be loaded correctly
-and prints summary statistics.
-
-Usage:
-    python scripts/explore_data.py
-"""
-
 import sys
 import os
 from pathlib import Path
 
-# Force UTF-8 output
+# Konsol UTF-8 degilse Turkce ciktiyi bozmamak icin yeniden ayarlar.
 if sys.stdout.encoding != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -23,6 +14,7 @@ from src.utils.logger import setup_logger
 from src.utils.validators import validate_config_paths
 
 
+# Uc veri kaynagini ve modeli hizli ozetlerle denetler.
 def main():
     logger = setup_logger("healthalert", level="INFO")
     cfg = load_all_configs(str(PROJECT_ROOT / "config"))
@@ -31,7 +23,7 @@ def main():
     print("  HealthAlert - Veri Kesif & Dogrulama")
     print("=" * 60)
 
-    # Validate paths
+    # Veri yollarini once denetleyip uyari varsa yazdirir.
     warnings = validate_config_paths(cfg)
     if warnings:
         print("\n[!] Path uyarilari:")
@@ -40,7 +32,6 @@ def main():
     else:
         print("\n[OK] Tum veri yollari dogrulandi")
 
-    # HIFD
     print("\n" + "-" * 40)
     print("[HIFD Dataset]")
     print("-" * 40)
@@ -59,7 +50,6 @@ def main():
     except Exception as e:
         print(f"  [HATA] {e}")
 
-    # WEDA_FALL
     print("\n" + "-" * 40)
     print("[WEDA_FALL Dataset]")
     print("-" * 40)
@@ -80,7 +70,6 @@ def main():
     except Exception as e:
         print(f"  [HATA] {e}")
 
-    # BUT_PPG
     print("\n" + "-" * 40)
     print("[BUT_PPG Dataset]")
     print("-" * 40)
@@ -101,7 +90,6 @@ def main():
     except Exception as e:
         print(f"  [HATA] {e}")
 
-    # Model info
     print("\n" + "-" * 40)
     print("[Model Bilgisi]")
     print("-" * 40)
@@ -114,7 +102,7 @@ def main():
         print(f"  Vitals MLP cikis: {model.vitals_mlp.output_dim}")
         print(f"  Fusion cikis (embed_dim): {model.fusion.embed_dim}")
 
-        # Test forward pass
+        # Rasgele batch ile ileri gecisin ayakta oldugunu dogrular.
         import torch
         batch = {
             "imu": torch.randn(2, 200, 6),

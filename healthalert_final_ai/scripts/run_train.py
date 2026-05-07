@@ -1,11 +1,3 @@
-"""Multi-stage training entry point for HealthAlert.
-
-Usage:
-    python scripts/run_train.py --config config/train.yaml
-    python scripts/run_train.py --stage 2
-    python scripts/run_train.py --stage all
-"""
-
 import sys
 import argparse
 import logging
@@ -34,6 +26,7 @@ from src.training.stage_trainer import (
 )
 
 
+# Cok asamali egitim icin komut satiri seceneklerini okur.
 def parse_args():
     parser = argparse.ArgumentParser(description="HealthAlert Multi-Stage Training")
     parser.add_argument("--config_dir", type=str, default=None, help="Config directory")
@@ -47,8 +40,8 @@ def parse_args():
     return parser.parse_args()
 
 
+# Onceden bolunmus kayitlardan egitim ve dogrulama yukleyicilerini uretir.
 def _make_loaders(train_recs, val_recs, cfg, window_size, stride, batch_size, augment=True):
-    """Create train/val DataLoaders from pre-split records."""
     aug_cfg = cfg.get("augmentation", {})
     train_scaler = ModalityScaler()
     train_ds = HealthAlertDataset(
@@ -73,6 +66,7 @@ def _make_loaders(train_recs, val_recs, cfg, window_size, stride, batch_size, au
     return train_loader, val_loader
 
 
+# Istenen asamalari sirayla calistirarak cok asamali egitimi baslatir.
 def main():
     args = parse_args()
 
@@ -110,21 +104,20 @@ def main():
 
     stages = args.stage.lower()
 
-    # ── Load data ────────────────────────────────────────────────
     logger.info("Loading datasets...")
     registry = build_registry(cfg)
 
-    # Standardize all records
+    # Tum veri setlerini ortak sutun semasina getirir.
     for name in list(registry.keys()):
         registry[name] = standardize_records(registry[name], name)
 
-    # ── Stage 1: Inspect ─────────────────────────────────────────
+    # Ilk asama yalnizca veri inceleme ise burada sonlanir.
     if stages in ("1", "all"):
         stage1_inspect(registry, cfg)
         if stages == "1":
             return
 
-    # ── Global subject-wise split (prevents cross-stage leakage) ─
+    # Tum asamalarda ortak kullanilacak denek bazli bolmeyi kurar.
     all_records = []
     for name, recs in registry.items():
         all_records.extend(recs)
@@ -146,11 +139,10 @@ def main():
     assert not (train_subjects & test_subjects), "Train/Test subject overlap!"
     assert not (val_subjects & test_subjects), "Val/Test subject overlap!"
 
-    # ── Create model ─────────────────────────────────────────────
     model = HealthAlertModelV2(cfg)
     logger.info(f"Model parameters: {model.count_parameters():,}")
 
-    # ── Stage 2: Quality pre-train ───────────────────────────────
+    # Kalite gorevi icin yalniz BUT_PPG kayitlariyla pretrain yapar.
     if stages in ("2", "all"):
         ppg_train = [r for r in global_train if r.get("dataset_name") == "BUT_PPG"]
         ppg_val = [r for r in global_val if r.get("dataset_name") == "BUT_PPG"]
@@ -164,7 +156,7 @@ def main():
         if stages == "2":
             return
 
-    # ── Stage 3: Fall / instability ──────────────────────────────
+    # Dusme ve dengesizlik omurgasini HIFD ve WEDA_FALL ile egitir.
     if stages in ("3", "all"):
         fall_train = [r for r in global_train if r.get("dataset_name") in ("HIFD", "WEDA_FALL")]
         fall_val = [r for r in global_val if r.get("dataset_name") in ("HIFD", "WEDA_FALL")]
@@ -178,7 +170,7 @@ def main():
         if stages == "3":
             return
 
-    # ── Stage 4: Fusion + risk (encoders frozen) ─────────────────
+    # Tum veriyle fusion ve risk basliklarini dondurulmus encoder ustunde egitir.
     if stages in ("4", "all"):
         if global_train:
             train_loader, val_loader = _make_loaders(
@@ -190,7 +182,7 @@ def main():
         if stages == "4":
             return
 
-    # ── Stage 5: Joint fine-tune (all unfrozen, lower LR) ────────
+    # Son asamada tum modeli acip ortak ince ayar uygular.
     if stages in ("5", "all"):
         if global_train:
             train_loader, val_loader = _make_loaders(

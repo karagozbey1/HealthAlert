@@ -11,10 +11,12 @@ from schemas import UpdateProfileRequest, UserResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+# Giris yapan kullanicinin profilini dondurur.
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+# Giris yapan kullanicinin duzenlenebilir profil alanlarini gunceller.
 @router.put("/me", response_model=UserResponse)
 async def update_me(
     body: UpdateProfileRequest,
@@ -36,6 +38,7 @@ async def update_me(
         await db.refresh(current_user)
     return current_user
 
+# Belirtilen kullanicinin temel profil kaydini getirir.
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user_profile(
     user_id: str,

@@ -1,12 +1,3 @@
-"""Dataset inspection script (Stage 1).
-
-Validates loaders, prints class distribution, subject counts,
-and sample shapes for all datasets.
-
-Usage:
-    python scripts/inspect_datasets.py
-"""
-
 import sys
 from pathlib import Path
 from collections import Counter
@@ -26,6 +17,7 @@ from src.utils.validators import validate_config_paths
 from src.data.column_schema import STANDARD_COLUMNS
 
 
+# Veri seti yukleyicilerini ve temel model seklini hizli kontrol eder.
 def main():
     logger = setup_logger("healthalert", level="INFO")
     cfg = load_all_configs(str(PROJECT_ROOT / "config"))
@@ -34,7 +26,7 @@ def main():
     print("  HealthAlert — Dataset Inspection (Stage 1)")
     print("=" * 60)
 
-    # Validate paths
+    # Yapilandirmadaki veri yollarini once dogrular.
     warnings = validate_config_paths(cfg)
     if warnings:
         print("\n[!] Path warnings:")
@@ -43,7 +35,6 @@ def main():
     else:
         print("\n[OK] All data paths validated")
 
-    # ── HIFD ─────────────────────────────────────────────────────
     print("\n" + "-" * 40)
     print("[HIFD Dataset]")
     print("-" * 40)
@@ -54,7 +45,6 @@ def main():
     except Exception as e:
         print(f"  [ERROR] {e}")
 
-    # ── WEDA_FALL ────────────────────────────────────────────────
     print("\n" + "-" * 40)
     print("[WEDA_FALL Dataset]")
     print("-" * 40)
@@ -65,7 +55,6 @@ def main():
     except Exception as e:
         print(f"  [ERROR] {e}")
 
-    # ── BUT_PPG ──────────────────────────────────────────────────
     print("\n" + "-" * 40)
     print("[BUT_PPG Dataset]")
     print("-" * 40)
@@ -76,7 +65,6 @@ def main():
     except Exception as e:
         print(f"  [ERROR] {e}")
 
-    # ── Model info ───────────────────────────────────────────────
     print("\n" + "-" * 40)
     print("[Model Info]")
     print("-" * 40)
@@ -91,7 +79,7 @@ def main():
         print(f"  Handcrafted MLP output: {model.handcrafted_mlp.output_dim}")
         print(f"  Fusion embed_dim: {model.fusion.embed_dim}")
 
-        # Forward pass test
+        # Ornek ileri gecisle tensor boyutlarini kontrol eder.
         batch = {
             "imu": torch.randn(2, 200, 6),
             "ppg": torch.randn(2, 200, 1),
@@ -107,7 +95,6 @@ def main():
     except Exception as e:
         print(f"  [ERROR] {e}")
 
-    # ── Standard schema ──────────────────────────────────────────
     print("\n" + "-" * 40)
     print("[Standard Column Schema]")
     print("-" * 40)
@@ -119,6 +106,7 @@ def main():
     print("=" * 60 + "\n")
 
 
+# Genel veri setlerinde kayit, etiket ve ornek sekillerini ozetler.
 def _print_dataset_summary(records, name):
     print(f"  Loaded records: {len(records)}")
     if not records:
@@ -141,6 +129,7 @@ def _print_dataset_summary(records, name):
             print(f"  Columns: {list(sample.columns)[:10]}...")
 
 
+# BUT_PPG kayitlari icin kalite ve vital araliklarini ozetler.
 def _print_butppg_summary(records):
     print(f"  Loaded records: {len(records)}")
     if not records:

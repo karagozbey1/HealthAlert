@@ -17,6 +17,7 @@ public:
     void begin(bool useMock) {
         _useMock = useMock;
         _packetSeq = 0;
+        _rawSampleSeq = 0;
 
         _status.imu_present = false;
         _status.ppg_present = false;
@@ -110,7 +111,7 @@ public:
     }
 
     
-    // Tüm sensörlerden tek bir DevicePacket toplar.
+    // Tum sensor verilerini tek paket icinde toplar.
     DevicePacket collect() {
         DevicePacket pkt;
 
@@ -129,6 +130,43 @@ public:
         return pkt;
     }
 
+    // Model-window hattÄ± iÃ§in 50Hz ham ornek toplar.
+    RawSensorSample collectRawSample(uint16_t sampleRateHz) {
+        DevicePacket pkt;
+        pkt.device_id = HA_DEVICE_ID;
+        pkt.timestamp_ms = millis();
+        pkt.mode = _useMock ? "mock" : "real";
+        pkt.packet_seq = _packetSeq;
+        pkt.state_hint = _useMock ? _mock.getScenarioName() : "real";
+
+        if (_useMock) {
+            _collectMock(pkt);
+        } else {
+            _collectReal(pkt);
+        }
+
+        RawSensorSample raw;
+        raw.device_id = pkt.device_id;
+        raw.timestamp_ms = pkt.timestamp_ms;
+        raw.mode = pkt.mode;
+        raw.sample_seq = _rawSampleSeq++;
+        raw.window_seq = raw.sample_seq / MODEL_WINDOW_SIZE;
+        raw.sample_rate_hz = sampleRateHz;
+        raw.accel_x = pkt.accel_x;
+        raw.accel_y = pkt.accel_y;
+        raw.accel_z = pkt.accel_z;
+        raw.gyro_x = pkt.gyro_x;
+        raw.gyro_y = pkt.gyro_y;
+        raw.gyro_z = pkt.gyro_z;
+        raw.red_value = pkt.red_value;
+        raw.ir_value = pkt.ir_value;
+        raw.imu_ok = pkt.imu_ok;
+        raw.ppg_ok = pkt.ppg_ok;
+        raw.finger_detected = pkt.finger_detected;
+        raw.signal_quality = pkt.signal_quality;
+        return raw;
+    }
+
     MockSensors&  getMock()   { return _mock; }
     // Sensör durum yapısını döndürür.
     SensorStatus& getStatus() { return _status; }
@@ -138,6 +176,7 @@ public:
 private:
     bool          _useMock = true;
     uint32_t      _packetSeq = 0;
+    uint32_t      _rawSampleSeq = 0;
 
     HaMpu6050     _imu;
     HaMax30102    _ppg;

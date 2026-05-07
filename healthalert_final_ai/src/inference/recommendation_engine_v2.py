@@ -1,13 +1,7 @@
-"""Recommendation engine based on risk level (v2 — English).
-
-Default language: English.
-All recommendation strings are in English for consistency.
-"""
-
 from typing import Dict, List
 
 
-# English recommendations keyed by risk level
+# Risk seviyesine gore varsayilan v2 onerilerini tutar.
 DEFAULT_RECOMMENDATIONS: Dict[str, List[str]] = {
     "critical": [
         "FALL RISK VERY HIGH — immediate assistance may be needed",
@@ -35,12 +29,10 @@ DEFAULT_RECOMMENDATIONS: Dict[str, List[str]] = {
 }
 
 
+# V2 risk sonucuna gore onerileri ve acil uyarilari uretir.
 class RecommendationEngineV2:
-    """Generate context-aware recommendations based on risk assessment.
 
-    Language: English (default). Override via custom_recommendations.
-    """
-
+    # Ozellestirilmis öneri seti verilmezse varsayilanlari kullanir.
     def __init__(self, custom_recommendations: Dict[str, List[str]] = None):
         self.recommendations = custom_recommendations or DEFAULT_RECOMMENDATIONS
 
@@ -48,27 +40,19 @@ class RecommendationEngineV2:
         self,
         risk_assessment: Dict,
     ) -> List[str]:
-        """Generate recommendations based on risk assessment.
-
-        Args:
-            risk_assessment: Output from RiskPostprocessorV2.
-
-        Returns:
-            List of recommendation strings.
-        """
         risk_level = risk_assessment.get("final_risk_level", "normal")
         base_recs = self.recommendations.get(risk_level, self.recommendations["normal"])
 
         recs = list(base_recs)
 
-        # Quality warning
+        # Düşük kalite durumunda sensör kontrol önerisi ekler.
         quality = risk_assessment.get("ppg_quality_score", 1.0)
         if quality < 0.3:
             recs.append("Sensor contact should be checked — signal quality is poor")
         elif quality < 0.5:
             recs.append("Please check sensor positioning")
 
-        # Immediate alert
+        # Acil durumlarda uyarıyı listenin başına taşır.
         if risk_assessment.get("immediate_alert", False):
             recs.insert(0, "⚠ IMMEDIATE ATTENTION REQUIRED — critical condition detected")
 

@@ -1,12 +1,10 @@
-"""Optimizer and scheduler factory."""
-
 import torch
 import torch.optim as optim
 from typing import Any
 
 
+# Ayardan optimizer nesnesini uretir.
 def build_optimizer(model: torch.nn.Module, cfg) -> torch.optim.Optimizer:
-    """Create optimizer based on config."""
     name = cfg.get("name", "adamw").lower()
     lr = cfg.get("lr", 0.001)
     wd = cfg.get("weight_decay", 0.01)
@@ -22,8 +20,8 @@ def build_optimizer(model: torch.nn.Module, cfg) -> torch.optim.Optimizer:
         raise ValueError(f"Unknown optimizer: {name}")
 
 
+# Ayardan ogrenme orani zamanlayicisini olusturur.
 def build_scheduler(optimizer: torch.optim.Optimizer, cfg) -> Any:
-    """Create learning rate scheduler based on config."""
     name = cfg.get("name", "cosine_annealing").lower()
 
     if name == "cosine_annealing":

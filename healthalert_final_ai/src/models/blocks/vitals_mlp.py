@@ -1,17 +1,12 @@
-"""Vitals MLP: Small feedforward network for scalar vital signs."""
-
 import torch
 import torch.nn as nn
 from typing import List
 
 
+# Nabiz ve SpO2 gibi skaler vital girdileri gomulu temsile donusturur.
 class VitalsMLP(nn.Module):
-    """MLP for scalar vitals (HR, SpO2).
 
-    Input: (B, vitals_dim) - e.g., [hr_mean, spo2_norm]
-    Output: (B, output_dim)
-    """
-
+    # Vital ozellikler icin cok katmanli algilayiciyi kurar.
     def __init__(
         self,
         input_dim: int = 2,
@@ -35,5 +30,6 @@ class VitalsMLP(nn.Module):
         self.mlp = nn.Sequential(*layers)
         self.output_dim = hidden_dims[-1]
 
+    # Skaler vital vektorunu ortak temsil uzayina tasir.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.mlp(x)

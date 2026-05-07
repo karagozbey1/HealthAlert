@@ -15,6 +15,7 @@ logger = logging.getLogger("firestore_watcher")
 
 _last_processed: Dict[str, float] = {}
 
+# IMU ve gyro verisinden basit hareket skorunu hesaplar.
 def _compute_motion_score(ax: float, ay: float, az: float,
                           gx: float, gy: float, gz: float) -> float:
     accel_mag = math.sqrt(ax * ax + ay * ay + az * az)
@@ -23,6 +24,7 @@ def _compute_motion_score(ax: float, ay: float, az: float,
     score = min(1.0, (accel_dev * 2.0) + (gyro_mag / 50.0))
     return round(score, 3)
 
+# Nabiz, SpO2 ve hareketten heuristik risk skoru uretir.
 def _compute_risk_score(hr: float, spo2: float, hr_valid: bool,
                         spo2_valid: bool, motion: float) -> float:
     risk = 0.0
@@ -41,6 +43,7 @@ def _compute_risk_score(hr: float, spo2: float, hr_valid: bool,
     risk += motion * 0.2
     return round(min(1.0, risk), 3)
 
+# Risk skorunu severity etiketine cevirir.
 def _risk_to_severity(risk: float) -> Optional[str]:
     if risk >= settings.RISK_CRITICAL_THRESHOLD:
         return "critical"
@@ -50,6 +53,7 @@ def _risk_to_severity(risk: float) -> Optional[str]:
         return "watch"
     return None
 
+# Alarm ozeti icin baskin metriği ve aciklamayi belirler.
 def _determine_anomaly_metric(hr, spo2, hr_valid, spo2_valid, motion):
     if spo2_valid and spo2 < 92:
         return ("SpO2", spo2, "%", f"Oxygen saturation critically low at {spo2:.1f}%.")
@@ -81,6 +85,7 @@ def _get_recommendations(severity: str):
         ]
     return ["Reduce physical exertion.", "Hydrate and rest."]
 
+# Firestore paketini mevcut repository akisi uzerinden backend kayitlarina isler.
 async def _process_firestore_packet(
     doc_data: Dict[str, Any],
     repos,
@@ -192,6 +197,7 @@ async def _process_firestore_packet(
     logger.debug("Processed Firestore packet: device=%s user=%s seq=%d risk=%.3f",
                  device_id, user_id, packet_seq, risk_score)
 
+# Islenmemis Firestore telemetry kayitlarini cekip tek tek isler.
 async def poll_firestore_telemetry(repos, db) -> int:
     from firebase_client import get_firestore_client
 

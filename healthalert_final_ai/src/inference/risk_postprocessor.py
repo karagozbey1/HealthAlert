@@ -1,18 +1,13 @@
-"""Risk postprocessor: converts raw predictions to clinical risk levels."""
-
 import logging
 from typing import Dict, List
 
 logger = logging.getLogger("healthalert.inference.postprocessor")
 
 
+# Ham model ciktilarini yapilandirilmis risk degerlendirmesine donusturur.
 class RiskPostprocessor:
-    """Converts raw model outputs to structured risk assessment.
 
-    Combines fall_prob, instability_prob, quality_score, risk_score
-    into a final risk level with reasons and confidence.
-    """
-
+    # Esik ve agirlik ayarlarini yukleyip isleyici durumunu kurar.
     def __init__(self, cfg=None):
         if cfg is None:
             cfg = {}
@@ -34,27 +29,18 @@ class RiskPostprocessor:
         predictions: Dict[str, float],
         vitals: Dict[str, float] = None,
     ) -> Dict:
-        """Process raw predictions into structured risk output.
-
-        Args:
-            predictions: Raw model outputs.
-            vitals: Current vital values {hr, spo2}.
-
-        Returns:
-            Complete risk assessment dict.
-        """
         fall_prob = predictions.get("fall_prob", 0.0)
         instability_prob = predictions.get("instability_prob", 0.0)
         quality_score = predictions.get("quality_score", 1.0)
         risk_score = predictions.get("risk_score", 0.0)
 
-        # Compute vital risk
+        # Vital bulgularin olusturdugu ek riski hesaplar.
         vital_risk = self._compute_vital_risk(vitals or {})
 
-        # Quality penalty: low quality → less trust in vitals
+        # Dusuk kalite durumunda vital yorumuna guveni azaltir.
         quality_penalty = max(0, 1.0 - quality_score)
 
-        # Weighted fusion
+        # Tum sinyalleri agirlikli skor olarak birlestirir.
         early_risk_score = (
             self.w_fall * fall_prob
             + self.w_instability * instability_prob
@@ -63,7 +49,7 @@ class RiskPostprocessor:
         )
         early_risk_score = min(1.0, max(0.0, early_risk_score))
 
-        # Determine risk level
+        # Hesaplanan skoru nihai risk seviyesine esler.
         if early_risk_score >= 0.7 or fall_prob >= 0.8:
             risk_level = "critical"
         elif early_risk_score >= 0.5:
@@ -73,13 +59,13 @@ class RiskPostprocessor:
         else:
             risk_level = "normal"
 
-        # Build reasons
+        # Kullaniciya gosterilecek gerekce listesini uretir.
         reasons = self._build_reasons(
             fall_prob, instability_prob, quality_score, vital_risk, vitals or {}
         )
 
-        # Confidence based on quality + data availability
-        confidence = quality_score * 0.7 + 0.3  # Base 30% + quality-proportional 70%
+        # Kalite ve veri varligina gore guven puani olusturur.
+        confidence = quality_score * 0.7 + 0.3
 
         return {
             "fall_probability": round(fall_prob, 4),
@@ -92,8 +78,8 @@ class RiskPostprocessor:
             "confidence": round(confidence, 4),
         }
 
+    # Vital bulgulardan gelen risk katkisini tek sayiya indirger.
     def _compute_vital_risk(self, vitals: Dict) -> float:
-        """Compute risk from vital signs."""
         risk = 0.0
         hr = vitals.get("heart_rate", 75)
         spo2 = vitals.get("spo2", 98)
@@ -108,6 +94,7 @@ class RiskPostprocessor:
 
         return min(1.0, risk)
 
+    # Risk skorunu aciklayan kisa neden metinlerini toplar.
     def _build_reasons(
         self,
         fall_prob: float,
@@ -116,7 +103,6 @@ class RiskPostprocessor:
         vital_risk: float,
         vitals: Dict,
     ) -> List[str]:
-        """Build human-readable reason strings."""
         reasons = []
 
         if fall_prob >= 0.8:

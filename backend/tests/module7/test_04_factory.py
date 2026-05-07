@@ -1,7 +1,3 @@
-"""
-Module 7 – Test 04: Repository factory (get_repos)
-Tests that the factory returns the correct backend based on DATA_MODE.
-"""
 import os
 import sys
 import pytest
@@ -10,22 +6,24 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 class TestFactorySqliteMode:
-    """Factory in sqlite mode must return SqliteXxxRepo instances."""
-
+    # SQLite modundaki factory davranışlarını doğrular.
+    # Her testten önce sqlite modunu etkinleştirir.
     def setup_method(self):
         os.environ["DATA_MODE"] = "sqlite"
 
+    # Her testten sonra DATA_MODE değişkenini temizler.
     def teardown_method(self):
         os.environ.pop("DATA_MODE", None)
 
+    # SQLite modunda veritabanı bağımlılığının zorunlu olduğunu doğrular.
     def test_returns_repo_set(self):
         from repositories.factory import get_repos, RepoSet
         # We can't pass a real db in unit tests; just check it requires one
         with pytest.raises(ValueError, match="sqlite mode requires"):
             get_repos(db=None, mode="sqlite")
 
+    # SQLite modunda doğru repository türlerinin döndüğünü kontrol eder.
     def test_sqlite_repos_are_correct_types(self):
-        """Provide a mock db to verify that the returned repos are Sqlite instances."""
         from unittest.mock import MagicMock
         from repositories.factory import get_repos
         from repositories.sqlite.repos import SqliteUserRepo, SqliteAlertRepo
@@ -38,16 +36,17 @@ class TestFactorySqliteMode:
 
 
 class TestFactoryFirebaseMode:
-    """Factory in firebase mode must return FirebaseXxxRepo instances."""
-
+    # Firebase modundaki factory davranışlarını doğrular.
+    # Her testten önce firebase modunu etkinleştirir.
     def setup_method(self):
         os.environ["DATA_MODE"] = "firebase"
 
+    # Her testten sonra DATA_MODE değişkenini temizler.
     def teardown_method(self):
         os.environ.pop("DATA_MODE", None)
 
+    # Firebase modunda repo kümesinin db olmadan kurulabildiğini doğrular.
     def test_firebase_mode_no_db_required(self):
-        """Firebase mode should not require a db argument, but needs a Firestore client."""
         from repositories.factory import get_repos
         # This will call get_firestore_client() which returns None in test env
         repos = get_repos(db=None, mode="firebase")
@@ -57,13 +56,14 @@ class TestFactoryFirebaseMode:
 
 
 class TestFactoryHybridMode:
-    """Hybrid mode must require a db."""
-
+    # Hibrit modun db gereksinimini doğrular.
+    # Hibrit modda db verilmezse hata oluştuğunu kontrol eder.
     def test_hybrid_requires_db(self):
         with pytest.raises(ValueError, match="hybrid mode requires"):
             from repositories.factory import get_repos
             get_repos(db=None, mode="hybrid")
 
+    # Hibrit modda sarmalayıcı repository nesnelerinin döndüğünü doğrular.
     def test_hybrid_returns_hybrid_repos(self):
         from unittest.mock import MagicMock
         from repositories.factory import get_repos, _HybridRepo
@@ -73,8 +73,8 @@ class TestFactoryHybridMode:
 
 
 class TestRepoSetFields:
-    """RepoSet must have all 13 domain repositories."""
-
+    # RepoSet içindeki alan listesini doğrular.
+    # Beklenen repository alanlarının mevcut olduğunu kontrol eder.
     def test_all_fields_present(self):
         from repositories.factory import RepoSet
         import dataclasses
@@ -83,6 +83,6 @@ class TestRepoSetFields:
             "users", "link_codes", "relations", "live_status",
             "anomalies", "alerts", "post_events", "history",
             "notifications", "clinical_notes", "app_settings",
-            "simulation", "devices",
+            "simulation", "devices", "baselines",
         }
         assert expected == fields

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 class RegisterRequest(BaseModel):
     email: str
@@ -13,6 +13,7 @@ class RegisterRequest(BaseModel):
     phone: Optional[str] = None
     birth_date: Optional[str] = None
 
+    # Kayit sirasinda rol degerini sinirlar.
     @field_validator("role")
     @classmethod
     def validate_role(cls, v: str) -> str:
@@ -63,6 +64,7 @@ class LinkCodeResponse(BaseModel):
 class LinkCodeGenerateRequest(BaseModel):
     relation_type: str = "RELATIVE"
 
+    # Uretilen baglanti kodunun iliski tipini dogrular.
     @field_validator("relation_type")
     @classmethod
     def validate_relation_type(cls, v: str) -> str:
@@ -102,6 +104,12 @@ class LiveStatusResponse(BaseModel):
     risk_score: float
     scenario: str
     timestamp: datetime
+    final_risk_score: Optional[float] = None
+    personalized_risk_score: Optional[float] = None
+    ml_evidence_score: Optional[float] = None
+    ml_adjustment: Optional[float] = None
+    fusion_applied: Optional[bool] = None
+    model_window_status: Optional[dict] = None
 
     class Config:
         from_attributes = True
@@ -208,6 +216,7 @@ class SettingsResponse(BaseModel):
     battery_mode: str
     background_monitoring: bool
     update_interval_seconds: int
+    alert_sensitivity: str = "normal"
 
     class Config:
         from_attributes = True
@@ -217,6 +226,7 @@ class SettingsUpdate(BaseModel):
     battery_mode: Optional[str] = None
     background_monitoring: Optional[bool] = None
     update_interval_seconds: Optional[int] = None
+    alert_sensitivity: Optional[str] = None
 
 class DevicePacketRequest(BaseModel):
     device_id: str
@@ -245,6 +255,7 @@ class DevicePacketRequest(BaseModel):
 
     state_hint: Optional[str] = "normal"
 
+    # Paket modunun yalnizca gercek veya mock olmasini dogrular.
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
@@ -257,6 +268,319 @@ class DevicePacketResponse(BaseModel):
     packet_seq: int
     device_id: str
     user_id: Optional[str] = None
+    risk_breakdown: Optional[dict] = None
+    # Part 2: Devre disi veya kullanicisiz akista bos kalabilir.
+    window_status: Optional[dict] = None
+    ml_shadow_result: Optional[dict] = None
+    # Part 3: Retrieval sonucu sadece izleme metadata'sidir.
+    retrieval_shadow_result: Optional[dict] = None
+    # Part 5A: Ogrenme yakalama ozeti risk skorunu degistirmez.
+    learning_capture_result: Optional[dict] = None
+    # Part 5B: Kisisellestirme ozeti risk kiriliminda da tasinabilir.
+    personalization_result: Optional[dict] = None
+    # Part 5C: Bakim asistani modu ve aksiyonlarini tasir.
+    assistant_state: Optional[dict] = None
+    assistant_actions: Optional[list] = None
+
+
+class DeviceModelWindowRequest(BaseModel):
+    device_id: str
+    mode: str
+    window_seq: int
+    sample_rate_hz: int
+    sample_count: int
+    window_duration_ms: int
+    timestamp_start_ms: int
+    timestamp_end_ms: int
+    imu_samples: List[List[float]]
+    ppg_samples: List[List[float]]
+    quality_summary: Optional[dict[str, Any]] = None
+    latest_vitals: Optional[dict[str, Any]] = None
+    source: Optional[str] = None
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        if v not in ("real", "mock"):
+            raise ValueError("mode must be 'real' or 'mock'")
+        return v
+
+    @model_validator(mode="after")
+    def validate_shapes(self):
+        if self.sample_count != len(self.imu_samples):
+            raise ValueError("sample_count must match imu_samples length")
+        if self.sample_count != len(self.ppg_samples):
+            raise ValueError("sample_count must match ppg_samples length")
+        for row in self.imu_samples:
+            if len(row) != 6:
+                raise ValueError("each imu_samples row must have length 6")
+        for row in self.ppg_samples:
+            if len(row) not in (1, 2):
+                raise ValueError("each ppg_samples row must have length 1 or 2")
+        if self.timestamp_end_ms < self.timestamp_start_ms:
+            raise ValueError("timestamp_end_ms must be >= timestamp_start_ms")
+        return self
+
+
+class DeviceModelWindowResponse(BaseModel):
+    status: str
+    device_id: str
+    user_id: Optional[str] = None
+    window_seq: int
+    model_ready: bool
+    ml_live_result: Optional[dict] = None
+    ml_evidence_result: Optional[dict] = None
+    fusion_result: Optional[dict] = None
+    final_risk_score: Optional[float] = None
+    reason: Optional[str] = None
+
+
+class UserBaselineResponse(BaseModel):
+    id: str
+    user_id: str
+    hr_mean: float
+    hr_std: float
+    spo2_mean: float
+    spo2_std: float
+    motion_mean: float
+    motion_std: float
+    ppg_quality_mean: float
+    sample_count: int
+    is_ready: bool
+    created_at: datetime
+    updated_at: datetime
+    last_updated: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BaselineStatusResponse(BaseModel):
+    user_id: str
+    is_ready: bool
+    sample_count: int
+    hr_mean: float
+    spo2_mean: float
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Part 5A: Ogrenme dongusu semalari
+# ---------------------------------------------------------------------------
+
+class LearningCaptureSessionResponse(BaseModel):
+    id: str
+    user_id: str
+    device_id: str
+    started_at: datetime
+    ended_at: Optional[datetime]
+    source: str
+    mode: str
+    sample_count: int
+    quality_sample_count: int
+    low_quality_sample_count: int
+    event_count: int
+    has_user_feedback: bool
+    training_candidate: bool
+    training_status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class LearningWindowResponse(BaseModel):
+    id: str
+    user_id: str
+    device_id: str
+    session_id: Optional[str]
+    window_start_at: datetime
+    window_end_at: datetime
+    duration_sec: float
+    sample_count: int
+    source: str
+    risk_level_at_capture: str
+    final_risk_score: float
+    quality_confidence: float
+    baseline_ready: bool
+    ml_shadow_summary: Optional[dict] = None
+    retrieval_shadow_summary: Optional[dict] = None
+    assistant_mode: Optional[str]
+    user_feedback_label: Optional[str]
+    suggested_label: Optional[str]
+    label_confidence: Optional[float]
+    training_candidate: bool
+    exported_at: Optional[datetime]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserFeedbackCreate(BaseModel):
+    user_id: str
+    related_window_id: Optional[str] = None
+    related_alert_id: Optional[str] = None
+    feedback_type: str
+    feedback_source: str = "mobile"
+    note: Optional[str] = None
+
+    # Geri bildirim tipinin izinli degerlerden gelmesini saglar.
+    @field_validator("feedback_type")
+    @classmethod
+    def validate_feedback_type(cls, v: str) -> str:
+        allowed = {"ok", "not_ok", "false_alarm", "fall_confirmed", "sensor_error", "other"}
+        if v not in allowed:
+            raise ValueError(f"feedback_type must be one of {allowed}")
+        return v
+
+    # Geri bildirim kaynaginin desteklenen kanallardan gelmesini saglar.
+    @field_validator("feedback_source")
+    @classmethod
+    def validate_feedback_source(cls, v: str) -> str:
+        allowed = {"mobile", "relative", "doctor", "system"}
+        if v not in allowed:
+            raise ValueError(f"feedback_source must be one of {allowed}")
+        return v
+
+
+class UserFeedbackResponse(BaseModel):
+    id: str
+    user_id: str
+    related_window_id: Optional[str]
+    related_alert_id: Optional[str]
+    feedback_type: str
+    feedback_source: str
+    note: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TrainingExportRequest(BaseModel):
+    user_id: Optional[str] = None
+    training_status: Optional[str] = None
+    min_quality_confidence: Optional[float] = None
+    include_demo: bool = False
+    limit: int = 1000
+
+
+class TrainingExportResponse(BaseModel):
+    export_dir: str
+    window_count: int
+    feedback_count: int
+    export_summary: dict
+
+
+class ModelVersionResponse(BaseModel):
+    id: str
+    model_name: str
+    version: str
+    model_path: str
+    training_data_snapshot: Optional[str]
+    metrics_json: Optional[dict] = None
+    status: str
+    created_at: datetime
+    activated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Part 5B: Uyarlanabilir kisisellestirme semalari
+# ---------------------------------------------------------------------------
+
+class PersonalHealthProfileResponse(BaseModel):
+    id: str
+    user_id: str
+    baseline_id: Optional[str]
+    personalization_level: str
+    total_observation_minutes: float
+    total_valid_samples: int
+    total_feedback_count: int
+    false_alarm_count: int
+    confirmed_risk_count: int
+    sensor_error_count: int
+    typical_hr_min: float
+    typical_hr_max: float
+    typical_spo2_min: float
+    typical_spo2_max: float
+    typical_motion_min: float
+    typical_motion_max: float
+    day_profile_json: Optional[dict] = None
+    night_profile_json: Optional[dict] = None
+    activity_profile_json: Optional[dict] = None
+    ml_window_count: int = 0
+    ml_usable_window_count: int = 0
+    ml_evidence_mean: float = 0.0
+    ml_evidence_std: float = 0.0
+    ml_confidence_mean: float = 0.0
+    ml_positive_support_count: int = 0
+    ml_personal_disagreement_count: int = 0
+    last_ml_evidence_score: Optional[float] = None
+    last_ml_adjustment: Optional[float] = None
+    last_model_window_at: Optional[datetime] = None
+    last_recalibrated_at: datetime
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PersonalRiskMemoryResponse(BaseModel):
+    id: str
+    user_id: str
+    event_type: str
+    risk_score: float
+    severity: Optional[str]
+    context_json: Optional[dict] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PersonalTrendSnapshotResponse(BaseModel):
+    id: str
+    user_id: str
+    window_minutes: int
+    hr_trend: str
+    spo2_trend: str
+    motion_trend: str
+    quality_trend: str
+    risk_trend: str
+    trend_confidence: float
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PersonalizationSummaryResponse(BaseModel):
+    user_id: str
+    personalization_level: str
+    total_valid_samples: int
+    total_observation_minutes: float
+    false_alarm_rate: float
+    confirmed_risk_count: int
+    feedback_count: int
+    latest_trend: Optional[dict] = None
+    typical_ranges: dict
+
+
+class RiskBreakdownResponse(BaseModel):
+    global_risk_score: float
+    final_risk_score: float
+    personal_deviation_score: float
+    baseline_ready: bool
+    quality_confidence: float
+    quality_warning: Optional[str] = None
 
 class DeviceRegistrationRequest(BaseModel):
     device_id: str
@@ -290,6 +614,7 @@ class AIInferenceRequest(BaseModel):
     heart_rate: Optional[float] = None
     spo2: Optional[float] = None
 
+    # AI cikti risk seviyesinin desteklenen aralikta kalmasini saglar.
     @field_validator("final_risk_level")
     @classmethod
     def validate_risk_level(cls, v: str) -> str:
@@ -308,6 +633,7 @@ class RegisterDeviceTokenRequest(BaseModel):
     token: str
     platform: str
 
+    # Cihaz token platformunu izinli istemcilerle sinirlar.
     @field_validator("platform")
     @classmethod
     def validate_platform(cls, v: str) -> str:
@@ -324,4 +650,80 @@ class DeviceTokenResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Part 5C: Bakim asistani semalari
+# ---------------------------------------------------------------------------
+
+class AssistantStateResponse(BaseModel):
+    id: str
+    user_id: str
+    current_mode: str
+    previous_mode: Optional[str] = None
+    last_risk_score: float
+    last_severity: Optional[str] = None
+    personalization_level: Optional[str] = None
+    watch_started_at: Optional[datetime] = None
+    warning_started_at: Optional[datetime] = None
+    critical_started_at: Optional[datetime] = None
+    awaiting_user_ack: bool
+    ack_deadline_at: Optional[datetime] = None
+    last_user_response: Optional[str] = None
+    last_action_summary: Optional[dict] = None
+    monitoring_intensity: str
+    recommended_poll_interval_sec: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AssistantActionResponse(BaseModel):
+    id: str
+    user_id: str
+    state_id: Optional[str] = None
+    mode: str
+    action_type: str
+    message: str
+    priority: str
+    requires_ack: bool
+    ack_options: Optional[dict] = None
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    metadata_json: Optional[dict] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AssistantAckRequest(BaseModel):
+    user_id: str
+    response: str   # ok | not_ok | false_alarm
+    note: Optional[str] = None
+    action_id: Optional[str] = None
+
+
+class AssistantAckResponse(BaseModel):
+    success: bool
+    new_mode: str
+    message: str
+    actions_created: list = []
+
+
+class AssistantSummaryResponse(BaseModel):
+    user_id: str
+    current_mode: str
+    monitoring_intensity: str
+    recommended_poll_interval_sec: int
+    awaiting_user_ack: bool
+    ack_deadline_at: Optional[datetime] = None
+    last_risk_score: float
+    last_severity: Optional[str] = None
+    active_action_count: int
+    last_user_response: Optional[str] = None
+    should_sound_alarm: bool
+    guidance_messages: list = []
 

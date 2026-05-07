@@ -1,9 +1,5 @@
-"""
-SQLite concrete repository implementations.
-
-Each class accepts an ``AsyncSession`` and wraps the existing SQLAlchemy
-ORM patterns that were previously inline in routers.
-"""
+# SQLite repository siniflari mevcut ORM erisimini ortak bir katmanda toplar.
+# Her sinif AsyncSession uzerinden onceki router mantigini koruyarak calisir.
 from __future__ import annotations
 
 import json
@@ -18,35 +14,51 @@ from models import (
     AlertEvent,
     AnomalyEvent,
     AppSettings,
+    AssistantAcknowledgement,
+    AssistantAction,
+    AssistantState,
     ClinicalNote,
     DevicePacketLog,
     DeviceRegistration,
     HistoryItem,
+    LearningCaptureSession,
+    LearningWindow,
     LinkCode,
     LiveStatus,
+    ModelVersionRegistry,
     NotificationItem,
+    PersonalHealthProfile,
+    PersonalRiskMemory,
+    PersonalTrendSnapshot,
     PostEventSession,
     SimulationState,
     User,
+    UserBaseline,
+    UserFeedbackEvent,
     UserRelation,
 )
 from repositories.base import (
     AbstractAlertRepo,
     AbstractAnomalyRepo,
+    AbstractBaselineRepo,
     AbstractClinicalNoteRepo,
     AbstractDeviceRepo,
     AbstractHistoryRepo,
+    AbstractLearningRepo,
     AbstractLinkCodeRepo,
     AbstractLiveStatusRepo,
     AbstractNotificationRepo,
+    AbstractPersonalizationRepo,
     AbstractPostEventRepo,
     AbstractRelationRepo,
     AbstractSettingsRepo,
     AbstractSimulationStateRepo,
     AbstractUserRepo,
+    AbstractAssistantRepo,
 )
 
 
+# User ORM nesnesini API dostu bir dict yapisina cevirir.
 def _user_to_dict(u: User) -> Dict[str, Any]:
     return {
         "id": u.id, "email": u.email, "password_hash": u.password_hash,
@@ -55,6 +67,7 @@ def _user_to_dict(u: User) -> Dict[str, Any]:
     }
 
 
+# LinkCode ORM nesnesini tasinabilir bir dict yapisina cevirir.
 def _code_to_dict(c: LinkCode) -> Dict[str, Any]:
     return {
         "id": c.id, "code": c.code, "owner_id": c.owner_id,
@@ -79,6 +92,12 @@ def _live_to_dict(ls: LiveStatus) -> Dict[str, Any]:
         "spo2": ls.spo2, "motion_score": ls.motion_score,
         "risk_score": ls.risk_score, "scenario": ls.scenario,
         "timestamp": ls.timestamp,
+        "final_risk_score": ls.risk_score,
+        "personalized_risk_score": None,
+        "ml_evidence_score": None,
+        "ml_adjustment": None,
+        "fusion_applied": None,
+        "model_window_status": None,
     }
 
 
@@ -143,6 +162,7 @@ def _settings_to_dict(s: AppSettings) -> Dict[str, Any]:
         "battery_mode": s.battery_mode,
         "background_monitoring": s.background_monitoring,
         "update_interval_seconds": s.update_interval_seconds,
+        "alert_sensitivity": getattr(s, "alert_sensitivity", "normal"),
     }
 
 
@@ -709,3 +729,652 @@ class SqliteDeviceRepo(AbstractDeviceRepo):
         await self.db.flush()
         await self.db.refresh(log)
         return {"id": log.id, "device_id": log.device_id, "packet_seq": log.packet_seq}
+
+
+# ===================================================================
+# User baseline
+# ===================================================================
+
+def _baseline_to_dict(b: UserBaseline) -> Dict[str, Any]:
+    return {
+        "id": b.id,
+        "user_id": b.user_id,
+        "hr_mean": b.hr_mean,
+        "hr_std": b.hr_std,
+        "spo2_mean": b.spo2_mean,
+        "spo2_std": b.spo2_std,
+        "motion_mean": b.motion_mean,
+        "motion_std": b.motion_std,
+        "ppg_quality_mean": b.ppg_quality_mean,
+        "sample_count": b.sample_count,
+        "is_ready": b.is_ready,
+        "created_at": b.created_at,
+        "updated_at": b.updated_at,
+        "last_updated": b.last_updated,
+    }
+
+
+class SqliteBaselineRepo(AbstractBaselineRepo):
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_by_user_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(UserBaseline).where(UserBaseline.user_id == user_id)
+        )
+        b = r.scalar_one_or_none()
+        return _baseline_to_dict(b) if b else None
+
+    async def create_for_user(self, user_id: str) -> Dict[str, Any]:
+        b = UserBaseline(id=str(uuid4()), user_id=user_id)
+        self.db.add(b)
+        await self.db.flush()
+        await self.db.refresh(b)
+        return _baseline_to_dict(b)
+
+    async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        existing = await self.get_by_user_id(user_id)
+        if existing is not None:
+            return existing
+        return await self.create_for_user(user_id)
+
+    async def update_values(self, user_id: str, values: Dict[str, Any]) -> Dict[str, Any]:
+        r = await self.db.execute(
+            select(UserBaseline).where(UserBaseline.user_id == user_id)
+        )
+        b = r.scalar_one_or_none()
+        if b is None:
+            b = UserBaseline(id=str(uuid4()), user_id=user_id)
+            self.db.add(b)
+        for k, v in values.items():
+            setattr(b, k, v)
+        self.db.add(b)
+        await self.db.flush()
+        await self.db.refresh(b)
+        return _baseline_to_dict(b)
+
+
+# ===================================================================
+# Part 5A — Learning Loop
+# ===================================================================
+
+def _capture_session_to_dict(s: LearningCaptureSession) -> Dict[str, Any]:
+    return {
+        "id": s.id, "user_id": s.user_id, "device_id": s.device_id,
+        "started_at": s.started_at, "ended_at": s.ended_at,
+        "source": s.source, "mode": s.mode,
+        "sample_count": s.sample_count,
+        "quality_sample_count": s.quality_sample_count,
+        "low_quality_sample_count": s.low_quality_sample_count,
+        "event_count": s.event_count,
+        "has_user_feedback": s.has_user_feedback,
+        "training_candidate": s.training_candidate,
+        "training_status": s.training_status,
+        "created_at": s.created_at, "updated_at": s.updated_at,
+    }
+
+
+def _learning_window_to_dict(w: LearningWindow) -> Dict[str, Any]:
+    def _parse_json(val):
+        if val is None:
+            return None
+        if isinstance(val, dict):
+            return val
+        try:
+            return json.loads(val)
+        except Exception:
+            return None
+
+    return {
+        "id": w.id, "user_id": w.user_id, "device_id": w.device_id,
+        "session_id": w.session_id,
+        "window_start_at": w.window_start_at, "window_end_at": w.window_end_at,
+        "duration_sec": w.duration_sec, "sample_count": w.sample_count,
+        "source": w.source, "risk_level_at_capture": w.risk_level_at_capture,
+        "final_risk_score": w.final_risk_score,
+        "quality_confidence": w.quality_confidence,
+        "baseline_ready": w.baseline_ready,
+        "ml_shadow_summary": _parse_json(w.ml_shadow_summary),
+        "retrieval_shadow_summary": _parse_json(w.retrieval_shadow_summary),
+        "assistant_mode": w.assistant_mode,
+        "user_feedback_label": w.user_feedback_label,
+        "suggested_label": w.suggested_label,
+        "label_confidence": w.label_confidence,
+        "training_candidate": w.training_candidate,
+        "exported_at": w.exported_at,
+        "created_at": w.created_at,
+    }
+
+
+def _feedback_to_dict(f: UserFeedbackEvent) -> Dict[str, Any]:
+    return {
+        "id": f.id, "user_id": f.user_id,
+        "related_window_id": f.related_window_id,
+        "related_alert_id": f.related_alert_id,
+        "feedback_type": f.feedback_type,
+        "feedback_source": f.feedback_source,
+        "note": f.note, "created_at": f.created_at,
+    }
+
+
+def _model_version_to_dict(m: ModelVersionRegistry) -> Dict[str, Any]:
+    def _parse_json(val):
+        if val is None:
+            return None
+        if isinstance(val, dict):
+            return val
+        try:
+            return json.loads(val)
+        except Exception:
+            return None
+
+    return {
+        "id": m.id, "model_name": m.model_name, "version": m.version,
+        "model_path": m.model_path,
+        "training_data_snapshot": m.training_data_snapshot,
+        "metrics_json": _parse_json(m.metrics_json),
+        "status": m.status,
+        "created_at": m.created_at, "activated_at": m.activated_at,
+    }
+
+
+class SqliteLearningRepo(AbstractLearningRepo):
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def create_session(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        s = LearningCaptureSession(**data)
+        self.db.add(s)
+        await self.db.flush()
+        await self.db.refresh(s)
+        return _capture_session_to_dict(s)
+
+    async def close_session(self, session_id: str, ended_at) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(LearningCaptureSession).where(LearningCaptureSession.id == session_id)
+        )
+        s = r.scalar_one_or_none()
+        if s is None:
+            return None
+        s.ended_at = ended_at
+        s.updated_at = datetime.utcnow()
+        self.db.add(s)
+        await self.db.flush()
+        await self.db.refresh(s)
+        return _capture_session_to_dict(s)
+
+    async def create_window(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        # Serialize JSON fields
+        for field in ("ml_shadow_summary", "retrieval_shadow_summary"):
+            if isinstance(data.get(field), dict):
+                data[field] = json.dumps(data[field])
+        w = LearningWindow(**data)
+        self.db.add(w)
+        await self.db.flush()
+        await self.db.refresh(w)
+        return _learning_window_to_dict(w)
+
+    async def list_windows(
+        self,
+        user_id: Optional[str] = None,
+        training_candidate: Optional[bool] = None,
+        source: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]:
+        q = select(LearningWindow).order_by(LearningWindow.created_at.desc())
+        if user_id:
+            q = q.where(LearningWindow.user_id == user_id)
+        if training_candidate is not None:
+            q = q.where(LearningWindow.training_candidate == training_candidate)
+        if source:
+            q = q.where(LearningWindow.source == source)
+        q = q.limit(limit)
+        r = await self.db.execute(q)
+        return [_learning_window_to_dict(w) for w in r.scalars().all()]
+
+    async def get_window(self, window_id: str) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(LearningWindow).where(LearningWindow.id == window_id)
+        )
+        w = r.scalar_one_or_none()
+        return _learning_window_to_dict(w) if w else None
+
+    async def mark_window_candidate(
+        self, window_id: str, status: str
+    ) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(LearningWindow).where(LearningWindow.id == window_id)
+        )
+        w = r.scalar_one_or_none()
+        if w is None:
+            return None
+        is_candidate = status in ("candidate", "approved")
+        w.training_candidate = is_candidate
+        w.suggested_label = w.suggested_label  # unchanged
+        self.db.add(w)
+        await self.db.flush()
+        await self.db.refresh(w)
+        return _learning_window_to_dict(w)
+
+    async def update_window_feedback(
+        self, window_id: str, feedback_label: str
+    ) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(LearningWindow).where(LearningWindow.id == window_id)
+        )
+        w = r.scalar_one_or_none()
+        if w is None:
+            return None
+        w.user_feedback_label = feedback_label
+        # sensor_error feedback → exclude from training
+        if feedback_label == "sensor_error":
+            w.training_candidate = False
+        self.db.add(w)
+        await self.db.flush()
+        await self.db.refresh(w)
+        return _learning_window_to_dict(w)
+
+    async def create_feedback(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        f = UserFeedbackEvent(**data)
+        self.db.add(f)
+        await self.db.flush()
+        await self.db.refresh(f)
+        return _feedback_to_dict(f)
+
+    async def get_feedback_for_window(self, window_id: str) -> List[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(UserFeedbackEvent)
+            .where(UserFeedbackEvent.related_window_id == window_id)
+            .order_by(UserFeedbackEvent.created_at.desc())
+        )
+        return [_feedback_to_dict(f) for f in r.scalars().all()]
+
+    async def create_model_version(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if isinstance(data.get("metrics_json"), dict):
+            data["metrics_json"] = json.dumps(data["metrics_json"])
+        m = ModelVersionRegistry(**data)
+        self.db.add(m)
+        await self.db.flush()
+        await self.db.refresh(m)
+        return _model_version_to_dict(m)
+
+    async def list_model_versions(self) -> List[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(ModelVersionRegistry).order_by(ModelVersionRegistry.created_at.desc())
+        )
+        return [_model_version_to_dict(m) for m in r.scalars().all()]
+
+    async def get_active_model_version(self) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(ModelVersionRegistry)
+            .where(ModelVersionRegistry.status == "active")
+            .order_by(ModelVersionRegistry.activated_at.desc())
+        )
+        m = r.scalars().first()
+        return _model_version_to_dict(m) if m else None
+
+    async def list_windows_for_export(
+        self,
+        user_id: Optional[str] = None,
+        include_demo: bool = False,
+        min_quality_confidence: float = 0.0,
+        limit: int = 1000,
+    ) -> List[Dict[str, Any]]:
+        q = (
+            select(LearningWindow)
+            .where(
+                LearningWindow.training_candidate == True,  # noqa: E712
+                LearningWindow.exported_at == None,         # noqa: E711
+                LearningWindow.quality_confidence >= min_quality_confidence,
+            )
+            .order_by(LearningWindow.created_at.asc())
+        )
+        if user_id:
+            q = q.where(LearningWindow.user_id == user_id)
+        if not include_demo:
+            q = q.where(LearningWindow.source != "demo")
+        q = q.limit(limit)
+        r = await self.db.execute(q)
+        return [_learning_window_to_dict(w) for w in r.scalars().all()]
+
+    async def mark_windows_exported(self, window_ids: List[str]) -> int:
+        if not window_ids:
+            return 0
+        now = datetime.utcnow()
+        result = await self.db.execute(
+            update(LearningWindow)
+            .where(LearningWindow.id.in_(window_ids))
+            .values(exported_at=now)
+        )
+        await self.db.flush()
+        return result.rowcount
+
+
+# ---------------------------------------------------------------------------
+# Part 5B � Adaptive Personalization repository (SQLite)
+# ---------------------------------------------------------------------------
+
+def _profile_to_dict(p: PersonalHealthProfile) -> Dict[str, Any]:
+    import json as _json
+    return {
+        "id": p.id,
+        "user_id": p.user_id,
+        "baseline_id": p.baseline_id,
+        "personalization_level": p.personalization_level,
+        "total_observation_minutes": p.total_observation_minutes,
+        "total_valid_samples": p.total_valid_samples,
+        "total_feedback_count": p.total_feedback_count,
+        "false_alarm_count": p.false_alarm_count,
+        "confirmed_risk_count": p.confirmed_risk_count,
+        "sensor_error_count": p.sensor_error_count,
+        "typical_hr_min": p.typical_hr_min,
+        "typical_hr_max": p.typical_hr_max,
+        "typical_spo2_min": p.typical_spo2_min,
+        "typical_spo2_max": p.typical_spo2_max,
+        "typical_motion_min": p.typical_motion_min,
+        "typical_motion_max": p.typical_motion_max,
+        "day_profile_json": _json.loads(p.day_profile_json) if p.day_profile_json else None,
+        "night_profile_json": _json.loads(p.night_profile_json) if p.night_profile_json else None,
+        "activity_profile_json": _json.loads(p.activity_profile_json) if p.activity_profile_json else None,
+        "ml_window_count": p.ml_window_count,
+        "ml_usable_window_count": p.ml_usable_window_count,
+        "ml_evidence_mean": p.ml_evidence_mean,
+        "ml_evidence_std": p.ml_evidence_std,
+        "ml_confidence_mean": p.ml_confidence_mean,
+        "ml_positive_support_count": p.ml_positive_support_count,
+        "ml_personal_disagreement_count": p.ml_personal_disagreement_count,
+        "last_ml_evidence_score": p.last_ml_evidence_score,
+        "last_ml_adjustment": p.last_ml_adjustment,
+        "last_model_window_at": p.last_model_window_at,
+        "last_recalibrated_at": p.last_recalibrated_at,
+        "created_at": p.created_at,
+        "updated_at": p.updated_at,
+    }
+
+
+def _risk_memory_to_dict(m: PersonalRiskMemory) -> Dict[str, Any]:
+    import json as _json
+    return {
+        "id": m.id,
+        "user_id": m.user_id,
+        "event_type": m.event_type,
+        "risk_score": m.risk_score,
+        "severity": m.severity,
+        "context_json": _json.loads(m.context_json) if m.context_json else None,
+        "created_at": m.created_at,
+    }
+
+
+def _trend_to_dict(t: PersonalTrendSnapshot) -> Dict[str, Any]:
+    return {
+        "id": t.id,
+        "user_id": t.user_id,
+        "window_minutes": t.window_minutes,
+        "hr_trend": t.hr_trend,
+        "spo2_trend": t.spo2_trend,
+        "motion_trend": t.motion_trend,
+        "quality_trend": t.quality_trend,
+        "risk_trend": t.risk_trend,
+        "trend_confidence": t.trend_confidence,
+        "created_at": t.created_at,
+    }
+
+
+class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_or_create_profile(self, user_id: str) -> Dict[str, Any]:
+        r = await self.db.execute(
+            select(PersonalHealthProfile).where(PersonalHealthProfile.user_id == user_id)
+        )
+        p = r.scalar_one_or_none()
+        if p is None:
+            p = PersonalHealthProfile(id=str(uuid4()), user_id=user_id)
+            self.db.add(p)
+            await self.db.flush()
+            await self.db.refresh(p)
+        return _profile_to_dict(p)
+
+    async def update_profile(self, user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        import json as _json
+        r = await self.db.execute(
+            select(PersonalHealthProfile).where(PersonalHealthProfile.user_id == user_id)
+        )
+        p = r.scalar_one_or_none()
+        if p is None:
+            p = PersonalHealthProfile(id=str(uuid4()), user_id=user_id)
+            self.db.add(p)
+        for k, v in updates.items():
+            if k in ("day_profile_json", "night_profile_json", "activity_profile_json"):
+                setattr(p, k, _json.dumps(v) if v is not None else None)
+            else:
+                setattr(p, k, v)
+        p.updated_at = datetime.utcnow()
+        await self.db.flush()
+        await self.db.refresh(p)
+        return _profile_to_dict(p)
+
+    async def add_risk_memory(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        import json as _json
+        raw = dict(data)
+        if isinstance(raw.get("context_json"), dict):
+            raw["context_json"] = _json.dumps(raw["context_json"])
+        m = PersonalRiskMemory(**raw)
+        self.db.add(m)
+        await self.db.flush()
+        await self.db.refresh(m)
+        return _risk_memory_to_dict(m)
+
+    async def list_risk_memory(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(PersonalRiskMemory)
+            .where(PersonalRiskMemory.user_id == user_id)
+            .order_by(PersonalRiskMemory.created_at.desc())
+            .limit(limit)
+        )
+        return [_risk_memory_to_dict(m) for m in r.scalars().all()]
+
+    async def create_trend_snapshot(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        t = PersonalTrendSnapshot(**data)
+        self.db.add(t)
+        await self.db.flush()
+        await self.db.refresh(t)
+        return _trend_to_dict(t)
+
+    async def get_latest_trend_snapshot(self, user_id: str) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(PersonalTrendSnapshot)
+            .where(PersonalTrendSnapshot.user_id == user_id)
+            .order_by(PersonalTrendSnapshot.created_at.desc())
+            .limit(1)
+        )
+        t = r.scalar_one_or_none()
+        return _trend_to_dict(t) if t else None
+
+    async def summarize_personalization(self, user_id: str) -> Dict[str, Any]:
+        profile = await self.get_or_create_profile(user_id)
+        latest_trend = await self.get_latest_trend_snapshot(user_id)
+        total_fb = profile["total_feedback_count"]
+        false_alarm_rate = (
+            round(profile["false_alarm_count"] / total_fb, 3) if total_fb > 0 else 0.0
+        )
+        return {
+            "user_id": user_id,
+            "personalization_level": profile["personalization_level"],
+            "total_valid_samples": profile["total_valid_samples"],
+            "total_observation_minutes": profile["total_observation_minutes"],
+            "false_alarm_rate": false_alarm_rate,
+            "confirmed_risk_count": profile["confirmed_risk_count"],
+            "feedback_count": total_fb,
+            "latest_trend": latest_trend,
+            "typical_ranges": {
+                "hr": [profile["typical_hr_min"], profile["typical_hr_max"]],
+                "spo2": [profile["typical_spo2_min"], profile["typical_spo2_max"]],
+                "motion": [profile["typical_motion_min"], profile["typical_motion_max"]],
+            },
+        }
+
+
+# ---------------------------------------------------------------------------
+# Part 5C — Care Assistant Orchestrator SQLite repo
+# ---------------------------------------------------------------------------
+
+def _state_to_dict(s: AssistantState) -> Dict[str, Any]:
+    import json as _json
+    d = {
+        "id": s.id, "user_id": s.user_id,
+        "current_mode": s.current_mode, "previous_mode": s.previous_mode,
+        "last_risk_score": s.last_risk_score, "last_severity": s.last_severity,
+        "personalization_level": s.personalization_level,
+        "watch_started_at": s.watch_started_at,
+        "warning_started_at": s.warning_started_at,
+        "critical_started_at": s.critical_started_at,
+        "awaiting_user_ack": s.awaiting_user_ack,
+        "ack_deadline_at": s.ack_deadline_at,
+        "last_user_response": s.last_user_response,
+        "last_action_summary": None,
+        "monitoring_intensity": s.monitoring_intensity,
+        "recommended_poll_interval_sec": s.recommended_poll_interval_sec,
+        "created_at": s.created_at, "updated_at": s.updated_at,
+    }
+    if s.last_action_summary:
+        try:
+            d["last_action_summary"] = _json.loads(s.last_action_summary)
+        except Exception:
+            d["last_action_summary"] = s.last_action_summary
+    return d
+
+
+def _action_to_dict(a: AssistantAction) -> Dict[str, Any]:
+    import json as _json
+    d = {
+        "id": a.id, "user_id": a.user_id, "state_id": a.state_id,
+        "mode": a.mode, "action_type": a.action_type, "message": a.message,
+        "priority": a.priority, "requires_ack": a.requires_ack,
+        "ack_options": None, "created_at": a.created_at,
+        "expires_at": a.expires_at, "completed_at": a.completed_at,
+        "metadata_json": None,
+    }
+    if a.ack_options:
+        try:
+            d["ack_options"] = _json.loads(a.ack_options)
+        except Exception:
+            d["ack_options"] = a.ack_options
+    if a.metadata_json:
+        try:
+            d["metadata_json"] = _json.loads(a.metadata_json)
+        except Exception:
+            d["metadata_json"] = a.metadata_json
+    return d
+
+
+def _ack_to_dict(a: AssistantAcknowledgement) -> Dict[str, Any]:
+    return {
+        "id": a.id, "user_id": a.user_id, "state_id": a.state_id,
+        "action_id": a.action_id, "response": a.response,
+        "response_source": a.response_source, "note": a.note,
+        "created_at": a.created_at,
+    }
+
+
+class SqliteAssistantRepo(AbstractAssistantRepo):
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
+
+    async def get_or_create_state(self, user_id: str) -> Dict[str, Any]:
+        r = await self.db.execute(
+            select(AssistantState).where(AssistantState.user_id == user_id)
+        )
+        s = r.scalar_one_or_none()
+        if s is None:
+            s = AssistantState(
+                id=str(uuid4()), user_id=user_id,
+                current_mode="normal", monitoring_intensity="normal",
+                recommended_poll_interval_sec=60,
+            )
+            self.db.add(s)
+            await self.db.flush()
+            await self.db.refresh(s)
+        return _state_to_dict(s)
+
+    async def update_state(self, user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        import json as _json
+        r = await self.db.execute(
+            select(AssistantState).where(AssistantState.user_id == user_id)
+        )
+        s = r.scalar_one_or_none()
+        if s is None:
+            s = AssistantState(id=str(uuid4()), user_id=user_id)
+            self.db.add(s)
+        for k, v in updates.items():
+            if k == "last_action_summary" and isinstance(v, dict):
+                v = _json.dumps(v)
+            setattr(s, k, v)
+        s.updated_at = datetime.utcnow()
+        await self.db.flush()
+        await self.db.refresh(s)
+        return _state_to_dict(s)
+
+    async def create_action(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        import json as _json
+        raw = dict(data)
+        if isinstance(raw.get("ack_options"), dict):
+            raw["ack_options"] = _json.dumps(raw["ack_options"])
+        if isinstance(raw.get("metadata_json"), dict):
+            raw["metadata_json"] = _json.dumps(raw["metadata_json"])
+        a = AssistantAction(**raw)
+        self.db.add(a)
+        await self.db.flush()
+        await self.db.refresh(a)
+        return _action_to_dict(a)
+
+    async def list_active_actions(self, user_id: str) -> List[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(AssistantAction)
+            .where(
+                AssistantAction.user_id == user_id,
+                AssistantAction.completed_at.is_(None),
+            )
+            .order_by(AssistantAction.created_at.desc())
+        )
+        return [_action_to_dict(a) for a in r.scalars().all()]
+
+    async def complete_action(self, action_id: str) -> Optional[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(AssistantAction).where(AssistantAction.id == action_id)
+        )
+        a = r.scalar_one_or_none()
+        if a:
+            a.completed_at = datetime.utcnow()
+            await self.db.flush()
+            await self.db.refresh(a)
+            return _action_to_dict(a)
+        return None
+
+    async def create_ack(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        raw = dict(data)
+        a = AssistantAcknowledgement(**raw)
+        self.db.add(a)
+        await self.db.flush()
+        await self.db.refresh(a)
+        return _ack_to_dict(a)
+
+    async def get_due_ack_timeouts(self, now: datetime) -> List[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(AssistantState)
+            .where(
+                AssistantState.awaiting_user_ack == True,
+                AssistantState.ack_deadline_at <= now,
+            )
+        )
+        return [_state_to_dict(s) for s in r.scalars().all()]
+
+    async def list_assistant_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        r = await self.db.execute(
+            select(AssistantAction)
+            .where(AssistantAction.user_id == user_id)
+            .order_by(AssistantAction.created_at.desc())
+            .limit(limit)
+        )
+        return [_action_to_dict(a) for a in r.scalars().all()]

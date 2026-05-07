@@ -1,22 +1,12 @@
-"""IMU Encoder: CRNN (CNN + GRU) for accelerometer + gyroscope data.
-
-Architecture:
-  Conv1D blocks → GRU → encoded representation
-  Captures both local patterns (CNN) and temporal dynamics (GRU).
-"""
-
 import torch
 import torch.nn as nn
 from typing import List
 
 
+# IMU zaman serisini CNN ve RNN ile ortak temsile cevirir.
 class IMUEncoder(nn.Module):
-    """Convolutional Recurrent Neural Network for 6-axis IMU encoding.
 
-    Input: (B, T, 6) - accel_xyz + gyro_xyz
-    Output: (B, hidden_dim) - encoded representation
-    """
-
+        # Konvolusyon ve tekrarli katmanlardan olusan IMU encoderini kurar.
     def __init__(
         self,
         in_channels: int = 6,
@@ -31,7 +21,7 @@ class IMUEncoder(nn.Module):
         if cnn_channels is None:
             cnn_channels = [32, 64, 128]
 
-        # 1D CNN feature extractor
+        # Yerel hareket kaliplarini yakalayacak CNN bloklarini kurar.
         layers = []
         prev_ch = in_channels
         for ch in cnn_channels:
@@ -46,7 +36,7 @@ class IMUEncoder(nn.Module):
 
         self.cnn = nn.Sequential(*layers)
 
-        # RNN temporal encoder
+    # Zamansal baglam icin iki yonlu tekrarli kodlayici ekler.
         RNNClass = nn.GRU if rnn_type.lower() == "gru" else nn.LSTM
         self.rnn = RNNClass(
             input_size=cnn_channels[-1],
@@ -57,28 +47,21 @@ class IMUEncoder(nn.Module):
             bidirectional=True,
         )
 
-        self.output_dim = rnn_hidden * 2  # bidirectional
+        self.output_dim = rnn_hidden * 2
         self.dropout = nn.Dropout(dropout)
 
+    # IMU tensörunu encode ederek sabit boyutlu temsil dondurur.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            x: (B, T, C) IMU tensor where C=6.
-
-        Returns:
-            (B, output_dim) encoded representation.
-        """
-        # CNN expects (B, C, T)
+        # CNN katmani kanal boyutunu once bekledigi icin eksenleri cevirir.
         x = x.permute(0, 2, 1)
         x = self.cnn(x)
 
-        # Back to (B, T', C')
+        # Tekrar zaman once gelecek bicime dondurur.
         x = x.permute(0, 2, 1)
 
-        # RNN
         rnn_out, _ = self.rnn(x)
 
-        # Use last timestep output
+        # Son zaman adimini temsil olarak secip dropout uygular.
         x = rnn_out[:, -1, :]
         x = self.dropout(x)
         return x

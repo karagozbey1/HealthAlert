@@ -54,6 +54,7 @@ def analyze_trends(
         "timestamp": now.isoformat(),
     }
 
+# Son veri yogunluguna gore genel trend etiketini secer.
 def _determine_trend_label(
     anomalies_1h: List[Dict],
     anomalies_24h: List[Dict],
@@ -90,6 +91,7 @@ TREND_LABELS_TR = {
     "veri_yetersiz": "Veri Yetersiz",
 }
 
+# Trend etiketini destekleyen aciklayici cumleleri olusturur.
 def _build_trend_summary(
     trend_label: str,
     anomalies_1h: List[Dict],
@@ -136,6 +138,7 @@ def _build_trend_summary(
 
     return lines
 
+# Kayittaki farkli tarih alanlarini tek bir datetime nesnesine cevirir.
 def _parse_dt(val) -> datetime:
     if val is None:
         return datetime.min

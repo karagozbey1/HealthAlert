@@ -1,14 +1,11 @@
-"""Fall detection prediction head."""
 import torch
 import torch.nn as nn
 
 
+# Birlesik temsil uzerinden dusme logiti ureten cikti basligidir.
 class FallHead(nn.Module):
-    """Binary fall detection head.
 
-    Input: (B, D) fused representation
-    Output: (B, 1) fall probability
-    """
+    # Dusme sinifi icin iki katmanli tahmin basligini kurar.
     def __init__(self, input_dim: int = 128, hidden_dim: int = 64):
         super().__init__()
         self.head = nn.Sequential(
@@ -18,5 +15,6 @@ class FallHead(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
+    # Birlesik temsilden ham dusme logitini hesaplar.
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.head(x)  # Raw logit; apply sigmoid at loss/inference
+        return self.head(x)

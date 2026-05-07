@@ -14,6 +14,7 @@ from schemas import ClinicalNoteCreate, ClinicalNoteResponse, ClinicalNoteUpdate
 
 router = APIRouter(prefix="/clinical-notes", tags=["clinical-notes"])
 
+# Doktor kullanicisi icin yeni klinik not olusturur.
 @router.post("", response_model=ClinicalNoteResponse, status_code=201)
 async def create_note(
     body: ClinicalNoteCreate,
@@ -39,6 +40,7 @@ async def create_note(
     await db.commit()
     return result
 
+# Rol ve baglilik kontroluyle hasta notlarini listeler.
 @router.get("/{patient_id}", response_model=list[ClinicalNoteResponse])
 async def get_notes_for_patient(
     patient_id: str,
@@ -53,6 +55,7 @@ async def get_notes_for_patient(
     else:
         raise HTTPException(status_code=403, detail="Access denied")
 
+# Doktorun kendi notunu gunceller.
 @router.put("/{note_id}", response_model=ClinicalNoteResponse)
 async def update_note(
     note_id: str,
@@ -75,6 +78,7 @@ async def update_note(
     await db.commit()
     return result
 
+# Doktorun sahip oldugu notu siler.
 @router.delete("/{note_id}", status_code=204)
 async def delete_note(
     note_id: str,

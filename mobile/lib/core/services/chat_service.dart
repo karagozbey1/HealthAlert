@@ -1,13 +1,14 @@
 import 'api_client.dart';
 
 class ChatMessage {
-  final String role; // "user" | "assistant"
+  final String role;
   final String content;
   final String? tag;
-  final String source; // "llm" | "rule_based" | "local"
+  final String source;
   final List<UIAction> uiActions;
   final DateTime timestamp;
 
+  /// Sohbet mesajini rol, kaynak ve zaman bilgisiyle birlikte olusturur.
   ChatMessage({
     required this.role,
     required this.content,
@@ -17,7 +18,10 @@ class ChatMessage {
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
+  /// Mesajin asistana ait olup olmadigini bildirir.
   bool get isAssistant => role == 'assistant';
+
+  /// Mesajin kullanicidan gelip gelmedigini bildirir.
   bool get isUser => role == 'user';
 }
 
@@ -25,8 +29,10 @@ class UIAction {
   final String label;
   final String route;
 
+  /// Arayuzde acilabilecek hedef ve etiket bilgisini tasir.
   const UIAction({required this.label, required this.route});
 
+  /// Sunucu yanitindan arayuz eylemi nesnesi uretir.
   factory UIAction.fromJson(Map<String, dynamic> json) {
     return UIAction(
       label: json['label'] as String? ?? '',
@@ -43,6 +49,7 @@ class ChatResponse {
   final List<UIAction> uiActions;
   final String contextSummary;
 
+  /// Sohbet yanitinin istemcide kullanilacak alanlarini bir arada tutar.
   const ChatResponse({
     required this.sessionId,
     required this.message,
@@ -52,6 +59,7 @@ class ChatResponse {
     this.contextSummary = '',
   });
 
+  /// API yanitindan sohbet sonucunu ayriştirir.
   factory ChatResponse.fromJson(Map<String, dynamic> json) {
     return ChatResponse(
       sessionId: json['session_id'] as String? ?? '',
@@ -70,9 +78,10 @@ class ChatResponse {
 class ChatStatus {
   final bool llmConfigured;
   final String llmModel;
-  final String llmStatus; // "ok" | "error" | "not_configured"
+  final String llmStatus;
   final bool fallbackAvailable;
 
+  /// Asistan servisinin baglanti ve yedekleme durumunu tasir.
   const ChatStatus({
     required this.llmConfigured,
     required this.llmModel,
@@ -80,6 +89,7 @@ class ChatStatus {
     this.fallbackAvailable = true,
   });
 
+  /// API yanitindan servis durumunu ayriştirir.
   factory ChatStatus.fromJson(Map<String, dynamic> json) {
     return ChatStatus(
       llmConfigured: json['llm_configured'] as bool? ?? false,
@@ -91,13 +101,16 @@ class ChatStatus {
 }
 
 class ChatService {
+  /// Sohbet isteklerini API varsa sunucuya, yoksa yerel yedek akişa yonlendirir.
   ChatService({this.apiClient});
 
   final ApiClient? apiClient;
   String? _sessionId;
 
+  /// Etkin sohbet oturumunun kimligini dondurur.
   String? get sessionId => _sessionId;
 
+  /// Mesaji sunucuya gonderir ve gerekiyorsa yerel yedek yanit uretir.
   Future<ChatResponse> sendMessage({
     required String message,
     String? targetUserId,
@@ -124,6 +137,7 @@ class ChatService {
     }
   }
 
+  /// Kullaniciya gosterilecek hazir soru onerilerini getirir.
   Future<List<String>> getSuggestions() async {
     if (apiClient == null || !apiClient!.hasToken) {
       return _defaultSuggestions();
@@ -137,6 +151,7 @@ class ChatService {
     }
   }
 
+  /// Asistan servisinin baglanti durumunu sorgular.
   Future<ChatStatus> getStatus() async {
     if (apiClient == null || !apiClient!.hasToken) {
       return const ChatStatus(
@@ -157,8 +172,10 @@ class ChatService {
     }
   }
 
+  /// Gecerli sohbet oturumunu sifirlar.
   void resetSession() => _sessionId = null;
 
+  /// Sunucuya ulasilamadiginda kullaniciya gosterilecek yerel yaniti uretir.
   ChatResponse _localFallback(String message) {
     return ChatResponse(
       sessionId: _sessionId ?? '',
@@ -171,6 +188,7 @@ class ChatService {
     );
   }
 
+  /// Sunucuya baglanilamadiginda varsayilan soru onerilerini saglar.
   List<String> _defaultSuggestions() {
     return [
       'Bugunku durumumu ozetle',

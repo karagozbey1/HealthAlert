@@ -26,6 +26,7 @@ FLOAT_FIELDS = {"accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z",
                 "heart_rate", "spo2", "signal_quality"}
 BOOL_FIELDS = {"imu_ok", "ppg_ok", "hr_valid", "spo2_valid", "finger_detected"}
 
+# JSONL yakalama dosyasini paket listesine cevirir.
 def _load_jsonl(path: Path) -> list[dict]:
     packets = []
     with open(path, "r", encoding="utf-8") as f:
@@ -39,6 +40,7 @@ def _load_jsonl(path: Path) -> list[dict]:
                 logger.warning("Line %d: JSON error – %s", lineno, exc)
     return packets
 
+# CSV yakalama dosyasini tip donusumleriyle yukler.
 def _load_csv(path: Path) -> list[dict]:
     packets = []
     with open(path, "r", encoding="utf-8", newline="") as f:
@@ -56,12 +58,14 @@ def _load_csv(path: Path) -> list[dict]:
             packets.append(row)
     return packets
 
+# Dosya uzantisina gore uygun yukleyiciyi secer.
 def _load_packets(path: Path) -> list[dict]:
     suffix = path.suffix.lower()
     if suffix == ".csv":
         return _load_csv(path)
     return _load_jsonl(path)
 
+# Kaydedilmis paketleri sirayla backend'e tekrar oynatir.
 @click.command()
 @click.option("--file", "filepath", required=True, type=click.Path(exists=True), help="Capture file (JSONL or CSV)")
 @click.option("--backend", default="http://localhost:8000", help="Backend base URL")

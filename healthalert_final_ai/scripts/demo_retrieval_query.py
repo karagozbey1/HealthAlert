@@ -132,7 +132,7 @@ def run_demo(
     seed: int = 42,
     exclude_self: bool = False,
 ) -> Dict[str, Any]:
-    """Run the demo query and return the result dict."""
+    # Demo sorgusunu calistirip sonucu disa aktarilabilir yapida dondurur.
     logger.info("Loading RetrievalEngine from %s ...", index_dir)
     engine = RetrievalEngine()
     loaded = engine.load(index_dir)

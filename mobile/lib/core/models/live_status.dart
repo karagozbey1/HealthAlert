@@ -48,9 +48,7 @@ class LiveStatus {
         mlEvidenceScore: (json['ml_evidence_score'] as num?)?.toDouble(),
         mlAdjustment: (json['ml_adjustment'] as num?)?.toDouble(),
         fusionApplied: json['fusion_applied'] as bool?,
-        modelWindowStatus: json['model_window_status'] != null
-            ? json['model_window_status'].toString()
-            : null,
+        modelWindowStatus: (json['model_window_status'])?.toString(),
       );
 
   String get scenarioLabel {

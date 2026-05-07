@@ -1,8 +1,3 @@
-"""Strict PPG quality audit script.
-
-Runs leakage checks and harder evaluations focused ONLY on BUT_PPG quality task.
-"""
-
 import sys
 import argparse
 import hashlib
@@ -36,6 +31,7 @@ from src.models.multitask_model_v2 import HealthAlertModelV2
 from src.training.metrics import calibrate_threshold
 
 
+# BUT_PPG kalite gorevi icin sizinti ve dayaniklilik denetimleri yapar.
 def parse_args():
     p = argparse.ArgumentParser(description="Strict PPG quality audit")
     p.add_argument("--checkpoint", type=str, required=True, help="Checkpoint path")

@@ -1,16 +1,5 @@
-"""Learning export paketlerini doğrular ve özet rapor üretir.
-
-Kullanım:
-    python scripts/validate_learning_export.py <export_dir>
-    python scripts/validate_learning_export.py --all outputs/learning_exports/
-    python scripts/validate_learning_export.py <export_dir> --errors-only
-    python scripts/validate_learning_export.py <export_dir> --min-candidates 10
-
-Çıkış kodları:
-    0: Doğrulama başarılı.
-    1: Kritik hata bulundu.
-    2: Şema geçerli ama uyarılar var.
-"""
+# Ogrenme export paketlerini denetleyip ozet rapor ureten betiktir.
+# Cikis kodu 0 basariyi, 1 kritik hatayi, 2 ise yalniz uyarilari temsil eder.
 from __future__ import annotations
 
 import argparse

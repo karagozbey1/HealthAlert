@@ -12,6 +12,9 @@ inference:
   model_path: "${paths.model_dir}/best_final_fusion_model.pt"
   batch_size: 1
   device: "auto"
+  vitals_context_model_enabled: false
+  gait_instability_model_enabled: false
+  vitals_strategy: "runtime_rules_plus_personalization"
 
 streaming:
   buffer_size: 200        # samples (= window_size)

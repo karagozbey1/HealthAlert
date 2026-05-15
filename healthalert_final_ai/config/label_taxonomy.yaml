@@ -1,0 +1,113 @@
+## HealthAlert canonical label taxonomy
+## All dataset-specific labels are normalized to one of these canonical labels.
+
+canonical_labels:
+
+  # ── Outcome labels (fall / safety events) ──
+  fall:
+    id: 1
+    description: "Confirmed fall event"
+    tasks: [fall_detection]
+    fast_model: true
+
+  near_fall:
+    id: 2
+    description: "Near-fall / stumble / balance recovery"
+    tasks: [fall_detection]
+    fast_model: true
+
+  instability:
+    id: 3
+    description: "Gait instability, irregular movement"
+    tasks: [fall_detection, activity_context]
+    fast_model: true
+
+  # ── Activity labels ──
+  normal:
+    id: 0
+    description: "No event; normal daily activity"
+    tasks: [fall_detection, adl_detection, activity_context]
+    fast_model: true
+
+  walking:
+    id: 10
+    description: "Walking, jogging, running"
+    tasks: [adl_detection, activity_context]
+    fast_model: true
+
+  sitting:
+    id: 11
+    description: "Sitting"
+    tasks: [adl_detection, activity_context]
+    fast_model: true
+
+  standing:
+    id: 12
+    description: "Standing still"
+    tasks: [adl_detection, activity_context]
+    fast_model: true
+
+  lying:
+    id: 13
+    description: "Lying down"
+    tasks: [adl_detection, activity_context]
+    fast_model: true
+
+  # ── Signal quality labels ──
+  good_quality:
+    id: 20
+    description: "Good PPG / sensor signal quality"
+    tasks: [ppg_quality]
+    fast_model: true
+
+  bad_quality:
+    id: 21
+    description: "Poor PPG / sensor signal quality"
+    tasks: [ppg_quality]
+    fast_model: true
+
+  # ── Unknown / not applicable ──
+  unknown:
+    id: 99
+    description: "Label not available or not applicable for this task"
+    tasks: []
+    fast_model: false
+
+# Alias → canonical mapping used by label_mapping.py
+aliases:
+  "0": normal
+  "1": fall
+  "2": near_fall
+  "3": instability
+  "F": fall
+  "D": normal
+  "ADL": normal
+  "Fall": fall
+  "adl": normal
+  "fall": fall
+  "normal": normal
+  "near_fall": near_fall
+  "instability": instability
+  "bad_quality": bad_quality
+  "good_quality": good_quality
+  "walking": walking
+  "running": walking
+  "jogging": walking
+  "sitting": sitting
+  "standing": standing
+  "lying": lying
+  "1_fall": fall
+  "FOL": fall
+  "FKL": fall
+  "BSC": fall
+  "SDL": fall
+  "STD": normal
+  "WAL": walking
+  "JOG": walking
+  "STU": normal
+  "STN": normal
+  "SCH": normal
+  "CSI": normal
+  "CSO": normal
+  "LYI": lying
+  "BVP": unknown

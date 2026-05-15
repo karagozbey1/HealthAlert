@@ -1,0 +1,167 @@
+# HealthAlert — Task Training Policy
+# ─────────────────────────────────────────────────────────────────────────────
+# This file governs which multi-task heads are enabled for full supervised
+# training. Before each build, task window counts are compared to
+# min_windows_required.  Heads that fall below the threshold are marked
+# disabled (passive_context or optional_low_data) so the training loop does
+# not attempt supervised optimisation on them.
+#
+# Updated by: build_multi_source_windowed_dataset.py + task_training_policy.py
+# Last manual update: 2026-05-12  (dataset final cleanup phase)
+# ─────────────────────────────────────────────────────────────────────────────
+
+global:
+  min_windows_required_default: 500
+  tremor_context_min: 500         # hard threshold — enforced in training loop
+  gait_instability_min: 1000      # soft threshold — warn but still train
+  ppg_quality_unknown_warn_ratio: 0.30  # warn if unknown > 30%
+
+tasks:
+
+  fall_detection:
+    enabled_for_training: true
+    reason: "Primary task — IMU-based fall vs. normal binary classification."
+    min_windows_required: 10000
+    actual_windows: 186714
+    label_requirements:
+      - fall
+      - normal
+    allowed_datasets:
+      - SisFall
+      - UP-Fall
+      - UMAFall
+      - UniMiB-SHAR
+      - HIFD
+      - WEDA_FALL
+      - BITS2-Geriatric-Fall-HR
+    excluded_datasets:
+      - BIDMC-PPG-Respiration
+      - PPG-DaLiA
+      - WESAD
+      - WildPPG
+      - Daphnet-FoG
+      - Hand-Tremor-MPU9250
+      - UCI-HAR
+    safety_checks:
+      no_label_99: true
+      no_ppg_vitals_contamination: true
+      no_gait_tremor_datasets: true
+
+  ppg_quality:
+    enabled_for_training: true
+    reason: "PPG quality gate — filters unreliable PPG before vital estimation."
+    min_windows_required: 1000
+    actual_windows: 150713
+    label_requirements:
+      - good_quality
+      - bad_quality
+    allowed_datasets:
+      - BUT_PPG
+      - BIDMC-PPG-Respiration
+      - PPG-DaLiA
+      - WESAD
+      - WildPPG
+    excluded_datasets:
+      - SisFall
+      - UP-Fall
+      - UMAFall
+      - UniMiB-SHAR
+      - Daphnet-FoG
+      - Hand-Tremor-MPU9250
+      - UCI-HAR
+    notes:
+      - "unknown-labelled windows (WildPPG, BIDMC) are kept but downweighted."
+      - "Warn if unknown ratio > ppg_quality_unknown_warn_ratio."
+
+  vitals_context:
+    enabled_for_training: true
+    reason: "Contextual PPG/vitals head — HR/SpO2 risk estimation gate."
+    min_windows_required: 1000
+    actual_windows: 150713
+    label_requirements: []        # context head — no strict label requirement
+    allowed_datasets:
+      - BUT_PPG
+      - BIDMC-PPG-Respiration
+      - PPG-DaLiA
+      - WESAD
+      - WildPPG
+    excluded_datasets:
+      - SisFall
+      - UP-Fall
+      - UMAFall
+      - UniMiB-SHAR
+      - Daphnet-FoG
+      - Hand-Tremor-MPU9250
+      - UCI-HAR
+
+  activity_context:
+    enabled_for_training: true
+    reason: "Activity classification — HAR labels for context-aware risk scoring."
+    min_windows_required: 5000
+    actual_windows: 323523
+    label_requirements:
+      - normal
+      - walking
+      - sitting
+      - standing
+      - lying
+    allowed_datasets:
+      - SisFall
+      - UP-Fall
+      - UMAFall
+      - UniMiB-SHAR
+      - HIFD
+      - WEDA_FALL
+      - UCI-HAR
+      - WildPPG
+      - PPG-DaLiA
+      - WESAD
+    excluded_datasets:
+      - Daphnet-FoG
+      - Hand-Tremor-MPU9250
+
+  gait_instability:
+    enabled_for_training: true
+    reason: "Gait anomaly detection — Daphnet Freezing-of-Gait."
+    min_windows_required: 1000
+    actual_windows: 8895
+    label_requirements:
+      - normal
+      - instability
+    allowed_datasets:
+      - Daphnet-FoG
+    excluded_datasets:
+      - Hand-Tremor-MPU9250
+      - UCI-HAR
+    notes:
+      - "unknown label ratio ~9.7% — Daphnet ambiguous segments. Acceptable."
+      - "Soft threshold — training proceeds but unknown windows are down-weighted."
+
+  tremor_context:
+    enabled_for_training: false   # DISABLED — insufficient data
+    status: optional_low_data
+    reason: >
+      Only Hand-Tremor-MPU9250 dataset contributes to this task.
+      After applying 4-second sliding windows at 100 Hz the expected window
+      count is ~138, which is below the hard minimum of 500 windows required
+      for meaningful supervised training.  Activating this head with so few
+      samples would result in unstable gradients and misleading metrics.
+    min_windows_required: 500
+    actual_windows: 138           # updated 2026-05-12 — still below threshold
+    label_requirements:
+      - normal
+      - instability
+    allowed_datasets:
+      - Hand-Tremor-MPU9250
+    excluded_datasets:
+      - fall_detection_datasets_all
+    fallback_behaviour: passive_context
+    fallback_note: >
+      tremor_context is logged as a passive contextual signal.
+      The model architecture may still compute tremor logits but they are not
+      included in the supervised loss.  When actual_windows >= 500 the field
+      enabled_for_training should be set to true before restarting training.
+    remediation:
+      - "Collect more tremor data (additional MPU9250 recordings)."
+      - "Explore PADS-Smartwatch-PD dataset once downloaded (Parkinson tremor)."
+      - "Do NOT add fall-detection or PPG datasets to compensate."

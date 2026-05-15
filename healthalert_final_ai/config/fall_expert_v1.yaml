@@ -1,0 +1,125 @@
+# ============================================================
+# Fall Expert v1 — Operational Configuration
+# ============================================================
+# Status    : BASELINE — valid, non-collapsed, NOT final
+# Checkpoint: outputs/hybrid_redesign/fall_expert/best_model.pt
+# Epoch     : 23 / 30
+# Val app_score : 0.7902
+# Test app_score: 0.7596 (threshold=0.40)
+# Test roc_auc  : 0.8427
+# Trained on : outputs/windowed_dataset/fall_detection/{train,val,test}.npz
+# Datasets   : HIFD, WEDA_FALL, UP-Fall, UMAFall, UniMiB-SHAR, BITS2_GERIATRIC_FALL_HR
+# Note       : UMAFall dominates (91.2% of test set, 98.7% of FN) — audit pending
+# ============================================================
+
+model:
+  class: FallExpertCNN
+  in_channels: 6           # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+  window_length: 200        # 4 seconds @ 50 Hz
+  checkpoint: "outputs/hybrid_redesign/fall_expert/best_model.pt"
+  parameters: 94305
+
+normalization:
+  clip_g: 50.0
+  stats_file: "outputs/hybrid_redesign/fall_expert/imu_norm_stats.json"
+  # mean_per_channel: [-0.1759, -0.0510, 0.1996, 0.0102, 0.0134, -0.0049]
+  # std_per_channel : [ 2.0925,  1.9566, 1.6923, 6.6227, 5.5769,  6.1388]
+
+# ── Risk-band thresholds (used by RiskFusionEngine) ─────────────────────────
+# Single binary threshold is NOT used operationally.
+# fall_prob feeds into risk bands; final risk_level is determined by fusion.
+risk_bands:
+  low_risk:
+    fall_prob_max: 0.30        # fall_prob < 0.30 → no fall contribution
+    label: "normal"
+  caution:
+    fall_prob_min: 0.30
+    fall_prob_max: 0.60        # 0.30 ≤ fall_prob < 0.60 → elevated monitoring
+    label: "caution"
+  high_risk:
+    fall_prob_min: 0.60
+    fall_prob_max: 0.85        # 0.60 ≤ fall_prob < 0.85 → prepare alert
+    label: "high_risk"
+  critical:
+    fall_prob_min: 0.85        # ≥ 0.85 + post-impact evidence → immediate alert
+    requires_post_impact: true  # post-impact = lying_prob ≥ 0.30
+    label: "critical"
+
+# ── Single-threshold reference (for binary evaluation only) ─────────────────
+thresholds:
+  safety_caution : 0.30   # fall_recall=0.713 — catches most falls, higher FP
+  balanced       : 0.35   # fall_recall=0.678 — best precision/recall balance
+  app_score_max  : 0.40   # fall_recall=0.646 — maximises app_score / macro_f1
+
+# ── Performance at key thresholds (test set, 56,276 windows) ────────────────
+test_performance:
+  t0_30:
+    fall_recall   : 0.71326
+    fall_precision: 0.68223
+    normal_recall : 0.86281
+    macro_f1      : 0.78420
+    fp            : 5464
+    fn            : 4716
+    app_score     : 0.74567
+  t0_35:
+    fall_recall   : 0.67769
+    fall_precision: 0.73595
+    normal_recall : 0.89960
+    macro_f1      : 0.79538
+    fp            : 3999
+    fn            : 5301
+    app_score     : 0.75496
+  t0_40:
+    fall_recall   : 0.64601
+    fall_precision: 0.77959
+    normal_recall : 0.92458
+    macro_f1      : 0.79977
+    fp            : 3004
+    fn            : 5822
+    app_score     : 0.75963
+  t0_50:
+    fall_recall   : 0.57798
+    fall_precision: 0.81019
+    normal_recall : 0.94409
+    macro_f1      : 0.78300
+    fp            : 2227
+    fn            : 6941
+    app_score     : 0.74220
+
+# ── Known limitations ────────────────────────────────────────────────────────
+limitations:
+  - id: L1
+    description: >
+      UMAFall dominates test set (91.2%) and contributes 98.7% of false negatives
+      at threshold=0.40 (miss_rate=0.387). Other datasets achieve miss_rate 0.026–0.077.
+      Root cause: suspected sensor placement / kinematic distribution mismatch.
+    action_required: "UMAFall normalization / source-distribution audit"
+    blocking_final: true
+
+  - id: L2
+    description: >
+      21.6% of UMAFall FN have fall_prob < 0.10 — model is highly confident these
+      are normal. Cannot be recovered by threshold reduction alone. Structural gap
+      in training distribution requires targeted data or normalization fix.
+    action_required: "UMAFall audit → Fall Expert v2 retrain if confirmed"
+    blocking_final: false
+
+  - id: L3
+    description: >
+      UP-Fall test split contains 0 fall windows (all 581 are normal). Falls from
+      UP-Fall landed entirely in train/val. No test-time fall diversity from this dataset.
+    action_required: "None — expected from split strategy"
+    blocking_final: false
+
+# ── Version history ──────────────────────────────────────────────────────────
+version: "v1"
+status: "baseline_not_final"
+date: "2026-05-14"
+training_command: >
+  python scripts/train_fall_expert.py --epochs 30 --device cpu
+  --batch_size 256 --pos_weight 1.0
+analysis_reports:
+  - "outputs/hybrid_redesign/fall_expert/threshold_analysis_report.md"
+  - "outputs/hybrid_redesign/fall_expert/threshold_analysis.json"
+  - "outputs/hybrid_redesign/fall_expert/fall_expert_report.md"
+  - "outputs/hybrid_redesign/fall_expert/metrics.json"

@@ -1,0 +1,743 @@
+datasets:
+
+  # ─────────────────────────── AVAILABLE LOCALLY ───────────────────────────
+
+  hifd:
+    name: HIFD
+    group: fall_imu_ppg
+    access:
+      type: direct
+      url: "https://github.com/kaist-avelab/HIFD"
+      status: available
+    local_path: data/raw/hifd/HIFD
+    sampling_rate_hz: 50
+    target_rate_hz: 50
+    modality:
+      - imu
+      - ppg
+    tasks:
+      - fall_detection
+      - adl_detection
+      - activity_context
+    sensor_columns:
+      imu: [ax, ay, az, droll, dpitch, dyaw]
+      ppg: [heart]
+    label_mapping:
+      0: normal
+      1: fall
+      2: near_fall
+    subject_id_column: subject_id
+    timestamp_column: time
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for: []
+    loader: hifd_loader
+    loader_status: active
+    license_note: "KAIST HIFD academic/open dataset"
+    # kept for backward compat
+    dataset_name: HIFD
+    source_type: open_dataset
+
+  weda_fall:
+    name: WEDA_FALL
+    group: fall_imu
+    access:
+      type: direct
+      url: "https://github.com/weda-fall/WEDA-FALL"
+      status: available
+    local_path: data/raw/weda_fall/WEDA_FALL
+    sampling_rate_hz: 50
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+      - adl_detection
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      0: normal
+      1: fall
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - ppg_quality
+      - vitals_context
+    loader: weda_fall_loader
+    loader_status: active
+    license_note: "WEDA-FALL public research dataset"
+    dataset_name: WEDA_FALL
+    source_type: open_dataset
+
+  but_ppg:
+    name: BUT_PPG
+    group: ppg_quality
+    access:
+      type: physionet
+      url: "https://physionet.org/content/butpvdb/1.0.0/"
+      status: available
+    local_path: data/raw/but_ppg/BUT_PPG
+    sampling_rate_hz: 30
+    target_rate_hz: 50
+    modality:
+      - ppg
+      - vitals
+    tasks:
+      - ppg_quality
+      - vitals_context
+    sensor_columns:
+      ppg: [ppg_waveform]
+      vitals: [heart_rate, spo2]
+    label_mapping:
+      0: bad_quality
+      1: good_quality
+    subject_id_column: subject_id
+    timestamp_column: null
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection
+    loader: but_ppg_loader
+    loader_status: active
+    license_note: "BUT PPG / PhysioNet quality dataset"
+    dataset_name: BUT_PPG
+    source_type: open_dataset
+
+  # ─────────────────────── MISSING – MANUAL DOWNLOAD REQUIRED ──────────────
+
+  sisfall:
+    name: SisFall
+    group: gait_movement
+    access:
+      type: manual
+      url: "http://sistemic.udea.edu.co/en/research/projects/falls/"
+      status: manual_required
+    local_path: data/raw/sisfall
+    sampling_rate_hz: 100
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - movement_anomaly
+      - activity_context
+    sensor_columns:
+      imu: [timestamp, accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      0: normal
+      1: instability
+      2: instability
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection
+      - ppg_quality
+      - vitals_context
+    accepted_extensions: [".txt", ".csv"]
+    loader: sisfall_loader
+    loader_status: active
+    license_note: "SisFall folder – movement disorder assessment dataset (Parkinson/tremor timeseries)"
+    notes:
+      - actual_content_is_movement_disorder_timeseries_not_standard_sisfall
+
+  upfall:
+    name: UP-Fall
+    group: fall_imu
+    access:
+      type: manual
+      url: "https://sites.google.com/up.edu.mx/har-up/"
+      status: manual_required
+    local_path: data/raw/upfall
+    sampling_rate_hz: 25
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+      - adl_detection
+      - activity_context
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      1: fall
+      0: normal
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - ppg_quality
+      - vitals_context
+    accepted_extensions: [".csv"]
+    rejected_extensions: [".mp4", ".avi", ".jpg", ".png"]
+    notes:
+      - use_sensor_subset_only_no_video
+    loader: upfall_loader
+    loader_status: active
+    license_note: "UP-Fall – open access, University of Panamerican"
+
+  umafall:
+    name: UMAFall
+    group: fall_imu
+    access:
+      type: manual
+      url: "https://figshare.com/articles/dataset/UMAFall_Fall_Detection_Dataset/4214283"
+      status: manual_required
+    local_path: data/raw/umafall
+    sampling_rate_hz: 20
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+      - adl_detection
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      Fall: fall
+      ADL: normal
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - ppg_quality
+      - vitals_context
+    accepted_extensions: [".csv"]
+    loader: umafall_loader
+    loader_status: active
+    license_note: "UMAFall – CC BY 4.0, University of Malaga"
+    notes:
+      - comment_lines_skipped_by_loader
+      - accelerometer_only_sensor_type_0
+      - label_inferred_from_filename
+
+  unimib_shar:
+    name: UniMiB-SHAR
+    group: fall_imu
+    access:
+      type: manual
+      url: "http://www.sal.disco.unimib.it/technologies/unimib-shar/"
+      status: manual_required
+    local_path: data/raw/unimib_shar
+    sampling_rate_hz: 50
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+      - adl_detection
+      - activity_context
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z]
+    label_mapping:
+      Fall: fall
+      ADL: normal
+    subject_id_column: subject_id
+    timestamp_column: null
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - ppg_quality
+      - vitals_context
+    accepted_extensions: [".mat", ".csv"]
+    notes:
+      - pre_windowed_151_samples_3_sec_requires_padding
+    loader: unimib_shar_loader
+    loader_status: active
+    license_note: "UniMiB-SHAR – free for academic use, University of Milano-Bicocca"
+
+  mobiact:
+    name: MobiAct
+    group: fall_imu
+    access:
+      type: request_required
+      url: "https://bmi.teicrete.gr/index.php/research/mobifall"
+      status: request_required
+    local_path: data/raw/mobiact
+    sampling_rate_hz: 200
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+      - adl_detection
+      - activity_context
+    sensor_columns:
+      imu: [acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      FOL: fall
+      FKL: fall
+      BSC: fall
+      SDL: fall
+      STD: normal
+      WAL: walking
+      JOG: walking
+      STU: normal
+      STN: normal
+      SCH: normal
+      CSI: normal
+      CSO: normal
+      LYI: lying
+    subject_id_column: subject_id
+    timestamp_column: rel_time
+    license_note: "MobiAct/MobiFall – request via TEICRETE, free for research"
+
+  uci_har:
+    name: UCI-HAR
+    group: fall_imu
+    access:
+      type: direct
+      url: "https://archive.ics.uci.edu/ml/datasets/human+activity+recognition+using+smartphones"
+      status: available
+    local_path: data/raw/uci_har
+    sampling_rate_hz: 50
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - activity_context
+      - adl_detection
+    sensor_columns:
+      imu: [total_acc_x, total_acc_y, total_acc_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      1: walking
+      2: walking
+      3: walking
+      4: standing
+      5: sitting
+      6: lying
+    subject_id_column: subject_id
+    timestamp_column: null
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection_direct
+    notes:
+      - pre_windowed_128_samples_2_56_sec_requires_padding_or_resample
+      - use_total_acc_for_posture_separation_body_acc_removes_gravity_signal
+    loader: uci_har_loader
+    loader_status: active
+    license_note: "UCI HAR – CC BY 4.0, UCI ML Repository"
+
+  pamap2:
+    name: PAMAP2
+    group: fall_imu
+    access:
+      type: direct
+      url: "https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring"
+      status: available
+    local_path: data/raw/pamap2
+    sampling_rate_hz: 100
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - activity_context
+      - adl_detection
+    sensor_columns:
+      imu: [acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      1: lying
+      2: sitting
+      3: standing
+      4: walking
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    target_window_sec: 4
+    target_sample_count: 200
+    notes:
+      - scaffold_only_loader_added_raw_parser_pending
+      - resample_100hz_to_50hz_and_keep_single_6ch_imu_stream
+      - exclude_non_core_adl_labels_from_first_activity_v2_version
+    loader: pamap2_loader
+    loader_status: scaffold_only
+    license_note: "PAMAP2 – available via UCI/ETH Zurich; raw data not bundled in this repo"
+
+  fallalld:
+    name: FallAllD
+    group: fall_imu
+    access:
+      type: manual
+      url: "https://falldataset.com/"
+      status: manual_required
+    local_path: data/raw/fallalld
+    sampling_rate_hz: 238
+    target_rate_hz: 50
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+      - adl_detection
+      - activity_context
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      F: fall
+      D: normal
+    subject_id_column: subject_id
+    timestamp_column: null
+    license_note: "FallAllD – CC BY 4.0, Jordan University of Science and Technology"
+
+  bidmc:
+    name: BIDMC-PPG-Respiration
+    group: ppg_vitals
+    access:
+      type: physionet
+      url: "https://physionet.org/content/bidmc/1.0.0/"
+      status: available
+    local_path: data/raw/bidmc
+    sampling_rate_hz: 125
+    target_rate_hz: 50
+    modality:
+      - ppg
+      - respiration
+      - vitals
+    tasks:
+      - ppg_quality
+      - vitals_context
+      - physiology_context
+    sensor_columns:
+      ppg: [pleth]
+      respiration: [resp]
+      vitals: [heart_rate, spo2, resp_rate]
+    label_mapping: {}
+    subject_id_column: subject_id
+    timestamp_column: time
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection
+    loader: bidmc_loader
+    loader_status: active
+    license_note: "BIDMC PPG – PhysioNet OHDSI / ODC-By"
+
+  ppg_dalia:
+    name: PPG-DaLiA
+    group: ppg_vitals
+    access:
+      type: manual
+      url: "https://archive.ics.uci.edu/dataset/495/ppg+dalia"
+      status: manual_required
+    local_path: data/raw/ppg_dalia
+    sampling_rate_hz: 64
+    target_rate_hz: 50
+    modality:
+      - ppg
+      - imu
+      - vitals
+    tasks:
+      - ppg_quality
+      - activity_context
+      - vitals_context
+    sensor_columns:
+      ppg: [ppg]
+      imu: [accel_x, accel_y, accel_z]
+      vitals: [heart_rate]
+    label_mapping:
+      sitting: sitting
+      standing: standing
+      walking: walking
+      running: walking
+      cycling: walking
+    subject_id_column: subject_id
+    timestamp_column: time
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection
+    accepted_extensions: [".pkl"]
+    loader: ppg_dalia_loader
+    loader_status: active
+    license_note: "PPG-DaLiA – CC BY 4.0, Friedrich-Alexander-Universität"
+
+  wesad:
+    name: WESAD
+    group: multimodal_stress
+    access:
+      type: manual
+      url: "https://archive.ics.uci.edu/dataset/465/wesad+wearable+stress+and+affect+detection"
+      status: manual_required
+    local_path: data/raw/wesad
+    sampling_rate_hz: 700
+    target_rate_hz: 50
+    modality:
+      - ppg
+      - imu
+      - eda
+      - respiration
+      - vitals
+    tasks:
+      - physiology_context
+      - vitals_context
+      - ppg_quality
+    sensor_columns:
+      ppg: [BVP]
+      imu: [ACC_x, ACC_y, ACC_z]
+      eda: [EDA]
+      respiration: [Resp]
+    label_mapping:
+      1: normal
+      2: instability
+      3: instability
+      4: normal
+    subject_id_column: subject_id
+    timestamp_column: null
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection
+    accepted_extensions: [".pkl"]
+    loader: wesad_loader
+    loader_status: active
+    license_note: "WESAD – CC BY 4.0, University of Augsburg/TU Munich"
+
+  wildppg:
+    name: WildPPG
+    group: ppg_vitals
+    access:
+      type: manual
+      url: "https://github.com/EPiC-Lab/WildPPG"
+      status: manual_required
+    local_path: data/raw/wildppg
+    sampling_rate_hz: 128
+    target_rate_hz: 50
+    modality:
+      - ppg
+      - imu
+    tasks:
+      - ppg_quality
+      - activity_context
+      - vitals_context
+    sensor_columns:
+      ppg: [ppg_green, ppg_ir, ppg_red]
+      imu: [accel_x, accel_y, accel_z]
+    label_mapping: {}
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    target_window_sec: 4
+    target_sample_count: 200
+    not_for:
+      - fall_detection
+    accepted_extensions: [".mat"]
+    loader: wildppg_loader
+    loader_status: active
+    primary_location: wrist
+    segment_samples: 76800
+    max_segments_per_file: 3
+    license_note: "WildPPG – CC BY 4.0, EPiC Lab"
+    notes:
+      - mat_files_wrist_ppg_acc_128hz
+      - scipy_loadmat_squeeze_me_struct_as_record_false
+      - no_activity_labels_self_supervised_ppg_quality
+      - not_for_fall_detection
+
+  # ─────────────────────── NEW MANUAL DATASETS (v2 Drop-In Prep) ───────────
+
+  bits2_geriatric_fall_hr:
+    name: BITS2-Geriatric-Fall-HR
+    slug: bits2_geriatric_fall_hr
+    group: fall_imu_vitals
+    access:
+      type: manual
+      url: "https://zenodo.org/records/8082667"
+      status: manual_required
+      notes: "Zenodo open access; IMU + heart-rate + fall/ADL"
+    local_path: data/raw/bits2_geriatric_fall_hr
+    sampling_rate_hz: 50
+    target_rate_hz: 50
+    target_window_sec: 4
+    target_sample_count: 200
+    modality:
+      - imu
+      - vitals
+    tasks:
+      - fall_detection
+      - vitals_context
+      - activity_context
+    not_for: []
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+      vitals: [heart_rate]
+    label_mapping:
+      fall: fall
+      normal: normal
+      adl: normal
+    expected_files:
+      - "*.csv"
+    accepted_extensions: [".csv", ".txt"]
+    rejected_extensions: []
+    loader: bits2_loader
+    loader_status: active
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    license_note: "BITS2 Geriatric Fall HR – Zenodo CC BY, DOI:10.5281/zenodo.8082667"
+    citation_note: "BITS2 Dataset, Zenodo 2023"
+
+  daphnet_fog:
+    name: Daphnet-FoG
+    slug: daphnet_fog
+    group: gait_movement
+    access:
+      type: manual
+      url: "https://archive.ics.uci.edu/dataset/245/daphnet+freezing+of+gait"
+      status: manual_required
+      notes: "UCI ML Repository, Daphnet Freezing of Gait dataset"
+    local_path: data/raw/daphnet_fog
+    sampling_rate_hz: 64
+    target_rate_hz: 50
+    target_window_sec: 4
+    target_sample_count: 200
+    modality:
+      - imu
+    tasks:
+      - gait_instability
+      - movement_anomaly
+      - freezing_of_gait
+    not_for:
+      - fall_detection_direct
+      - ppg_quality
+    sensor_columns:
+      imu: [ankle_x, ankle_y, ankle_z, upper_leg_x, upper_leg_y, upper_leg_z, trunk_x, trunk_y, trunk_z]
+    label_mapping:
+      0: unannotated
+      1: normal
+      2: freeze
+    expected_files:
+      - "*.txt"
+    accepted_extensions: [".txt", ".csv", ".dat"]
+    rejected_extensions: []
+    loader: daphnet_fog_loader
+    loader_status: active
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    license_note: "Daphnet FoG – CC BY 4.0, UCI ML Repository"
+    citation_note: "Bachlin et al. IEEE Transactions on Information Technology in Biomedicine 2010"
+    notes:
+      - raw_local_files_currently_show_labels_0_1_2_only
+      - label_0_is_unannotated_not_normal
+      - label_1_is_normal
+      - label_2_is_freeze
+      - pre_freeze_not_present_in_current_local_raw_files
+
+  pads_smartwatch_pd:
+    name: PADS-Smartwatch-PD
+    slug: pads_smartwatch_pd
+    group: gait_movement
+    access:
+      type: physionet
+      url: "https://physionet.org/content/parkinsons-disease-smartwatch/"
+      status: manual_required
+      notes: "PhysioNet; use wfdb.dl_database or manual download"
+    local_path: data/raw/pads_smartwatch_pd
+    sampling_rate_hz: 100
+    target_rate_hz: 50
+    target_window_sec: 4
+    target_sample_count: 200
+    modality:
+      - imu
+    tasks:
+      - gait_instability
+      - movement_anomaly
+      - tremor_context
+    not_for:
+      - ppg_quality
+      - fall_detection_direct
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      normal: normal
+      pd: instability
+    expected_files:
+      - "*.hea"
+      - "*.dat"
+      - "*.csv"
+    accepted_extensions: [".hea", ".dat", ".csv", ".txt"]
+    rejected_extensions: []
+    loader: pads_smartwatch_pd_loader
+    loader_status: scaffold
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    license_note: "PADS Smartwatch PD – PhysioNet License"
+    citation_note: "PhysioNet parkinsons-disease-smartwatch dataset"
+
+  hand_tremor_mpu9250:
+    name: Hand-Tremor-MPU9250
+    slug: hand_tremor_mpu9250
+    group: gait_movement
+    access:
+      type: manual
+      url: "https://www.kaggle.com/datasets/aaryapandya/hand-tremor-dataset-collected-using-mpu9250-sensor"
+      status: manual_required
+      notes: "Kaggle dataset; MPU9250 accelerometer/gyroscope CSV"
+    local_path: data/raw/hand_tremor_mpu9250
+    sampling_rate_hz: 100
+    target_rate_hz: 50
+    target_window_sec: 4
+    target_sample_count: 200
+    modality:
+      - imu
+    tasks:
+      - tremor_context
+      - movement_anomaly
+    not_for:
+      - fall_detection_direct
+      - ppg_quality
+    sensor_columns:
+      imu: [ax, ay, az, gx, gy, gz]
+    label_mapping:
+      tremor: instability
+      normal: normal
+    expected_files:
+      - "*.csv"
+    accepted_extensions: [".csv", ".txt"]
+    rejected_extensions: []
+    loader: hand_tremor_loader
+    loader_status: active
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    license_note: "Hand Tremor MPU9250 – Kaggle CC license"
+    citation_note: "Kaggle: aaryapandya/hand-tremor-dataset-collected-using-mpu9250-sensor"
+
+  fallalld_sensor_only:
+    name: FallAllD-Sensor-Only
+    slug: fallalld_sensor_only
+    group: fall_imu
+    access:
+      type: manual
+      url: ""
+      status: manual_required
+      notes: "ONLY wearable sensor CSV/txt. falldataset.com RGB/depth/Kinect MUST NOT be used."
+    local_path: data/raw/fallalld_sensor_only
+    sampling_rate_hz: 238
+    target_rate_hz: 50
+    target_window_sec: 4
+    target_sample_count: 200
+    modality:
+      - imu
+    tasks:
+      - fall_detection
+    not_for:
+      - ppg_quality
+      - vitals_context
+    sensor_columns:
+      imu: [accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z]
+    label_mapping:
+      fall: fall
+      normal: normal
+    expected_files:
+      - "*.csv"
+      - "*.txt"
+    accepted_extensions: [".csv", ".txt", ".dat"]
+    rejected_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".mp4", ".avi", ".mov", ".depth"]
+    rejected_sources:
+      - "falldataset.com RGB/depth/Kinect dataset"
+    loader: fallalld_sensor_loader
+    loader_status: scaffold
+    subject_id_column: subject_id
+    timestamp_column: timestamp
+    license_note: "FallAllD Sensor-Only – sensor CSV subset only"
+    citation_note: "Sensor-only subset; not the RGB/depth falldataset.com version"

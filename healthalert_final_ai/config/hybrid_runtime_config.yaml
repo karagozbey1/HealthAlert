@@ -1,0 +1,76 @@
+fall_expert:
+  enabled: true
+  status: accepted
+  model_path: outputs/hybrid_redesign/fall_expert_core_no_umafall/best_model.pt
+  norm_stats_path: outputs/hybrid_redesign/fall_expert_core_no_umafall/imu_norm_stats.json
+  threshold_caution: 0.35
+  threshold_balanced: 0.45
+  standalone_alert_allowed: true
+  critical_trigger_allowed: true
+
+ppg_quality_expert:
+  enabled: true
+  status: accepted
+  model_path: outputs/hybrid_redesign/ppg_quality_expert/best_model.pt
+  norm_stats_path: outputs/hybrid_redesign/ppg_quality_expert/ppg_norm_stats.json
+  mode: binary_good_bad_gate
+  bad_quality_gates_vitals: true
+
+activity_expert:
+  enabled: true
+  status: accepted_single_source_baseline
+  model_path: outputs/hybrid_redesign/activity_expert_v2_uci_only/best_model.pt
+  norm_stats_path: outputs/hybrid_redesign/activity_expert_v2_uci_only/imu_norm_stats.json
+  classes:
+    - walking
+    - sitting
+    - standing
+    - lying
+  source_limitation: UCI-HAR-only
+  standalone_alert_allowed: false
+  critical_trigger_allowed: false
+  notes:
+    - Accepted UCI-HAR-only artifact alias copied from exp_a_uci_only_baseline.
+    - PAMAP2 mixed model disabled
+    - standing confidence moderate
+
+gait_instability_model:
+  enabled: true
+  status: accepted_auxiliary_low_weight
+  mode: accepted_auxiliary_low_weight
+  model_path: outputs/hybrid_redesign/gait_instability_v2_ablation/pw2.0_lr3e-04_ft0.30/best_model.pt
+  norm_stats_path: outputs/hybrid_redesign/gait_instability_v2_ablation/pw2.0_lr3e-04_ft0.30/imu_norm_stats.json
+  threshold: 0.10
+  max_contribution_points: 5
+  standalone_alert_allowed: false
+  critical_trigger_allowed: false
+  temporal_smoothing_required: true
+  source_limitation: DAPHNET_FOG_only
+
+vitals_context_model:
+  enabled: false
+  status: rejected
+  mode: runtime_rules_plus_personalization
+
+runtime_vitals_rules:
+  enabled: true
+  ppg_quality_required: true
+  missing_ppg_contribution: 0
+
+tremor_context:
+  enabled: false
+  status: disabled
+
+rejected_models:
+  activity_v0:
+    enabled: false
+  activity_balanced_v1:
+    enabled: false
+  activity_v2_pamap2_mixed:
+    enabled: false
+  gait_v2_2:
+    enabled: false
+  old_gait_instability:
+    enabled: false
+  vitals_context_expert:
+    enabled: false

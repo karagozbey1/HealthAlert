@@ -1,0 +1,170 @@
+# ============================================================
+# HealthAlert — Prototype Training Configuration
+# ============================================================
+# Goal: presentation-ready prototype, NOT academic benchmark.
+# Optimise for:
+#   - correct working model
+#   - high fall/risk recall
+#   - realistic (not suspicious) scores
+#   - fast CPU inference
+# ============================================================
+
+seed: 42
+
+# ── Task-specific dataset paths ──────────────────────────────
+dataset_root: "outputs/windowed_dataset"
+
+tasks:
+  fall_detection:
+    enabled: true
+    split_dir: "fall_detection"
+    num_classes: 3
+    class_names: ["normal", "fall", "near_fall"]
+    # raw label → class index (-1 = exclude from loss)
+    label_map: {0: 0, 1: 1, 2: 2, 99: -1}
+    loss_type: "weighted_ce"  # plain weighted CE — focal down-weighting worsens collapse
+    # per-class weights — manually set to [2.0, 1.0, 8.0].
+    # Auto-computed weights [0.486, 1.082, 8.0] cause all-fall collapse because
+    # normal (class 0) weight 0.486 makes misclassifying normal cost LESS than
+    # average.  Manual weights raise the normal penalty 4× to break the collapse.
+    # class_weights: balanced_sampling gives p_normal≈p_fall≈46.7%, p_near_fall≈6.5%.
+    # With equal w_normal=w_fall=1.0 and near_fall capped at 3.0:
+    #   gradient from normal: 0.467×1.0=0.467  (equal to fall)
+    #   gradient from fall:   0.467×1.0=0.467  (equal to normal)
+    #   gradient from near_fall: 0.065×3.0=0.195  (less than both → stable)
+    # The previous cap of 8.0 gave near_fall 0.065×8.0=0.52 > normal/fall → instability.
+    class_weights: [1.0, 1.0, 3.0]
+    balanced_sampling: true
+    # near_fall is rare; cap its weight to avoid training instability
+    max_class_weight: 8.0
+    primary_metric: "recall_1"  # fall-class recall
+    loss_weight: 1.2            # dominant task
+
+  ppg_quality:
+    enabled: true
+    split_dir: "ppg_quality"
+    num_classes: 2
+    class_names: ["bad_quality", "good_quality"]
+    # normal/walking/sitting recorded under lab conditions → treated as good
+    label_map: {0: 1, 10: 1, 11: 1, 20: 1, 21: 0, 99: -1}
+    loss_type: "weighted_ce"
+    class_weights: null
+    max_class_weight: 6.0
+    primary_metric: "f1_macro"
+    loss_weight: 0.5
+
+  vitals_context:
+    enabled: true
+    split_dir: "vitals_context"
+    num_classes: 3
+    class_names: ["rest", "active", "poor_signal"]
+    label_map: {0: 0, 11: 0, 20: 0, 10: 1, 21: 2, 99: -1}
+    loss_type: "weighted_ce"
+    class_weights: null
+    max_class_weight: 6.0
+    primary_metric: "f1_macro"
+    loss_weight: 0.4
+
+  activity_context:
+    enabled: true
+    split_dir: "activity_context"
+    num_classes: 8
+    class_names: ["normal", "fall", "near_fall", "instability", "walking", "sitting", "standing", "lying"]
+    label_map: {0: 0, 1: 1, 2: 2, 3: 3, 10: 4, 11: 5, 12: 6, 13: 7, 99: -1}
+    loss_type: "weighted_ce"
+    class_weights: null
+    max_class_weight: 8.0
+    primary_metric: "f1_macro"
+    loss_weight: 0.6
+
+  gait_instability:
+    enabled: true
+    split_dir: "gait_instability"
+    num_classes: 2
+    class_names: ["normal_gait", "suspect_gait"]
+    # label 99 treated as suspect/anomalous gait (Daphnet FoG unknown = freeze)
+    label_map: {0: 0, 99: 1}
+    loss_type: "weighted_ce"
+    class_weights: null
+    max_class_weight: 8.0
+    primary_metric: "recall_1"
+    loss_weight: 0.6
+
+  tremor_context:
+    enabled: false            # DISABLED — only 138 windows, below 500 threshold
+    split_dir: "tremor_context"
+    reason: "optional_low_data — actual_windows=138, min_required=500"
+
+# ── Model ─────────────────────────────────────────────────────
+model:
+  imu_encoder:
+    in_channels: 6
+    cnn_channels: [32, 64, 128]
+    cnn_kernel: 5
+    gru_hidden: 128         # output_dim = 256 (bidirectional)
+    gru_layers: 2
+    dropout: 0.3
+
+  ppg_encoder:
+    in_channels: 1
+    channels: [16, 32, 64]
+    kernel_size: 7
+    dropout: 0.2
+
+  # Shared projection after concatenating imu+ppg encoders (256+64=320)
+  fusion_proj_dim: 256      # linear(320 → 256) + BN + ReLU
+
+# ── Training ─────────────────────────────────────────────────
+training:
+  epochs: 40
+  batch_size: 128
+  num_workers: 0            # 0 for Windows compatibility
+  pin_memory: false
+  gradient_clip: 1.0
+  early_stopping_patience: 8
+  early_stopping_metric: "fall_macro_f1"  # fall_detection macro F1 — avoids all-fall collapse
+  save_best_metric: "fall_macro_f1"       # requires both precision AND recall to be nonzero
+  # NOTE: was "fall_recall" — changed because fall_recall=1.0 at epoch-1 (all-fall collapse)
+  # fall_macro_f1 rewards models that correctly classify normal AND fall AND near_fall
+  collapse_precision_floor: 0.15         # do not save best if fall_precision < this
+  mixed_precision: false    # enable if CUDA available
+
+optimizer:
+  name: "adamw"
+  lr: 0.0005  # lowered from 0.001 — reduces oscillation around class boundary
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+
+scheduler:
+  name: "reduce_on_plateau"
+  factor: 0.5
+  patience: 4
+  min_lr: 0.00001
+  monitor: "val_loss"
+
+# ── Output ───────────────────────────────────────────────────
+output:
+  dir: "outputs/prototype_model"
+  best_model: "best_model.pt"
+  last_model: "last_model.pt"
+  label_mappings: "label_mappings.json"
+  metrics: "metrics.json"
+  inference_benchmark: "inference_benchmark.json"
+  training_summary: "prototype_training_summary.md"
+
+# ── Inference ────────────────────────────────────────────────
+inference:
+  # Recommended thresholds evaluated at multiple points
+  fall_threshold_analysis: [0.3, 0.4, 0.5, 0.6, 0.7]
+  recommended_fall_threshold: 0.4   # conservative for demo safety
+  # Risk score fusion weights
+  risk_fusion:
+    fall_prob_weight: 0.45
+    near_fall_prob_weight: 0.25
+    gait_instability_weight: 0.20
+    ppg_quality_penalty_weight: 0.10
+  risk_levels:
+    normal: [0.0, 0.30]
+    caution: [0.30, 0.55]
+    high_risk: [0.55, 0.75]
+    critical: [0.75, 1.0]

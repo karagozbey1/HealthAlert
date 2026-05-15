@@ -1,0 +1,219 @@
+# HealthAlert Manual Dataset Manifest
+# Describes datasets that require manual download before building the windowed dataset.
+# After downloading, extract each dataset to the specified local_path.
+
+manifest_version: "2.0"
+generated: "2026-05-11"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PRIORITY 1 — High impact, relatively easy to obtain
+# ─────────────────────────────────────────────────────────────────────────────
+
+priority_1:
+
+  - slug: sisfall
+    display_name: "SisFall: A Fall and Balance Events Dataset"
+    local_path: "data/raw/sisfall"
+    download_url: "http://sistemic.udea.edu.co/en/research/projects/falls/"
+    mirror_url: "https://www.kaggle.com/datasets/nvnikhil0001/sis-fall-original-dataset"
+    expected_size: "~300-500 MB"
+    expected_files: "SA*/SE* subject folders with .txt sensor files"
+    priority: 1
+    required_for:
+      - fall_detection
+      - activity_context
+    optional: false
+    notes: "Kaggle mirror recommended. SA=simulated falls, SE=elderly subjects."
+    ready_when: "At least one SA* or SE* folder present with .txt files"
+
+  - slug: unimib_shar
+    display_name: "UniMiB SHAR: Human Activity Recognition Acceleration Dataset"
+    local_path: "data/raw/unimib_shar"
+    download_url: "http://www.sal.disco.unimib.it/technologies/unimib-shar/"
+    mirror_url: "https://www.kaggle.com/datasets/wangboluo/unimib-shar-dataset"
+    expected_size: "~50-100 MB"
+    expected_files: "fall_data.mat + adl_data.mat OR subject CSV folders"
+    priority: 1
+    required_for:
+      - fall_detection
+      - activity_context
+    optional: false
+    notes: "Pre-windowed 151-sample segments. Loader will pad to 200 samples."
+    ready_when: "fall_data.mat present OR at least one CSV with fall/ADL labels"
+
+  - slug: ppg_dalia
+    display_name: "PPG-DaLiA: PPG Dataset for Motion Compensation and HR Estimation"
+    local_path: "data/raw/ppg_dalia"
+    download_url: "https://archive.ics.uci.edu/ml/datasets/PPG-DaLiA"
+    mirror_url: "https://www.kaggle.com/datasets/ameersifat53/ppg-dalia-dataset"
+    expected_size: "~1-2 GB"
+    expected_files: "S1.pkl through S15.pkl"
+    priority: 1
+    required_for:
+      - ppg_quality
+      - vitals_context
+    optional: false
+    notes: "15 subjects, PPG + IMU + HR. NOT for fall detection."
+    ready_when: "At least one S*.pkl file present"
+
+  - slug: bits2_geriatric_fall_hr
+    display_name: "BITS2 Geriatric Fall Detection with Heart Rate"
+    local_path: "data/raw/bits2_geriatric_fall_hr"
+    download_url: "https://zenodo.org/records/8082667"
+    mirror_url: ""
+    expected_size: "~50-200 MB"
+    expected_files: "CSV files with IMU + heart rate + fall/ADL labels"
+    priority: 1
+    required_for:
+      - fall_detection
+      - vitals_context
+    optional: false
+    notes: "Zenodo open access. Best suited for HealthAlert: IMU + HR + fall labels."
+    ready_when: "At least one CSV with fall/normal labels present"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PRIORITY 2 — Medium impact
+# ─────────────────────────────────────────────────────────────────────────────
+
+priority_2:
+
+  - slug: wesad
+    display_name: "WESAD: Wearable Stress and Affect Detection"
+    local_path: "data/raw/wesad"
+    download_url: "https://archive.ics.uci.edu/dataset/465/wesad"
+    mirror_url: "https://www.kaggle.com/datasets/orvile/wesad-wearable-stress-affect-detection-dataset"
+    expected_size: "~1-2 GB"
+    expected_files: "S2.pkl through S17.pkl (S1, S12 excluded)"
+    priority: 2
+    required_for:
+      - vitals_context
+      - ppg_quality
+      - physiology_context
+    optional: false
+    notes: "NOT for fall detection. PPG (BVP) + EDA + resp + ACC per subject."
+    ready_when: "At least one S*.pkl present"
+
+  - slug: umafall
+    display_name: "UMAFall: Multisensor Fall Detection Dataset"
+    local_path: "data/raw/umafall"
+    download_url: "https://figshare.com/articles/dataset/UMA_ADL_FALL_Dataset_zip/4214283"
+    mirror_url: ""
+    expected_size: "~50 MB"
+    expected_files: "CSV files per subject/activity"
+    priority: 2
+    required_for:
+      - fall_detection
+    optional: false
+    notes: "Figshare returns 202 async — click Download button on the web page."
+    ready_when: "At least one CSV file present"
+
+  - slug: upfall
+    display_name: "UP-Fall Detection Dataset"
+    local_path: "data/raw/upfall"
+    download_url: "https://sites.google.com/up.edu.mx/har-up/"
+    mirror_url: ""
+    expected_size: "~500 MB (sensor only)"
+    expected_files: "Subject*/Activity*/Trial*.csv sensor files"
+    priority: 2
+    required_for:
+      - fall_detection
+    optional: false
+    notes: "ONLY extract wearable sensor CSV subset. Do NOT place video files here."
+    ready_when: "At least one sensor CSV file present"
+
+  - slug: daphnet_fog
+    display_name: "Daphnet Freezing of Gait Dataset"
+    local_path: "data/raw/daphnet_fog"
+    download_url: "https://archive.ics.uci.edu/dataset/245/daphnet+freezing+of+gait"
+    mirror_url: ""
+    expected_size: "~10 MB"
+    expected_files: "S01R01.txt through S10R03.txt"
+    priority: 2
+    required_for:
+      - gait_instability
+      - movement_anomaly
+    optional: false
+    notes: "Small dataset. NOT for fall detection. Parkinson FoG patterns only."
+    ready_when: "At least one S*.txt file present"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PRIORITY 3 — Lower priority or optional
+# ─────────────────────────────────────────────────────────────────────────────
+
+priority_3:
+
+  - slug: pads_smartwatch_pd
+    display_name: "PADS: Parkinson's Disease Smartwatch Dataset"
+    local_path: "data/raw/pads_smartwatch_pd"
+    download_url: "https://physionet.org/content/parkinsons-disease-smartwatch/"
+    mirror_url: ""
+    expected_size: "~50-200 MB"
+    expected_files: "PhysioNet WFDB records or CSV files"
+    priority: 3
+    required_for:
+      - gait_instability
+      - tremor_context
+    optional: true
+    notes: "NOT for PD diagnosis. Movement anomaly context only."
+    ready_when: "At least one .hea/.dat or .csv file present"
+
+  - slug: hand_tremor_mpu9250
+    display_name: "Hand Tremor Dataset (MPU9250 Sensor)"
+    local_path: "data/raw/hand_tremor_mpu9250"
+    download_url: "https://www.kaggle.com/datasets/aaryapandya/hand-tremor-dataset-collected-using-mpu9250-sensor"
+    mirror_url: ""
+    expected_size: "~10-50 MB"
+    expected_files: "CSV files with ax/ay/az/gx/gy/gz columns"
+    priority: 3
+    required_for:
+      - tremor_context
+    optional: true
+    notes: "NOT for PD diagnosis. Tremor-like motion context only."
+    ready_when: "At least one CSV with IMU columns present"
+
+  - slug: wildppg
+    display_name: "WildPPG: Large-Scale Raw PPG in the Wild"
+    local_path: "data/raw/wildppg"
+    download_url: "https://github.com/eth-siplab/WildPPG"
+    mirror_url: "https://huggingface.co/datasets/eth-siplab/WildPPG"
+    expected_size: "~10+ GB"
+    expected_files: "subject_XX.parquet or subject_XX.h5 files"
+    priority: 3
+    required_for:
+      - ppg_quality
+    optional: true
+    notes: "OPTIONAL and very large. Only for PPG quality models."
+    ready_when: "At least one .parquet or .h5 file present"
+
+  - slug: fallalld_sensor_only
+    display_name: "FallAllD Sensor-Only (IMU/Barometer subset)"
+    local_path: "data/raw/fallalld_sensor_only"
+    download_url: ""
+    mirror_url: ""
+    expected_size: "unknown"
+    expected_files: "CSV/txt sensor files only"
+    priority: 3
+    required_for:
+      - fall_detection
+    optional: true
+    notes: |
+      CRITICAL: Do NOT use falldataset.com RGB/depth/Kinect dataset.
+      Only acceptable if pure accelerometer/gyroscope/magnetometer/barometer
+      time-series source is available.
+    ready_when: "At least one CSV sensor file present (no image/video files)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXCLUDED SOURCES — Do NOT download or use
+# ─────────────────────────────────────────────────────────────────────────────
+
+excluded_sources:
+  - url: "https://falldataset.com/"
+    reason: "RGB/Depth/Kinect image dataset — not sensor time-series"
+  - type: "video-only datasets"
+    reason: "No wearable sensor data"
+  - type: "voice-only Parkinson datasets"
+    reason: "No IMU/PPG data relevant to HealthAlert"
+  - type: "tabular diagnosis-only datasets"
+    reason: "No time-series data"
+  - type: "synthetic tabular datasets"
+    reason: "Not real sensor recordings"

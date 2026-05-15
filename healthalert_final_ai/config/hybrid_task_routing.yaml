@@ -1,0 +1,203 @@
+# HealthAlert — Hybrid Expert Model Task Routing Policy
+# ─────────────────────────────────────────────────────────────────────────────
+# Each task has an explicit list of allowed/forbidden datasets and primary modality.
+# This file is the single source of truth for dataset→task routing.
+# The audit script (scripts/audit_hybrid_dataset_contract.py) reads this file
+# to verify compliance and generate the dataset_contract report.
+#
+# IMPORTANT: Do not add a dataset to a task unless the dataset genuinely
+# contains ground-truth labels for that task.
+# ─────────────────────────────────────────────────────────────────────────────
+
+fall_detection:
+  allowed_datasets:
+    - upfall
+    - weda_fall
+    - unimib_shar
+    - hifd
+    - bits2_geriatric_fall_hr
+    - mobiact
+    - fallalld_sensor_only
+  disabled_or_excluded_datasets:
+    - name: umafall
+      reason: domain_mismatch_high_false_negative_rate
+      excluded_since: "2026-05-14"
+      note: >
+        UMAFall contributed 91.2% of test windows and 98.7% of false negatives in
+        Fall Expert v1 (miss_rate=0.387 vs 0.026-0.077 for all other datasets).
+        Excluded from core training pending a UMAFall-specific normalization /
+        sensor-placement audit.  Dataset folder is preserved for future research.
+  forbidden_datasets:
+    - but_ppg
+    - bidmc
+    - ppg_dalia
+    - wildppg
+    - wesad
+    - daphnet_fog
+    - hand_tremor_mpu9250
+    - gaitpdb
+    - pads_smartwatch_pd
+    - uci_har
+  primary_modality: imu
+  ppg_only_forbidden: true
+  label_policy:
+    binary_baseline:
+      normal: 0
+      fall: 1
+      near_fall: exclude    # excluded in first binary baseline; evaluated separately
+    notes: >
+      near_fall is excluded from the first binary training to prevent
+      class instability. It is kept as a holdout for caution analysis.
+
+activity_context:
+  allowed_datasets:
+    - uci_har
+    - unimib_shar
+    - umafall
+    - mobiact
+    - sisfall
+  forbidden_datasets:
+    - but_ppg
+    - bidmc
+    - ppg_dalia
+    - wildppg
+    - wesad
+    - daphnet_fog
+    - hand_tremor_mpu9250
+    - gaitpdb
+    - pads_smartwatch_pd
+  primary_modality: imu
+  output_classes:
+    - walking
+    - sitting
+    - standing
+    - lying
+    - running
+    - stairs
+    - transition
+    - unknown
+  notes: >
+    Activity expert does NOT generate health alarms.
+    It provides movement context to the risk fusion engine.
+
+ppg_quality:
+  allowed_datasets:
+    - but_ppg
+    - ppg_dalia
+    - wildppg
+    - wesad
+    - bidmc
+    - hifd
+  forbidden_datasets:
+    - umafall
+    - upfall
+    - weda_fall
+    - unimib_shar
+    - sisfall
+    - uci_har
+    - mobiact
+    - daphnet_fog
+    - hand_tremor_mpu9250
+    - gaitpdb
+    - pads_smartwatch_pd
+    - bits2_geriatric_fall_hr
+    - fallalld_sensor_only
+  primary_modality: ppg
+  output_classes:
+    - good_quality
+    - bad_quality
+    - motion_artifact
+    - unknown
+  notes: >
+    PPG quality expert does NOT diagnose disease.
+    It only determines whether PPG-based interpretation is reliable.
+    If quality is poor, vitals contribution is reduced in the fusion engine.
+
+vitals_context:
+  allowed_datasets:
+    - bidmc
+    - wesad
+    - ppg_dalia
+    - wildppg
+    - hifd
+  forbidden_datasets:
+    - umafall
+    - upfall
+    - weda_fall
+    - unimib_shar
+    - sisfall
+    - uci_har
+    - mobiact
+    - daphnet_fog
+    - hand_tremor_mpu9250
+    - gaitpdb
+    - pads_smartwatch_pd
+    - bits2_geriatric_fall_hr
+    - fallalld_sensor_only
+    - but_ppg
+  primary_modality: ppg_or_vitals
+  output_classes:
+    - rest_like
+    - active_like
+    - poor_signal
+    - abnormal_trend
+  notes: >
+    Vitals context provides physiological context, NOT clinical diagnosis.
+    Interpretation should be combined with activity context and PPG quality.
+
+gait_instability:
+  allowed_datasets:
+    - daphnet_fog
+    - gaitpdb
+    - pads_smartwatch_pd
+    - bits2_geriatric_fall_hr
+    - sisfall
+  forbidden_datasets:
+    - but_ppg
+    - bidmc
+    - ppg_dalia
+    - wildppg
+    - wesad
+    - uci_har
+    - umafall
+    - upfall
+    - weda_fall
+    - unimib_shar
+    - hifd
+    - mobiact
+    - hand_tremor_mpu9250
+    - fallalld_sensor_only
+  primary_modality: imu
+  output_classes:
+    - stable_gait
+    - unstable_gait
+  label_rescue:
+    abnormal_fraction_threshold: 0.20
+    raw_labels_treated_as_abnormal:
+      - freeze
+      - pre_freeze
+    raw_labels_treated_as_stable:
+      - normal
+      - walking
+      - sitting
+      - standing
+      - lying
+    raw_labels_ignored_for_fraction:
+      - unannotated
+      - unknown
+  notes: >
+    Gait instability increases future risk context, not instant critical.
+    A single unstable window alone must not trigger a critical alert.
+
+tremor_context:
+  allowed_datasets:
+    - hand_tremor_mpu9250
+  forbidden_datasets: []
+  primary_modality: imu
+  enabled_for_training: false
+  reason: low_data_optional
+  notes: >
+    Tremor context is disabled for supervised training.
+    The hand_tremor_mpu9250 dataset is too small for reliable supervised learning.
+    Enable only when actual labeled windows exceed 500 minimum threshold.
+    Do not use tremor_context in the final application decision until trained.

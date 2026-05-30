@@ -116,7 +116,6 @@ def build_chat_context(
 
 # Farkli zaman alanlarindan kisa ve okunur tarih metni uretir.
 def _short_ts(item: dict) -> str:
-    """context builder servisindeki HealthAlert iş kuralını uygular."""
     for key in ("detected_at", "created_at", "timestamp"):
         val = item.get(key)
         if val is None:

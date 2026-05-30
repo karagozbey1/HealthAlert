@@ -21,7 +21,6 @@ _MATURE_MIN_FEEDBACK = 10
 
 # Gozlem ve geri bildirim sayisina gore kisilestirme seviyesini belirler.
 def _get_personalization_level(total_valid_samples: int, total_feedback_count: int) -> str:
-    """adaptive personalization servisinde gereken veriyi okuyup çağırana döndürür."""
     if total_valid_samples < _COLD_START_MAX_SAMPLES:
         return "cold_start"
     if total_valid_samples < _LEARNING_MAX_SAMPLES:
@@ -33,7 +32,6 @@ def _get_personalization_level(total_valid_samples: int, total_feedback_count: i
 
 # Seviye bazli uygulanabilecek azami bonusu dondurur.
 def _max_bonus_for_level(level: str) -> float:
-    """adaptive personalization servisindeki HealthAlert iş kuralını uygular."""
     if level == "cold_start":
         return settings.PERSONALIZATION_COLD_START_MAX_BONUS
     if level == "learning":
@@ -107,7 +105,6 @@ def compute_contextual_deviation(
 
 # Deger listesinden basit yon bilgisini cikarir.
 def _classify_trend(values: List[float]) -> str:
-    """adaptive personalization servisindeki HealthAlert iş kuralını uygular."""
     if len(values) < 3:
         return "stable"
     delta = values[-1] - values[0]
@@ -349,7 +346,6 @@ class AdaptivePersonalizationService:
     # Kullanici icin profil kaydini getirir veya guvenli bir varsayilan dondurur.
     """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     async def get_or_create_profile(self, repos, user_id: str) -> Dict[str, Any]:
-        """adaptive personalization servisinde gereken veriyi okuyup çağırana döndürür."""
         try:
             profile = await repos.personalization.get_or_create_profile(user_id)
             return profile
@@ -430,7 +426,6 @@ class AdaptivePersonalizationService:
         severity: Optional[str],
         context: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
-        """adaptive personalization servisindeki HealthAlert iş kuralını uygular."""
         try:
             data = {
                 "id": str(uuid4()),
@@ -489,7 +484,6 @@ class AdaptivePersonalizationService:
         user_id: str,
         trend_info: Dict[str, Any],
     ) -> Optional[Dict[str, Any]]:
-        """adaptive personalization servisindeki HealthAlert iş kuralını uygular."""
         try:
             data = {
                 "id": str(uuid4()),
@@ -577,7 +571,6 @@ class AdaptivePersonalizationService:
 
     # Kullanici icin ozet kisilestirme istatistiklerini dondurur.
     async def get_personalization_summary(self, repos, user_id: str) -> Dict[str, Any]:
-        """adaptive personalization servisinde gereken veriyi okuyup çağırana döndürür."""
         try:
             return await repos.personalization.summarize_personalization(user_id)
         except Exception as exc:
@@ -596,7 +589,6 @@ class AdaptivePersonalizationService:
 
 # Verilen degeri EMA mantigiyla gunceller.
 def _ema(current: float, new_value: float, alpha: float) -> float:
-    """adaptive personalization servisindeki HealthAlert iş kuralını uygular."""
     return current * (1.0 - alpha) + new_value * alpha
 
 

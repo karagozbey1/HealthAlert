@@ -27,8 +27,6 @@ class RecommendationService {
         ];
     }
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   List<Recommendation> forLiveStatus(LiveStatus? live) {
     if (live == null) {
       return [
@@ -127,11 +125,7 @@ class RecommendationService {
     return recs;
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 enum RecommendationUrgency { normal, info, warning, critical }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class Recommendation {
   final String title;
   final String detail;

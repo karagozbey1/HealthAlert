@@ -5,8 +5,6 @@ import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HealthStatusScreen extends StatelessWidget {
   const HealthStatusScreen({super.key});
 
@@ -78,8 +76,6 @@ class HealthStatusScreen extends StatelessWidget {
         return 'NORMAL';
     }
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildStatusCard(
     BuildContext context,
     String title,
@@ -157,8 +153,6 @@ class HealthStatusScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _showDetailSheet(BuildContext context, String title, Color color,
       List<String> recommendations) {
     showModalBottomSheet(

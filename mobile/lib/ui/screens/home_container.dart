@@ -5,8 +5,6 @@ import 'health_assistant_screen.dart';
 import 'live_monitor_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class HomeContainer extends StatefulWidget {
   const HomeContainer({super.key});
 

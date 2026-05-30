@@ -6,8 +6,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/severity_badge.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HistoryDetailScreen extends StatefulWidget {
   const HistoryDetailScreen({super.key, required this.item});
 
@@ -29,8 +27,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchRecommendation());
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _fetchRecommendation() async {
     final app = AppScope.of(context);
     if (!app.isBackendMode) return;
@@ -225,8 +221,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildDetailRow({
     required IconData icon,
     required String label,
@@ -297,8 +291,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
         return 'Bildirim';
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _formatDateTime(DateTime dt) {
     final local = dt.toLocal();
     final pad = (int n) => n.toString().padLeft(2, '0');

@@ -1,6 +1,4 @@
 import 'package:shared_preferences/shared_preferences.dart';
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class LocalStore {
   LocalStore._();
 

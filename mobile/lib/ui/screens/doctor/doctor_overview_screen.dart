@@ -9,8 +9,6 @@ import '../../widgets/glass_card.dart';
 import 'doctor_alerts_screen.dart';
 import 'doctor_dashboard_screen.dart';
 import 'patient_detail_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DoctorOverviewScreen extends StatefulWidget {
   const DoctorOverviewScreen({super.key});
 
@@ -44,8 +42,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     _autoRefreshTimer?.cancel();
     super.dispose();
   }
-
-  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   void _startAutoRefresh() {
     _autoRefreshTimer?.cancel();
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -53,8 +49,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
       _load(isRefresh: true);
     });
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load({bool isRefresh = false}) async {
     if (_loadInProgress) return;
     _loadInProgress = true;
@@ -327,8 +321,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _statBox(String value, String label, IconData icon, Color color) {
     return Expanded(
       child: GlassCard(
@@ -349,8 +341,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionHeader(String title, IconData icon) {
     return Row(
       children: [
@@ -360,8 +350,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
       ],
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _quickButton(
       String label, IconData icon, Color color, VoidCallback onTap) {
     return GlassCard(
@@ -381,8 +369,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEmpty() {
     final app = AppScope.of(context);
     return GlassCard(

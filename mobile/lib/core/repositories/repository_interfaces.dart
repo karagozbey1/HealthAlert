@@ -11,8 +11,6 @@ import '../models/user_profile.dart';
 abstract class SessionRepository {
   /// Repository katmanında ilgili verinin okuma veya yazma sözleşmesini tanımlar.
   Future<bool> isLoggedIn();
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> saveSession(String userId);
 
   /// Repository katmanında ilgili verinin okuma veya yazma sözleşmesini tanımlar.
@@ -68,8 +66,6 @@ abstract class HistoryRepository {
 abstract class SettingsRepository {
   /// Repository katmanında ilgili verinin okuma veya yazma sözleşmesini tanımlar.
   Future<AppSettings> getSettings();
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<AppSettings> saveSettings(AppSettings settings);
 }
 
@@ -77,8 +73,6 @@ abstract class SettingsRepository {
 abstract class DeviceRepository {
   /// Repository katmanında ilgili verinin okuma veya yazma sözleşmesini tanımlar.
   Future<DeviceState> getState();
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<DeviceState> saveState(DeviceState state);
 }
 

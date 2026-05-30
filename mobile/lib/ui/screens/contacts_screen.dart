@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
 
@@ -52,8 +50,6 @@ class _ContactsScreenState extends State<ContactsScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildContactCard(
       String name, String relation, String phone, bool isPrimary) {
     return Padding(

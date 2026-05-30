@@ -5,8 +5,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_button.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class ClinicalNotesScreen extends StatefulWidget {
   final UserProfile patient;
   const ClinicalNotesScreen({super.key, required this.patient});
@@ -38,8 +36,6 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
     _recController.dispose();
     super.dispose();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadNotes({bool isRefresh = false}) async {
     if (!isRefresh || _notes.isEmpty) {
       if (mounted) setState(() => _loading = true);
@@ -54,8 +50,6 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _addNote() async {
     final text = _noteController.text.trim();
     if (text.isEmpty) return;
@@ -166,8 +160,6 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _noteCard(ClinicalNote note) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -216,8 +208,6 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _fmt(DateTime dt) =>
       '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';

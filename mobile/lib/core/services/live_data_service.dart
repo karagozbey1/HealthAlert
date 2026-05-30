@@ -90,8 +90,6 @@ class LiveDataService {
     );
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _DemoScenario {
   const _DemoScenario(
     this.name,

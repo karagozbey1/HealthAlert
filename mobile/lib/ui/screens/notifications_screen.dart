@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/state/app_scope.dart';
 import '../theme/app_theme.dart';
 import '../widgets/notification_tile.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -15,15 +13,11 @@ class NotificationsScreen extends StatefulWidget {
 /// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _refreshing = false;
-
-  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   Future<void> _refresh() async {
     setState(() => _refreshing = true);
     await AppScope.of(context).refreshNotifications();
     if (mounted) setState(() => _refreshing = false);
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _markAllRead() async {
     await AppScope.of(context).markNotificationsRead();
   }

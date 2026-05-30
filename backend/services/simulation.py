@@ -67,12 +67,10 @@ SCENARIO_SEQUENCE: List[Scenario] = [
 
 # Verilen aralıkta rastgele float üretir.
 def _rng(lo: float, hi: float) -> float:
-    """simulation servisindeki HealthAlert iş kuralını uygular."""
     return round(random.uniform(lo, hi), 1)
 
 # Önem derecesine göre öneri listesi döndürür.
 def _get_recommendations(severity: str) -> List[str]:
-    """simulation servisinde gereken veriyi okuyup çağırana döndürür."""
     if severity == "critical":
         return [
             "Acil risk tespit edildi.",
@@ -98,7 +96,6 @@ async def _fan_out_notification(
     reference_id: str,
     reference_type: str,
 ) -> None:
-    """simulation servisindeki HealthAlert iş kuralını uygular."""
     relations = await repos.relations.find_active_by_self_user(self_user_id)
     for rel in relations:
         await repos.notifications.create({
@@ -115,7 +112,6 @@ async def _fan_out_notification(
 
 # Tek kullanıcı için bir simülasyon adımı işler.
 async def _tick_user(db: AsyncSession, repos: RepoSet, user: User) -> None:
-    """simulation servisindeki HealthAlert iş kuralını uygular."""
     state = await repos.simulation.get_or_create(user.id)
     seq_idx = state["scenario_index"] % len(SCENARIO_SEQUENCE)
     scenario = SCENARIO_SEQUENCE[seq_idx]
@@ -236,7 +232,6 @@ async def _tick_user(db: AsyncSession, repos: RepoSet, user: User) -> None:
 
 # Tüm SELF kullanıcıları için simülasyon döngüsünü çalıştırır.
 async def run_simulation_loop() -> None:
-    """simulation servisindeki HealthAlert iş kuralını uygular."""
     logger.info("Simulation engine started.")
     while True:
         try:

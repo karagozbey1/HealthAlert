@@ -5,8 +5,6 @@ import 'relative_alerts_screen.dart';
 import 'relative_dashboard_screen.dart';
 import 'relative_history_screen.dart';
 import 'relative_settings_screen.dart';
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class RelativeHomeContainer extends StatefulWidget {
   const RelativeHomeContainer({super.key});
 

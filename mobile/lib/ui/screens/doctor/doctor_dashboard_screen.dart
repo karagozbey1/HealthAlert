@@ -8,8 +8,6 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import 'patient_detail_screen.dart';
 import '../self/redeem_code_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DoctorDashboardScreen extends StatefulWidget {
   const DoctorDashboardScreen({super.key});
 
@@ -43,8 +41,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     _autoRefreshTimer?.cancel();
     super.dispose();
   }
-
-  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   void _startAutoRefresh() {
     _autoRefreshTimer?.cancel();
     _autoRefreshTimer = Timer(const Duration(seconds: 3), () {
@@ -53,8 +49,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       _startAutoRefresh(); // reschedule with recalculated interval
     });
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadData({bool isRefresh = false}) async {
     if (_loadInProgress) return;
     _loadInProgress = true;
@@ -190,8 +184,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _summaryMetric(String label, String value, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,8 +199,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       ],
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEmptyState() {
     final app = AppScope.of(context);
     return GlassCard(
@@ -251,8 +241,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _patientCard(UserProfile patient) {
     final app = AppScope.of(context);
     final live = app.monitoredLiveStatuses[patient.id] ?? _liveData[patient.id];
@@ -374,8 +362,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _metric(String label, String value, String unit, Color color) {
     return Column(
       children: [
@@ -401,8 +387,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     );
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _RedeemCodeLauncher extends StatelessWidget {
   const _RedeemCodeLauncher();
 

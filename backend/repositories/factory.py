@@ -10,7 +10,6 @@ logger = logging.getLogger("repositories.factory")
 
 @dataclass
 class RepoSet:
-    """İlgili veri kaynağı için repository davranışını tanımlar."""
     users: Any
     link_codes: Any
     relations: Any
@@ -31,7 +30,6 @@ class RepoSet:
 
 # SQLite repository setini oluşturur.
 def _build_sqlite(db) -> RepoSet:
-    """İlgili veriyi repository katmanında okur veya yazar."""
     from repositories.sqlite import (
         SqliteAlertRepo,
         SqliteAnomalyRepo,
@@ -73,7 +71,6 @@ def _build_sqlite(db) -> RepoSet:
 
 # Firebase repository setini oluşturur.
 def _build_firebase() -> RepoSet:
-    """İlgili veriyi repository katmanında okur veya yazar."""
     from firebase_client import get_firestore_client
     from repositories.firebase import (
         FirebaseAlertRepo,
@@ -116,15 +113,12 @@ def _build_firebase() -> RepoSet:
 class _HybridRepo:
 
     # Birincil ve ikincil repository örneklerini saklar.
-    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, primary, secondary):
-        """İlgili veriyi repository katmanında okur veya yazar."""
         self._primary = primary
         self._secondary = secondary
 
     # Okuma metodlarını primary'e, yazma metodlarını her ikisine yönlendirir.
     def __getattr__(self, name):
-        """İlgili veriyi repository katmanında okur veya yazar."""
         primary_fn = getattr(self._primary, name)
         secondary_fn = getattr(self._secondary, name, None)
 
@@ -136,7 +130,6 @@ class _HybridRepo:
 
         # Yazma işlemlerini önce yerel depoya, sonra ikincil depoya yollar.
         async def _hybrid_write(*args, **kwargs):
-            """İlgili veriyi repository katmanında okur veya yazar."""
             result = await primary_fn(*args, **kwargs)
             try:
                 await secondary_fn(*args, **kwargs)
@@ -152,7 +145,6 @@ class _HybridRepo:
 
 # Hibrit (SQLite + Firebase) repository setini oluşturur.
 def _build_hybrid(db) -> RepoSet:
-    """İlgili veriyi repository katmanında okur veya yazar."""
     sq = _build_sqlite(db)
     from firebase_client import get_firestore_client
 
@@ -192,7 +184,6 @@ def _build_hybrid(db) -> RepoSet:
 
 # DATA_MODE'a göre RepoSet döndürür.
 def get_repos(db=None, mode: str | None = None) -> RepoSet:
-    """İlgili veriyi repository katmanında okur veya yazar."""
     m = (mode or settings.DATA_MODE).lower()
     if m == "firebase":
         return _build_firebase()

@@ -182,8 +182,6 @@ class TransportOrchestrator extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  /// İlgili timer, listener veya bağlantı akışını başlatır.
   void _startBle() {
     debugPrint('[Transport] Starting BLE scan...');
     bleService.startScan();
@@ -198,8 +196,6 @@ class TransportOrchestrator extends ChangeNotifier {
       });
     }
   }
-
-  /// İlgili timer, listener veya bağlantı akışını başlatır.
   void _startWifiFallback() {
     if (apiClient == null || userId.isEmpty) {
       debugPrint(

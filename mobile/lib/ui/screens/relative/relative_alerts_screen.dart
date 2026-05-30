@@ -7,8 +7,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/severity_badge.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RelativeAlertsScreen extends StatefulWidget {
   const RelativeAlertsScreen({super.key});
 
@@ -42,8 +40,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
     _autoRefreshTimer?.cancel();
     super.dispose();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadAlerts({bool isRefresh = false}) async {
     if (!mounted) return;
     if (!isRefresh || _data.isEmpty) {
@@ -139,8 +135,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildPatientSection(_UserAlerts d) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,8 +177,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
       ],
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildAlertTile(AlertEvent alert) {
     final color = _severityColor(alert.severity);
     final statusLabel = _statusLabel(alert.status);
@@ -279,8 +271,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEmptyState(String title, String subtitle) {
     return GlassCard(
       padding: const EdgeInsets.all(32),
@@ -299,8 +289,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildErrorState() {
     return GlassCard(
       padding: const EdgeInsets.all(24),
@@ -351,8 +339,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
         return 'KAPATILDI';
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _formatTime(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
@@ -362,8 +348,6 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
     return '${diff.inDays} gün önce';
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _UserAlerts {
   const _UserAlerts({required this.user, required this.alerts});
   final UserProfile user;

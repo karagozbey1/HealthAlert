@@ -50,7 +50,6 @@ def _compute_risk_score(hr: float, spo2: float, hr_valid: bool,
 
 # Risk skorunu severity etiketine cevirir.
 def _risk_to_severity(risk: float) -> Optional[str]:
-    """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
     if risk >= settings.RISK_CRITICAL_THRESHOLD:
         return "critical"
     if risk >= settings.RISK_WARNING_THRESHOLD:
@@ -61,7 +60,6 @@ def _risk_to_severity(risk: float) -> Optional[str]:
 
 # Alarm ozeti icin baskin metriği ve aciklamayi belirler.
 def _determine_anomaly_metric(hr, spo2, hr_valid, spo2_valid, motion):
-    """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
     if spo2_valid and spo2 < 92:
         return ("SpO2", spo2, "%", f"Oxygen saturation critically low at {spo2:.1f}%.")
     if hr_valid and hr > 120:
@@ -78,7 +76,6 @@ def _determine_anomaly_metric(hr, spo2, hr_valid, spo2_valid, motion):
 
 # Önem derecesine göre öneri listesi döndürür.
 def _get_recommendations(severity: str):
-    """firestore watcher servisinde gereken veriyi okuyup çağırana döndürür."""
     if severity == "critical":
         return [
             "Emergency risk detected.",
@@ -99,7 +96,6 @@ async def _process_firestore_packet(
     repos,
     db,
 ) -> None:
-    """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
     device_id = doc_data.get("device_id", "")
     user_id = doc_data.get("user_id", "")
     packet_seq = doc_data.get("packet_seq", 0)
@@ -208,7 +204,6 @@ async def _process_firestore_packet(
 
 # Islenmemis Firestore telemetry kayitlarini cekip tek tek isler.
 async def poll_firestore_telemetry(repos, db) -> int:
-    """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
     from firebase_client import get_firestore_client
 
     client = get_firestore_client()
@@ -220,7 +215,6 @@ async def poll_firestore_telemetry(repos, db) -> int:
         loop = asyncio.get_event_loop()
 
         def _query():
-            """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
             col = client.collection("telemetry_packets")
             if FieldFilter is None:
                 query = (
@@ -265,7 +259,6 @@ async def poll_firestore_telemetry(repos, db) -> int:
                 _last_processed[key] = ts
 
                 def _mark_processed(doc_ref=doc.reference):
-                    """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
                     doc_ref.update({"backend_processed": True})
 
                 await loop.run_in_executor(None, _mark_processed)
@@ -286,7 +279,6 @@ async def poll_firestore_telemetry(repos, db) -> int:
 
 # Firestore değişikliklerini dinler ve backend'e aktarır.
 async def run_firestore_watcher_loop(repos, db_factory) -> None:
-    """firestore watcher servisindeki HealthAlert iş kuralını uygular."""
     from firebase_client import get_firestore_client
 
     if settings.DATA_MODE not in ("firebase", "hybrid"):

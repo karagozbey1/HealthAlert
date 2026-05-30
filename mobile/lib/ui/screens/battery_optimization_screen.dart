@@ -3,8 +3,6 @@ import '../../core/models/enums.dart';
 import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class BatteryOptimizationScreen extends StatefulWidget {
   const BatteryOptimizationScreen({super.key});
 
@@ -58,8 +56,6 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
         return BatteryMode.balanced;
     }
   }
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _save() async {
     final app = AppScope.of(context);
     final current = app.settings;
@@ -216,8 +212,6 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildModeRadio(String title, String subtitle, String value) {
     final bool isSelected = _selectedMode == value;
     final titleColor = isSelected ? AppTheme.primary : Colors.white;

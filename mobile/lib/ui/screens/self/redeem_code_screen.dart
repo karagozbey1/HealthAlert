@@ -3,8 +3,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_button.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RedeemCodeScreen extends StatefulWidget {
   const RedeemCodeScreen({super.key});
 
@@ -27,8 +25,6 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
     _codeController.dispose();
     super.dispose();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _submit() async {
     final code = _codeController.text.trim().toUpperCase();
     if (code.isEmpty) {

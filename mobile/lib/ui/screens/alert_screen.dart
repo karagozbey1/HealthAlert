@@ -5,11 +5,7 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
 import 'post_event_monitor_screen.dart';
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 enum AlertType { fall, hrHigh, hrLow, spo2Low, anomaly }
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class AlertScreen extends StatefulWidget {
   final AlertType type;
 
@@ -267,8 +263,6 @@ class _AlertScreenState extends State<AlertScreen>
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _explanationForType(AlertType type) {
     switch (type) {
       case AlertType.fall:
@@ -288,8 +282,6 @@ class _AlertScreenState extends State<AlertScreen>
             'AI analizi bu durumu anomali olarak işaretledi.';
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _recommendationForType(AlertType type) {
     switch (type) {
       case AlertType.fall:

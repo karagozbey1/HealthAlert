@@ -5,8 +5,6 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
 import '../screens/login_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -194,8 +192,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEditableItem(
       IconData icon, String title, TextEditingController controller) {
     return Padding(
@@ -218,8 +214,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildProfileItem(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

@@ -7,8 +7,6 @@ import '../widgets/gradient_button.dart';
 import 'home_container.dart';
 import 'relative/relative_home_container.dart';
 import 'doctor/doctor_home_container.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -75,8 +73,6 @@ class _RegisterScreenState extends State<RegisterScreen>
     _phoneCtrl.dispose();
     super.dispose();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -298,8 +294,6 @@ class _RegisterScreenState extends State<RegisterScreen>
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _field({
     required TextEditingController controller,
     required String label,

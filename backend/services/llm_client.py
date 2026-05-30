@@ -22,7 +22,6 @@ class LLMClient:
         max_tokens: int | None = None,
         timeout: int | None = None,
     ) -> None:
-        """llm client servisindeki HealthAlert iş kuralını uygular."""
         self.api_key = api_key or settings.LLM_API_KEY
         self.base_url = (base_url or settings.LLM_BASE_URL).rstrip("/")
         self.model = model or settings.LLM_MODEL
@@ -32,7 +31,6 @@ class LLMClient:
     # API anahtarı yapılandırılmış mı kontrol eder.
     @property
     def is_configured(self) -> bool:
-        """llm client servisindeki HealthAlert iş kuralını uygular."""
         return bool(self.api_key)
 
     # LLM API'ye asenkron sohbet isteği gönderir.
@@ -43,7 +41,6 @@ class LLMClient:
         temperature: float = 0.4,
         max_tokens: int | None = None,
     ) -> Optional[str]:
-        """llm client servisindeki HealthAlert iş kuralını uygular."""
         if not self.is_configured:
             logger.warning("LLM API key not configured — skipping LLM call")
             return None
@@ -88,7 +85,6 @@ class LLMClient:
 
     # Sunucu sağlık durumunu döndürür.
     async def health_check(self) -> Dict[str, Any]:
-        """Backend servisinin çalışır durumda olduğunu döndürür."""
         if not self.is_configured:
             return {"status": "not_configured", "model": self.model}
 
@@ -110,7 +106,6 @@ _default_client: Optional[LLMClient] = None
 
 # Uygulama genelinde paylasilan varsayilan LLM istemcisini dondurur.
 def get_llm_client() -> LLMClient:
-    """llm client servisinde gereken veriyi okuyup çağırana döndürür."""
     global _default_client
     if _default_client is None:
         _default_client = LLMClient()

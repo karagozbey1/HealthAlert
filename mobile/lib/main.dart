@@ -29,8 +29,6 @@ void main() async {
   await controller.initialize();
   runApp(MyApp(controller: controller));
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.controller});
 
@@ -78,8 +76,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class RoleAwareHome extends StatelessWidget {
   const RoleAwareHome({super.key});
 

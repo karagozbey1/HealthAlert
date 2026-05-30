@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/state/app_scope.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/widgets/glass_card.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class WorkModeSettingsScreen extends StatefulWidget {
   const WorkModeSettingsScreen({super.key});
 

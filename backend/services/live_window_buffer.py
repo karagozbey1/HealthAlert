@@ -65,7 +65,6 @@ class LiveWindowBufferManager:
     # Tampon ve sayac depolarini baslatir.
     """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     def __init__(self) -> None:
-        """live window buffer servisindeki HealthAlert iş kuralını uygular."""
         self._lock = threading.Lock()
         # Her kullanici icin sabit boyutlu tampon tutar.
         self._buffers: Dict[str, deque] = {}
@@ -78,7 +77,6 @@ class LiveWindowBufferManager:
 
     # Kullanici icin tamponu getirir; yoksa olusturur.
     def _get_or_create_buffer(self, user_id: str) -> deque:
-        """live window buffer servisinde gereken veriyi okuyup çağırana döndürür."""
         if user_id not in self._buffers:
             self._buffers[user_id] = deque(maxlen=settings.ML_WINDOW_SIZE)
             self._packet_counts[user_id] = 0
@@ -98,7 +96,6 @@ class LiveWindowBufferManager:
         final_risk_score: float,
         quality_confidence: float = 1.0,
     ) -> dict:
-        """live window buffer servisindeki HealthAlert iş kuralını uygular."""
         sample = WindowSample(
             timestamp_ms=packet.timestamp_ms,
             packet_seq=packet.packet_seq,
@@ -133,7 +130,6 @@ class LiveWindowBufferManager:
 
     # Kullaniciya ait pencerenin anlik kopyasini dondurur.
     def get_window(self, user_id: str) -> Optional[list]:
-        """live window buffer servisinde gereken veriyi okuyup çağırana döndürür."""
         with self._lock:
             if user_id not in self._buffers:
                 return None
@@ -141,7 +137,6 @@ class LiveWindowBufferManager:
 
     # Doluluk ve paket kadansina gore inference calisip calismayacagini belirler.
     def should_run_inference(self, user_id: str) -> bool:
-        """live window buffer servisindeki HealthAlert iş kuralını uygular."""
         if not settings.ML_INFERENCE_ENABLED:
             return False
 
@@ -158,7 +153,6 @@ class LiveWindowBufferManager:
 
     # Tamponun doluluk ve sure ozetini serilestirilebilir dict olarak dondurur.
     def get_status(self, user_id: str) -> dict:
-        """live window buffer servisinde gereken veriyi okuyup çağırana döndürür."""
         expected_duration = round(
             settings.ML_WINDOW_SIZE / max(1, settings.ML_EXPECTED_SAMPLE_RATE_HZ), 2
         )
@@ -231,7 +225,6 @@ class LiveWindowBufferManager:
 
     # Kullaniciya ait tamponu ve paket sayacini sifirlar.
     def reset_user(self, user_id: str) -> None:
-        """live window buffer servisindeki HealthAlert iş kuralını uygular."""
         with self._lock:
             self._buffers.pop(user_id, None)
             self._packet_counts.pop(user_id, None)

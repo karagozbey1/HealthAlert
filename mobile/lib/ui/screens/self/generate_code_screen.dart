@@ -4,8 +4,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_button.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class GenerateCodeScreen extends StatefulWidget {
   const GenerateCodeScreen({super.key});
 
@@ -25,14 +23,10 @@ class _GenerateCodeScreenState extends State<GenerateCodeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadExisting());
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadExisting() async {
     await AppScope.of(context).loadLinkCodes();
     if (mounted) setState(() {});
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _generate() async {
     setState(() => _loading = true);
     try {
@@ -137,8 +131,6 @@ class _GenerateCodeScreenState extends State<GenerateCodeScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _typeButton(String value, String label) {
     final selected = _selectedType == value;
     return OutlinedButton(

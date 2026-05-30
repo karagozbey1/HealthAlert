@@ -11,8 +11,6 @@ def generate_assistant_summary(
     recent_history: List[Dict[str, Any]],
     role: str = "SELF",
 ) -> Dict[str, Any]:
-
-    """assistant servisindeki HealthAlert iş kuralını uygular."""
     has_live = live_status is not None
     hr = live_status.get("heart_rate", 0) if has_live else None
     spo2 = live_status.get("spo2", 0) if has_live else None
@@ -142,8 +140,6 @@ def generate_alert_explanation(
     alert: Dict[str, Any],
     live_status: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-
-    """assistant servisindeki HealthAlert iş kuralını uygular."""
     severity = alert.get("severity", "normal")
     title = alert.get("title", "Alarm")
     description = alert.get("description", "")
@@ -202,8 +198,6 @@ def generate_daily_summary(
     alerts_24h: List[Dict[str, Any]],
     role: str = "SELF",
 ) -> Dict[str, Any]:
-
-    """assistant servisindeki HealthAlert iş kuralını uygular."""
     total_anomalies = len(anomalies_24h)
     total_alerts = len(alerts_24h)
     critical_alerts = len([a for a in alerts_24h if a.get("severity") == "critical"])

@@ -160,8 +160,6 @@ class AppController extends ChangeNotifier {
   String get transportLabel =>
       _transportOrchestrator?.transportLabel ?? 'Bağlantı yok';
   bool get isFirestoreSyncAvailable => _firestoreSync?.isAvailable ?? false;
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   Stream<LiveStatus?>? getFirestoreLiveStatusStream(String userId) {
     if (!isFirestoreSyncAvailable || _firestoreSync == null) return null;
     return _firestoreSync!.getLiveStatusStream(userId).map((doc) {
@@ -255,8 +253,6 @@ class AppController extends ChangeNotifier {
       }
     }
   }
-
-  /// İlgili timer, listener veya bağlantı akışını başlatır.
   void _startTransportLayer() {
     if (_transportMode == 'off') return;
 
@@ -745,8 +741,6 @@ class AppController extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> saveSettings(AppSettings s) async {
     final previousBatteryMode = _settings.batteryMode;
     _settings = await _settingsRepository.saveSettings(s);
@@ -777,8 +771,6 @@ class AppController extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> loadSettings() async {
     if (isBackendMode) {
       try {
@@ -816,8 +808,6 @@ class AppController extends ChangeNotifier {
     _notifications = await _notificationRepository.getNotifications();
     notifyListeners();
   }
-
-  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   Future<void> refreshNotifications() async {
     if (isBackendMode) {
       try {

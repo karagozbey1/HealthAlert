@@ -10,8 +10,6 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/live_value_card.dart';
 import '../../widgets/severity_badge.dart';
 import 'clinical_notes_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class PatientDetailScreen extends StatefulWidget {
   final UserProfile patient;
   const PatientDetailScreen({super.key, required this.patient});
@@ -40,8 +38,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     _load();
     WidgetsBinding.instance.addPostFrameCallback((_) => _setupLiveUpdates());
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _setupLiveUpdates() {
     if (!mounted) return;
     final app = AppScope.of(context);
@@ -55,14 +51,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     }
     _ensureTimerRunning();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _ensureTimerRunning() {
     _liveTimer ??=
         Timer.periodic(const Duration(seconds: 5), (_) => _fetchLive());
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _onFirestoreLive(LiveStatus? status) {
     if (!mounted || status == null) return;
     setState(() => _live = status);
@@ -76,8 +68,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     _firestoreSub?.cancel();
     super.dispose();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load() async {
     final app = AppScope.of(context);
     try {
@@ -97,8 +87,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       if (mounted) setState(() => _loading = false);
     }
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   Future<void> _fetchLive() async {
     if (!mounted) return;
     try {
@@ -158,8 +146,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildLiveTab() {
     final live = _live;
     return SingleChildScrollView(
@@ -229,8 +215,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildHistoryTab() {
     if (_history.isEmpty) {
       return const Center(
@@ -278,8 +262,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       },
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildAlertsTab() {
     if (_alerts.isEmpty) {
       return const Center(
@@ -333,8 +315,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       },
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _fmt(DateTime dt) =>
       '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';

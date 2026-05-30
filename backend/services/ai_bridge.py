@@ -25,7 +25,6 @@ async def process_ai_result(
     vitals: Optional[Dict[str, float]] = None,
     db=None,
 ) -> Dict[str, Any]:
-    """ai bridge servisindeki HealthAlert iş kuralını uygular."""
     risk_level = ai_output.get("final_risk_level", "normal")
     severity = _RISK_LEVEL_MAP.get(risk_level)
     early_risk = ai_output.get("early_risk_score", 0.0)
@@ -148,7 +147,6 @@ def _pick_dominant_metric(
     ai_output: Dict[str, Any],
     vitals: Dict[str, float],
 ) -> tuple[str, float, str, str]:
-    """ai bridge servisindeki HealthAlert iş kuralını uygular."""
     fall_prob = ai_output.get("fall_probability", 0.0)
     instability_prob = ai_output.get("instability_probability", 0.0)
     hr = vitals.get("heart_rate", 72.0)

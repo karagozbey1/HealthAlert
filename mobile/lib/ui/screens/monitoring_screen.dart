@@ -3,8 +3,6 @@ import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../widgets/animated_chart_placeholder.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class MonitoringScreen extends StatelessWidget {
   const MonitoringScreen({super.key});
 
@@ -140,8 +138,6 @@ class MonitoringScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _metricRow(String label, String value, Color color) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -154,8 +150,6 @@ class MonitoringScreen extends StatelessWidget {
       ],
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _timeStr(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');

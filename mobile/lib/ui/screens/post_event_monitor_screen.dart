@@ -5,8 +5,6 @@ import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class PostEventMonitorScreen extends StatefulWidget {
   const PostEventMonitorScreen({super.key});
 
@@ -161,8 +159,6 @@ class _PostEventMonitorScreenState extends State<PostEventMonitorScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildTimelineItem(Map<String, dynamic> item) {
     final bool active = item['active'];
     return Padding(

@@ -60,7 +60,6 @@ def determine_mode(
     severity: Optional[str],
     risk_breakdown: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     if severity == "critical" or final_risk_score >= 0.80:
         return MODE_CRITICAL
     if severity == "warning" or final_risk_score >= 0.60:
@@ -76,7 +75,6 @@ def safe_guidance_for_context(
     risk_breakdown: Optional[Dict[str, Any]],
     severity: Optional[str],
 ) -> List[str]:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     if severity == "critical":
         return list(_CRITICAL_GUIDANCE)
     if severity == "warning":
@@ -176,7 +174,6 @@ def _make_action(
     expires_at: Optional[datetime] = None,
     metadata_json: Optional[Dict] = None,
 ) -> Dict[str, Any]:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     return {
         "id": str(uuid4()),
         "user_id": user_id,
@@ -196,7 +193,6 @@ def _make_action(
 
 # Moda gore onerilen yoklama araligini dondurur.
 def _poll_interval_for_mode(mode: str) -> int:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     if mode == MODE_CRITICAL:
         return settings.ASSISTANT_CRITICAL_POLL_INTERVAL_SEC
     if mode in (MODE_WARNING, MODE_WATCH):
@@ -206,7 +202,6 @@ def _poll_interval_for_mode(mode: str) -> int:
 
 # Moda gore izleme yogunlugunu belirler.
 def _monitoring_intensity_for_mode(mode: str) -> str:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     if mode == MODE_CRITICAL:
         return "urgent"
     if mode in (MODE_WARNING, MODE_WATCH):
@@ -233,7 +228,6 @@ class CareAssistantService:
         risk_breakdown: Optional[Dict[str, Any]] = None,
         personalization_summary: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """care assistant servisindeki HealthAlert iş kuralını uygular."""
         if not settings.ASSISTANT_ENABLED or repos.assistant is None:
             return _default_result()
 
@@ -323,7 +317,6 @@ class CareAssistantService:
         note: Optional[str] = None,
         action_id: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """care assistant servisindeki HealthAlert iş kuralını uygular."""
         if not settings.ASSISTANT_ENABLED or repos.assistant is None:
             return {"success": False, "new_mode": MODE_NORMAL, "message": "Assistant disabled.", "actions_created": []}
 
@@ -447,7 +440,6 @@ class CareAssistantService:
 
     # Kritik onay suresi doldugunda bildirim akislarini tetikler.
     async def handle_critical_timeout(self, repos, user_id: str) -> Dict[str, Any]:
-        """care assistant servisindeki HealthAlert iş kuralını uygular."""
         if not settings.ASSISTANT_ENABLED or repos.assistant is None:
             return {"triggered": False}
 
@@ -496,7 +488,6 @@ class CareAssistantService:
 
     # Mevcut durum ve aktif aksiyonlar icin ozet bir asistan cevabi olusturur.
     async def get_current_assistant_summary(self, repos, user_id: str) -> Dict[str, Any]:
-        """care assistant servisinde gereken veriyi okuyup çağırana döndürür."""
         if repos.assistant is None:
             return _default_result()
         try:
@@ -530,7 +521,6 @@ async def _record_feedback(
     event_type: str,
     risk_score: float,
 ) -> None:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     try:
         from uuid import uuid4 as _uuid4
 
@@ -562,7 +552,6 @@ async def _record_feedback(
 
 # Dahili olay turunu ogrenme geri bildirim etiketine cevirir.
 def _event_to_feedback_label(event_type: str) -> Optional[str]:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     mapping = {
         "user_ok": "ok",
         "user_not_ok": "not_ok",
@@ -579,7 +568,6 @@ async def _send_notifications(
     trigger: str,
     message: str,
 ) -> None:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     try:
         from services.notification import notify_linked_users
 
@@ -605,7 +593,6 @@ async def _send_notifications(
 
 # Servis devre disi veya hata durumlari icin guvenli varsayilan sonucu dondurur.
 def _default_result() -> Dict[str, Any]:
-    """care assistant servisindeki HealthAlert iş kuralını uygular."""
     return {
         "current_mode": MODE_NORMAL,
         "previous_mode": None,

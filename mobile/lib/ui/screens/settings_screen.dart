@@ -12,8 +12,6 @@ import 'self/linked_people_screen.dart';
 import 'settings/cloud_sync_screen.dart';
 import 'settings/device_connection_screen.dart';
 import 'settings/work_mode_settings_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -38,8 +36,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _backgroundMonitoring = settings.backgroundMonitoring;
     _initialized = true;
   }
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _persist() async {
     final app = AppScope.of(context);
     final current = app.settings;
@@ -245,8 +241,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionTitle(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -256,16 +250,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _settingsCard(List<Widget> children) {
     return GlassCard(
       padding: EdgeInsets.zero,
       child: Column(children: children),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _accountTile({
     required String name,
     required String email,
@@ -306,8 +296,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _settingsTile({
     required IconData icon,
     required Color iconColor,
@@ -329,8 +317,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: onTap,
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _rolePill(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -363,8 +349,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class _PrivacySecurityScreen extends StatelessWidget {
   const _PrivacySecurityScreen();
 
@@ -413,8 +397,6 @@ class _PrivacySecurityScreen extends StatelessWidget {
     );
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _PrivacyRow extends StatelessWidget {
   const _PrivacyRow({
     required this.icon,

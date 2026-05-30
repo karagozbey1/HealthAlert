@@ -7,8 +7,6 @@ import 'doctor_dashboard_screen.dart';
 import 'doctor_overview_screen.dart';
 import 'doctor_settings_screen.dart';
 import 'doctor_generate_code_screen.dart';
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class DoctorHomeContainer extends StatefulWidget {
   const DoctorHomeContainer({super.key});
 

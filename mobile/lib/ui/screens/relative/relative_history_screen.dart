@@ -5,8 +5,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/severity_badge.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RelativeHistoryScreen extends StatefulWidget {
   const RelativeHistoryScreen({super.key});
 
@@ -27,8 +25,6 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
     super.initState();
     _init();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _init() async {
     if (mounted) setState(() => _loading = true);
     try {
@@ -47,8 +43,6 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadHistory({bool isRefresh = false}) async {
     if (_selectedUser == null) return;
     if (!isRefresh || _history.isEmpty) {
@@ -152,8 +146,6 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildPatientCards(List<UserProfile> users) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -229,8 +221,6 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _historyTile(HistoryItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -267,8 +257,6 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _formatDate(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }

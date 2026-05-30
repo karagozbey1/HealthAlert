@@ -7,8 +7,6 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/live_value_card.dart';
 import '../../widgets/severity_badge.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class MonitoredUserLiveScreen extends StatefulWidget {
   final UserProfile user;
   const MonitoredUserLiveScreen({super.key, required this.user});
@@ -34,8 +32,6 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     // Setup realtime updates after the first frame so context is ready.
     WidgetsBinding.instance.addPostFrameCallback((_) => _setupLiveUpdates());
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _setupLiveUpdates() {
     if (!mounted) return;
     final app = AppScope.of(context);
@@ -54,13 +50,9 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     // No Firestore: fall back to periodic polling.
     _ensureTimerRunning();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _ensureTimerRunning() {
     _timer ??= Timer.periodic(const Duration(seconds: 5), (_) => _fetchLive());
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _onFirestoreLive(LiveStatus? status) {
     if (!mounted || status == null) return;
     setState(() {
@@ -76,8 +68,6 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     _firestoreSub?.cancel();
     super.dispose();
   }
-
-  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   Future<void> _fetchLive() async {
     if (!mounted) return;
     try {
@@ -258,8 +248,6 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
             ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds} sn önce';

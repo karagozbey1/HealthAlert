@@ -25,8 +25,6 @@ class MockSessionRepository implements SessionRepository {
   /// HealthAlert akışında kullanılan yardımcı işlemi güvenli şekilde yürütür.
   @override
   Future<bool> isLoggedIn() async => (await getSessionUserId()) != null;
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   @override
   Future<void> saveSession(String userId) async {
     await LocalStore.setString(_keyUserId, userId);
@@ -131,8 +129,6 @@ class MockHistoryRepository implements HistoryRepository {
         .map((e) => HistoryItem.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList(growable: true);
   }
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _persist() async {
     final data = jsonEncode(_items.map((e) => e.toJson()).toList());
     await LocalStore.setString(_key, data);
@@ -169,8 +165,6 @@ class MockSettingsRepository implements SettingsRepository {
     return AppSettings.fromJson(
         Map<String, dynamic>.from(jsonDecode(raw) as Map));
   }
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   @override
   Future<AppSettings> saveSettings(AppSettings settings) async {
     await LocalStore.setString(_key, jsonEncode(settings.toJson()));
@@ -190,8 +184,6 @@ class MockDeviceRepository implements DeviceRepository {
   /// HealthAlert akışında kullanılan yardımcı işlemi güvenli şekilde yürütür.
   @override
   Future<DeviceState> getState() async => _state;
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   @override
   Future<DeviceState> saveState(DeviceState state) async {
     _state = state;

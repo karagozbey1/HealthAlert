@@ -4,8 +4,6 @@ import '../../../core/state/app_scope.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/widgets/connection_status_card.dart';
 import '../../../ui/widgets/glass_card.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class AdvancedDebugScreen extends StatelessWidget {
   const AdvancedDebugScreen({super.key});
 
@@ -179,8 +177,6 @@ class AdvancedDebugScreen extends StatelessWidget {
         return 'Hata';
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   static String _ago(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds}s önce';
@@ -188,8 +184,6 @@ class AdvancedDebugScreen extends StatelessWidget {
     return '${diff.inHours} sa önce';
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _DebugRow extends StatelessWidget {
   final String label;
   final String value;

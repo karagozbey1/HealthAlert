@@ -8,8 +8,6 @@ import 'home_container.dart';
 import 'register_screen.dart';
 import 'relative/relative_home_container.dart';
 import 'doctor/doctor_home_container.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -51,8 +49,6 @@ class _LoginScreenState extends State<LoginScreen>
     _passwordController.dispose();
     super.dispose();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _roleHomeFor(UserRole role) {
     switch (role) {
       case UserRole.relative:
@@ -63,8 +59,6 @@ class _LoginScreenState extends State<LoginScreen>
         return const HomeContainer();
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _handleLogin() async {
     if (_loading) return;
     setState(() {
@@ -284,8 +278,6 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _demoCredRow(IconData icon, String email, String role) {
     return InkWell(
       onTap: () {

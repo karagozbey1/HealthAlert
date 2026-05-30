@@ -5,8 +5,6 @@ import '../../widgets/glass_card.dart';
 import '../login_screen.dart';
 import '../profile_screen.dart';
 import 'doctor_generate_code_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DoctorSettingsScreen extends StatefulWidget {
   const DoctorSettingsScreen({super.key});
 
@@ -28,8 +26,6 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
     _notif = AppScope.of(context).settings.notificationsEnabled;
     _initialized = true;
   }
-
-  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _persist() async {
     final app = AppScope.of(context);
     await app.saveSettings(app.settings.copyWith(notificationsEnabled: _notif));

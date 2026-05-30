@@ -6,8 +6,6 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/empty_state_widget.dart';
 import 'self/history_detail_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -19,8 +17,6 @@ class HistoryScreen extends StatefulWidget {
 /// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _HistoryScreenState extends State<HistoryScreen> {
   String _filter = 'All';
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   bool _matchesFilter(HistoryItemType type) {
     switch (_filter) {
       case 'Alarm':
@@ -101,8 +97,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildFilterChip(String key, String label) {
     final isSelected = _filter == key;
     return Padding(
@@ -132,8 +126,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEventItem({
     required BuildContext context,
     required HistoryItem item,

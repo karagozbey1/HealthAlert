@@ -18,8 +18,6 @@ import 'self/history_detail_screen.dart';
 import 'health_assistant_screen.dart';
 import 'dart:async';
 import 'dart:math' as math;
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -71,8 +69,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _safeVitalsTimer?.cancel();
     super.dispose();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   bool _shouldUseSafeVitals(LiveStatus? live) {
     if (!_kPresentationSafe) return false;
     if (live == null) return false;
@@ -99,8 +95,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     return false;
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _requestHelp(BuildContext context) async {
     final app = AppScope.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -679,8 +673,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionHeader(String title, IconData icon) {
     return Row(
       children: [
@@ -690,8 +682,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _emptyRow(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -699,8 +689,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: const TextStyle(color: Colors.white30, fontSize: 12)),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _notifRow(String title, String body, bool read) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -779,8 +767,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Icons.notifications_outlined;
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   static String _ago(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds}s önce';
@@ -788,8 +774,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (diff.inHours < 24) return '${diff.inHours} sa önce';
     return '${diff.inDays} gün önce';
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildMiniChart(Color color) {
     return LineChart(
       LineChartData(
@@ -823,8 +807,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ── BLE validity display helpers ─────────────────────────────────────────
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _hrDisplay(LiveStatus? live) {
     if (_shouldUseSafeVitals(live)) {
       return _safeHr!.toStringAsFixed(0);
@@ -839,8 +821,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     return live.heartRate.toStringAsFixed(0);
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _spo2Display(LiveStatus? live) {
     if (_shouldUseSafeVitals(live)) {
       return _safeSpo2!.toStringAsFixed(1);
@@ -855,8 +835,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     return live.spo2.toStringAsFixed(1);
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   static String _riskDisplay(LiveStatus? live) {
     if (live == null) return '--';
     if (live.source == 'ble' && live.fingerPresent != true) return '--';
@@ -887,7 +865,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 // AssistantCard verisini durumlu olarak yukleyip yeniler.
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _AssistantCardLoader extends StatefulWidget {
   final String userId;
   final CareAssistantService service;
@@ -913,8 +890,6 @@ class _AssistantCardLoaderState extends State<_AssistantCardLoader> {
     super.initState();
     _load();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load() async {
     final state = await widget.service.getAssistantState(widget.userId);
     final actions = await widget.service.getAssistantActions(widget.userId);

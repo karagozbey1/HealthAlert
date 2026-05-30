@@ -3,8 +3,6 @@ import '../../../core/state/app_scope.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import 'generate_code_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class LinkedPeopleScreen extends StatefulWidget {
   const LinkedPeopleScreen({super.key});
 
@@ -23,8 +21,6 @@ class _LinkedPeopleScreenState extends State<LinkedPeopleScreen> {
     super.initState();
     _load();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load({bool isRefresh = false}) async {
     final app = AppScope.of(context);
     final hasData = app.relations.isNotEmpty;
@@ -192,8 +188,6 @@ class _LinkedPeopleScreenState extends State<LinkedPeopleScreen> {
             ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionHeader(String title, IconData icon, Color color) {
     return Row(
       children: [

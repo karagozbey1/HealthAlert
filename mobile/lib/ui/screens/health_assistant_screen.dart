@@ -3,8 +3,6 @@ import '../../core/services/chat_service.dart';
 import '../../core/state/app_scope.dart';
 import '../theme/app_theme.dart';
 import '../widgets/empty_state_widget.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HealthAssistantScreen extends StatefulWidget {
   const HealthAssistantScreen({super.key, this.initialQuestion});
 
@@ -42,8 +40,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
     _inputFocus.dispose();
     super.dispose();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _initialize() async {
     final app = AppScope.of(context);
     _chatService = ChatService(
@@ -74,8 +70,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       _sendMessage(widget.initialQuestion!);
     }
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
@@ -113,8 +107,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
     });
     _scrollToBottom();
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -126,8 +118,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       }
     });
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _handleNewChat() {
     _chatService.resetSession();
     setState(() {
@@ -183,8 +173,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -218,8 +206,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ],
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildDisclaimerBanner() {
     return Container(
       width: double.infinity,
@@ -240,8 +226,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildLoadingBubble() {
     return Align(
       alignment: Alignment.centerLeft,
@@ -285,8 +269,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildMessageBubble(ChatMessage msg) {
     final isAssistant = msg.isAssistant;
     final isError = msg.source == 'local_fallback';
@@ -371,8 +353,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildActionChip(UIAction action) {
     return GestureDetector(
       onTap: () {
@@ -402,8 +382,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildSuggestionChips() {
     return Container(
       width: double.infinity,
@@ -445,8 +423,6 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildInputArea() {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 8, 12),

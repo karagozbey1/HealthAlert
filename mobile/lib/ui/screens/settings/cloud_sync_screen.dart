@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/state/app_scope.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/widgets/glass_card.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class CloudSyncScreen extends StatelessWidget {
   const CloudSyncScreen({super.key});
 
@@ -139,8 +137,6 @@ class CloudSyncScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   static String _ago(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds}s önce';
@@ -149,8 +145,6 @@ class CloudSyncScreen extends StatelessWidget {
     return '${diff.inDays} gün önce';
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _SyncRow extends StatelessWidget {
   const _SyncRow(this.label, this.value, this.color);
 

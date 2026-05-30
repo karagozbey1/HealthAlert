@@ -140,7 +140,6 @@ async def shutdown() -> None:
 # Temel servis saglik bilgisini dondurur.
 @app.get("/health")
 async def health_check():
-    """Backend servisinin çalışır durumda olduğunu döndürür."""
     return {"status": "ok", "service": "HealthAlert API", "version": "2.0.0"}
 
 # Bagimlilik ve fallback durumlarini birlikte raporlar.

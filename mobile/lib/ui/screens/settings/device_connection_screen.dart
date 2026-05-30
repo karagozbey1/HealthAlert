@@ -7,8 +7,6 @@ import '../../../ui/theme/app_theme.dart';
 import '../../../ui/widgets/glass_card.dart';
 
 const _kConnectionPrefKey = 'connection_mode';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DeviceConnectionScreen extends StatefulWidget {
   const DeviceConnectionScreen({super.key});
 
@@ -28,15 +26,11 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     super.initState();
     _loadPreference();
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadPreference() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString(_kConnectionPrefKey) ?? 'auto';
     if (mounted) setState(() => _selected = saved);
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _applySelection(String mode) async {
     if (_saving) return;
     setState(() {
@@ -195,8 +189,6 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     );
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _ModeOption extends StatelessWidget {
   const _ModeOption({
     required this.value,

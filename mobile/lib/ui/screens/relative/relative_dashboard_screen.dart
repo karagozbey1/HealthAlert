@@ -11,8 +11,6 @@ import 'monitored_user_live_screen.dart';
 import 'relative_alerts_screen.dart';
 import 'relative_generate_code_screen.dart';
 import 'relative_history_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RelativeDashboardScreen extends StatefulWidget {
   const RelativeDashboardScreen({super.key});
 
@@ -47,8 +45,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
     _autoRefreshTimer?.cancel();
     super.dispose();
   }
-
-  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   void _startAutoRefresh() {
     _autoRefreshTimer?.cancel();
     _autoRefreshTimer = Timer(const Duration(seconds: 3), () {
@@ -57,8 +53,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       _startAutoRefresh();
     });
   }
-
-  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadData({bool isRefresh = false}) async {
     if (_loadInProgress) return;
     _loadInProgress = true;
@@ -188,8 +182,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildSummaryCard({
     required int alertCount,
     required double avgRisk,
@@ -248,8 +240,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEmptyState() {
     return GlassCard(
       padding: const EdgeInsets.all(28),
@@ -292,8 +282,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildUserCard(UserProfile user) {
     final app = AppScope.of(context);
     final live = app.monitoredLiveStatuses[user.id] ?? _liveData[user.id];
@@ -425,8 +413,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildQuickActions(UserProfile firstUser) {
     return GlassCard(
       padding: const EdgeInsets.all(14),
@@ -488,8 +474,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildInfoCard() {
     return GlassCard(
       padding: const EdgeInsets.all(14),
@@ -508,8 +492,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _summaryMetric(
     String label,
     String value,
@@ -556,8 +538,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _metric(String label, String value, String unit, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,8 +569,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ],
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _statusPill(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
@@ -609,8 +587,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _actionChip(IconData icon, String label, VoidCallback onTap) {
     return OutlinedButton.icon(
       onPressed: onTap,
@@ -640,16 +616,12 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
     }
     return const _PatientStatus('Normal', AppTheme.success);
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   DateTime? _latestUpdate(List<LiveStatus> statuses) {
     if (statuses.isEmpty) return null;
     return statuses
         .map((s) => s.timestamp)
         .reduce((a, b) => a.isAfter(b) ? a : b);
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _openPatient(UserProfile user) {
     Navigator.push(
       context,
@@ -658,8 +630,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _ago(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds}s önce';
@@ -668,8 +638,6 @@ class _RelativeDashboardScreenState extends State<RelativeDashboardScreen> {
     return '${diff.inDays} gün önce';
   }
 }
-
-/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _PatientStatus {
   const _PatientStatus(this.label, this.color);
 

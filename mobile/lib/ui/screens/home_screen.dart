@@ -3,8 +3,6 @@ import 'dashboard_screen.dart';
 import 'monitoring_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 

@@ -8,8 +8,6 @@ import '../../ui/widgets/empty_state_widget.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/live_value_card.dart';
 import 'health_assistant_screen.dart';
-
-/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class LiveMonitorScreen extends StatefulWidget {
   const LiveMonitorScreen({super.key});
 
@@ -269,8 +267,6 @@ class _LiveMonitorScreenState extends State<LiveMonitorScreen>
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _statusBanner(LiveStatus live) {
     return Container(
       width: double.infinity,
@@ -311,8 +307,6 @@ class _LiveMonitorScreenState extends State<LiveMonitorScreen>
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _movementCard(LiveStatus live) {
     final score = (live.motionScore.clamp(0.0, 1.0) * 100).toStringAsFixed(0);
     final color = live.motionScore > 0.65 ? AppTheme.warning : AppTheme.primary;
@@ -364,8 +358,6 @@ class _LiveMonitorScreenState extends State<LiveMonitorScreen>
       ),
     );
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _timeStr(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
@@ -381,8 +373,6 @@ class _LiveMonitorScreenState extends State<LiveMonitorScreen>
     if (pct < 65) return 'Hareketli';
     return 'Yoğun hareket';
   }
-
-  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _valuePlaceholderCard(String title, String value, Color color) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -410,8 +400,6 @@ class _LiveMonitorScreenState extends State<LiveMonitorScreen>
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildMonitorCard(
     String title,
     String value,
@@ -452,8 +440,6 @@ class _LiveMonitorScreenState extends State<LiveMonitorScreen>
       ),
     );
   }
-
-  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildSineWaveChart(
     Color color, {
     double frequency = 1,

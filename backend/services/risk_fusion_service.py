@@ -6,7 +6,6 @@ from config import settings
 
 
 def _clamp01(value: float) -> float:
-    """risk fusion servisindeki HealthAlert iş kuralını uygular."""
     return max(0.0, min(1.0, float(value)))
 
 

@@ -21,19 +21,16 @@ logger = logging.getLogger("healthalert.learning")
 
 # Kullanici veya cihaz kimligini kararlı ve geri donussuz sekilde anonimlestirir.
 def _anon_id(raw_id: str) -> str:
-    """learning data servisindeki HealthAlert iş kuralını uygular."""
     return hashlib.sha256(raw_id.encode()).hexdigest()[:16]
 
 
 # Kayitsiz UTC zaman damgasi uretir.
 def _utcnow() -> datetime:
-    """learning data servisindeki HealthAlert iş kuralını uygular."""
     return datetime.now(tz=timezone.utc).replace(tzinfo=None)
 
 
 # Paket modunu ogrenme kaynagi etiketine cevirir.
 def _source_from_packet(packet_mode: str) -> str:
-    """learning data servisindeki HealthAlert iş kuralını uygular."""
     if packet_mode in {"mock", "demo", "presentation_safe"}:
         return "demo"
     return "live"
@@ -53,7 +50,6 @@ def should_capture_window(
     risk_level: Optional[str],
     baseline_ready: bool,
 ) -> bool:
-    """learning data servisindeki HealthAlert iş kuralını uygular."""
     if not settings.LEARNING_LOOP_ENABLED:
         return False
 
@@ -81,7 +77,6 @@ def _is_training_candidate(
     quality_confidence: float,
     source: str,
 ) -> bool:
-    """learning data servisindeki HealthAlert iş kuralını uygular."""
     if quality_confidence < settings.LEARNING_MIN_QUALITY_CONFIDENCE:
         return False
     if source == "demo" and not settings.LEARNING_ALLOW_DEMO_AS_TRAINING:
@@ -104,7 +99,6 @@ def suggest_label(
     user_feedback: Optional[str] = None,
 ) -> Dict[str, Any]:
     # If user explicitly gave feedback, map to suggested label
-    """learning data servisindeki HealthAlert iş kuralını uygular."""
     _feedback_to_label = {
         "ok": "normal",
         "false_alarm": "normal",
@@ -285,7 +279,6 @@ class LearningDataService:
         feedback_source: str,
         note: Optional[str],
     ) -> Dict[str, Any]:
-        """learning data servisindeki HealthAlert iş kuralını uygular."""
         if repos.learning is None:
             raise RuntimeError("learning repo unavailable")
 
@@ -345,7 +338,6 @@ class LearningDataService:
         min_quality_confidence: Optional[float] = None,
         limit: int = 1000,
     ) -> Dict[str, Any]:
-        """learning data servisindeki HealthAlert iş kuralını uygular."""
         if repos.learning is None:
             raise RuntimeError("learning repo unavailable")
 
@@ -450,7 +442,6 @@ class LearningDataService:
         ml_result: Optional[Dict[str, Any]],
         ml_evidence_result: Optional[Dict[str, Any]],
     ) -> Optional[Dict[str, Any]]:
-        """learning data servisindeki HealthAlert iş kuralını uygular."""
         if not settings.MODEL_WINDOW_RAW_EXPORT_ENABLED:
             return None
 
@@ -512,7 +503,6 @@ class LearningDataService:
         repos,
         user_id: str,
     ) -> Dict[str, Any]:
-        """learning data servisindeki HealthAlert iş kuralını uygular."""
         if repos.learning is None:
             return {"user_id": user_id, "available": False, "reason": "learning repo unavailable"}
 

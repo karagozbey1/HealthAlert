@@ -1,0 +1,93 @@
+[
+  {
+    "subject_id": "S102",
+    "source": "PAMAP2",
+    "n": 512,
+    "accuracy": 0.498,
+    "macro_f1": 0.3708,
+    "per_class_recall": {
+      "walking": 0.9752,
+      "sitting": 0.8455,
+      "standing": 0.0079,
+      "lying": 0.0348
+    }
+  },
+  {
+    "subject_id": "S107",
+    "source": "PAMAP2",
+    "n": 480,
+    "accuracy": 0.1333,
+    "macro_f1": 0.1042,
+    "per_class_recall": {
+      "walking": 0.0723,
+      "sitting": 0.8667,
+      "standing": 0.0,
+      "lying": 0.0
+    }
+  },
+  {
+    "subject_id": "S108",
+    "source": "PAMAP2",
+    "n": 510,
+    "accuracy": 0.8039,
+    "macro_f1": 0.7834,
+    "per_class_recall": {
+      "walking": 0.9156,
+      "sitting": 0.9735,
+      "standing": 0.3548,
+      "lying": 0.9664
+    }
+  },
+  {
+    "subject_id": "s01",
+    "source": "UCI-HAR",
+    "n": 347,
+    "accuracy": 0.951,
+    "macro_f1": 0.916,
+    "per_class_recall": {
+      "walking": 1.0,
+      "sitting": 1.0,
+      "standing": 0.6981,
+      "lying": 0.98
+    }
+  },
+  {
+    "subject_id": "s07",
+    "source": "UCI-HAR",
+    "n": 308,
+    "accuracy": 0.8701,
+    "macro_f1": 0.7875,
+    "per_class_recall": {
+      "walking": 0.9871,
+      "sitting": 0.9792,
+      "standing": 0.3019,
+      "lying": 1.0
+    }
+  },
+  {
+    "subject_id": "s08",
+    "source": "UCI-HAR",
+    "n": 281,
+    "accuracy": 0.8577,
+    "macro_f1": 0.7772,
+    "per_class_recall": {
+      "walking": 1.0,
+      "sitting": 1.0,
+      "standing": 0.2593,
+      "lying": 1.0
+    }
+  },
+  {
+    "subject_id": "s10",
+    "source": "UCI-HAR",
+    "n": 294,
+    "accuracy": 0.8844,
+    "macro_f1": 0.7932,
+    "per_class_recall": {
+      "walking": 0.9928,
+      "sitting": 0.9815,
+      "standing": 0.2727,
+      "lying": 1.0
+    }
+  }
+]

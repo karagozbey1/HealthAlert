@@ -126,6 +126,18 @@ class Settings(BaseSettings):
     ML_EVIDENCE_REQUIRE_SAMPLE_RATE_OK: bool = True
 
     # ---------------------------------------------------------------------------
+    # Final decision fusion (dataset-trained model + personalization)
+    # ---------------------------------------------------------------------------
+
+    MODEL_PERSONALIZATION_FUSION_ENABLED: bool = True
+    MODEL_SCORE_WEIGHT: float = 0.70
+    PERSONALIZATION_ADJUSTMENT_WEIGHT: float = 0.30
+    MAX_PERSONAL_POSITIVE_ADJUSTMENT: float = 0.20
+    MAX_PERSONAL_NEGATIVE_ADJUSTMENT: float = 0.05
+    ALLOW_PERSONAL_NEGATIVE_ADJUSTMENT: bool = False
+    FALLBACK_TO_HEURISTIC_IF_MODEL_UNAVAILABLE: bool = True
+
+    # ---------------------------------------------------------------------------
     # ML ornekleme hizi uyum kapisi (Part 3.1 - Canli hiz uyumu)
     # ---------------------------------------------------------------------------
 

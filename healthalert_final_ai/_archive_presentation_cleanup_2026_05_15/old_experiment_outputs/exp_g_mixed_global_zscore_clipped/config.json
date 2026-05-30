@@ -1,0 +1,12 @@
+{
+  "id": "exp_g_mixed_global_zscore_clipped",
+  "strategy": "Mixed global z-score plus channel clipping",
+  "sources": [
+    "uci_har",
+    "pamap2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "normalization": "global_train_zscore",
+  "sampler": "shuffle",
+  "clip_after_norm": 5.0
+}

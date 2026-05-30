@@ -1,0 +1,17 @@
+{
+  "repair_report_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\hybrid_redesign\\activity_v2_pamap2_repair\\activity_v2_pamap2_repair_report.md",
+  "best_experiment_id": "exp_h_mixed_sensor_ankle",
+  "best_strategy": "Mixed sensor variant ankle",
+  "combined_macro_f1": 0.7935,
+  "uci_har_macro_f1": 0.8773,
+  "pamap2_macro_f1": 0.7392,
+  "per_class_recall": {
+    "walking": 0.9909,
+    "sitting": 0.7113,
+    "standing": 0.568,
+    "lying": 0.9184
+  },
+  "final_decision": "KEEP_UCI_ONLY_ACTIVITY_V2_BASELINE",
+  "keep_uci_only": true,
+  "mobiact_needed": true
+}

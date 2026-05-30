@@ -28,6 +28,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   List<AlertEvent> _alerts = [];
   bool _loading = true;
   Timer? _liveTimer;
+  StreamSubscription<LiveStatus?>? _firestoreSub;
 
   /// Widget durumunu başlatır.
   @override
@@ -35,7 +36,31 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _load();
-    _liveTimer = Timer.periodic(const Duration(seconds: 5), (_) => _fetchLive());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _setupLiveUpdates());
+  }
+
+  void _setupLiveUpdates() {
+    if (!mounted) return;
+    final app = AppScope.of(context);
+    if (app.isFirestoreSyncAvailable) {
+      final stream = app.getFirestoreLiveStatusStream(widget.patient.id);
+      if (stream != null) {
+        _firestoreSub = stream
+            .listen(_onFirestoreLive, onError: (_) => _ensureTimerRunning());
+        return;
+      }
+    }
+    _ensureTimerRunning();
+  }
+
+  void _ensureTimerRunning() {
+    _liveTimer ??= Timer.periodic(
+        const Duration(seconds: 5), (_) => _fetchLive());
+  }
+
+  void _onFirestoreLive(LiveStatus? status) {
+    if (!mounted || status == null) return;
+    setState(() => _live = status);
   }
 
   /// Kaynakları serbest bırakır.
@@ -43,6 +68,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   void dispose() {
     _tabController.dispose();
     _liveTimer?.cancel();
+    _firestoreSub?.cancel();
     super.dispose();
   }
 

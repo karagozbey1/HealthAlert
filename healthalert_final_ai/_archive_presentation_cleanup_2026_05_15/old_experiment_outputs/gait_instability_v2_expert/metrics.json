@@ -1,0 +1,22 @@
+{
+  "accuracy": 0.4373,
+  "macro_f1": 0.4087,
+  "weighted_f1": 0.5082,
+  "macro_precision": 0.5687,
+  "macro_recall": 0.648,
+  "roc_auc": 0.704,
+  "pr_auc": 0.2112,
+  "best_epoch": 2,
+  "best_val_macro_f1": 0.3994,
+  "recommended_threshold": 0.2,
+  "checkpoint_valid_training": true,
+  "application_valid": false,
+  "final_decision": "PARTIAL_ACCEPT_LIMITED_USE",
+  "subject_aware_split_preserved": true,
+  "label_mapping": {
+    "0 / stable_movement / stable_gait": 0,
+    "3 / abnormal_or_freezing_movement / unstable_gait": 1,
+    "other / unknown": "excluded"
+  },
+  "data_dir": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\gait_instability_v2"
+}

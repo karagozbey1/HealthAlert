@@ -1,0 +1,37 @@
+{
+  "raw_files_scanned": 17,
+  "raw_label_counts": {
+    "0": 777052,
+    "1": 1030050,
+    "2": 110785
+  },
+  "loader_label_counts": {
+    "unannotated": 777052,
+    "normal": 1030050,
+    "freeze": 110785
+  },
+  "pre_freeze_present_in_raw": false,
+  "freeze_present_in_raw": true,
+  "label_zero_decision": "unannotated_ignore_for_gait_fraction_not_normal",
+  "datasets_yaml_mapping_before": {
+    "0": "normal",
+    "1": "pre_freeze",
+    "2": "freeze"
+  },
+  "datasets_yaml_mapping_after": {
+    "0": "unannotated",
+    "1": "normal",
+    "2": "freeze"
+  },
+  "loader_mapping_after": {
+    "0": "unannotated",
+    "1": "normal",
+    "2": "freeze"
+  },
+  "n_window_candidates_after_rebuild": 14958,
+  "window_label_counts_after_rebuild": {
+    "unknown": 5976,
+    "stable_movement": 7858,
+    "abnormal_or_freezing_movement": 1124
+  }
+}

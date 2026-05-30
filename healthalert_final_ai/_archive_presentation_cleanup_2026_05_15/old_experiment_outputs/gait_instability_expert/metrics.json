@@ -1,0 +1,28 @@
+{
+  "accuracy": 1.0,
+  "macro_f1": 0.5,
+  "weighted_f1": 1.0,
+  "macro_precision": 0.5,
+  "macro_recall": 0.5,
+  "best_epoch": 0,
+  "best_val_macro_f1": null,
+  "final_decision": "REJECT_GAIT_INSTABILITY_EXPERT",
+  "checkpoint_valid_training": false,
+  "application_valid": false,
+  "risk_fusion_use": "disabled_do_not_connect_checkpoint",
+  "gait_classes": [
+    "stable_gait",
+    "unstable_gait"
+  ],
+  "label_remap": {
+    "0": 0,
+    "3": 1,
+    "10": 0,
+    "11": 0,
+    "12": 0,
+    "13": 0,
+    "20": 0,
+    "21": 0,
+    "99": -1
+  }
+}

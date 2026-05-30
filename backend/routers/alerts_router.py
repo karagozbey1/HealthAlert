@@ -13,6 +13,7 @@ from schemas import (
     AlertRespondRequest,
     AlertResponse,
     ClosePostEventRequest,
+    HelpRequestResponse,
     PostEventSessionResponse,
 )
 
@@ -43,16 +44,30 @@ def _dict_to_alert_response(d: dict) -> AlertResponse:
     )
 
 # SELF kullanicisinin kendi alert listesini dondurur.
+# DOCTOR/RELATIVE icin yetkili hasta alertlerini dondurur.
 @router.get("", response_model=list[AlertResponse])
 async def get_my_alerts(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    if current_user.role != "SELF":
-        raise HTTPException(status_code=403, detail="SELF role required")
-    alerts = await repos.alerts.list_by_user(current_user.id)
-    return [_dict_to_alert_response(a) for a in alerts]
+    if current_user.role == "SELF":
+        alerts = await repos.alerts.list_by_user(current_user.id)
+        return [_dict_to_alert_response(a) for a in alerts]
+
+    # DOCTOR / RELATIVE: return alerts for all linked patients
+    relations = await repos.relations.find_active_by_linked_user(current_user.id)
+    result = []
+    seen: set[str] = set()
+    for rel in relations:
+        pid = rel["self_user_id"]
+        if pid in seen:
+            continue
+        seen.add(pid)
+        patient_alerts = await repos.alerts.list_by_user(pid, limit=20)
+        result.extend(patient_alerts)
+    result.sort(key=lambda a: a.get("created_at", datetime.utcfromtimestamp(0)), reverse=True)
+    return [_dict_to_alert_response(a) for a in result[:50]]
 
 # SELF kullanicisinin aktif alert kaydini dondurur.
 @router.get("/active", response_model=AlertResponse | None)
@@ -205,3 +220,198 @@ async def close_post_event(
 
     await db.commit()
     return updated_session
+
+
+# Hasta yardim cagrisini olusturur ve baglantilarini bilgilendirir.
+@router.post("/help", response_model=HelpRequestResponse, status_code=201)
+async def request_help(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    repos: RepoSet = Depends(get_repo_set),
+):
+    if current_user.role != "SELF":
+        raise HTTPException(status_code=403, detail="Only SELF users can request help")
+
+    alert_id = str(uuid4())
+    live = await repos.live_status.get_by_user(current_user.id)
+
+    recs = [
+        "Güvenli bir yerde olduğunuzdan emin olun.",
+        "Doktorunuz veya yakınınız bilgilendirildi.",
+        "Acil durumda 112'yi arayın.",
+    ]
+
+    alert_data = {
+        "id": alert_id,
+        "user_id": current_user.id,
+        "title": "Yardım Çağrısı",
+        "description": f"{current_user.full_name} yardım istedi.",
+        "severity": "critical",
+        "status": "active",
+        "countdown_total_sec": 300,
+        "countdown_remaining_sec": 300,
+        "recommendations": recs,
+    }
+    alert = await repos.alerts.create(alert_data)
+
+    await repos.history.create({
+        "id": str(uuid4()),
+        "user_id": current_user.id,
+        "item_type": "alert",
+        "title": "Yardım Çağrısı",
+        "subtitle": "Manuel yardım çağrısı gönderildi.",
+        "severity": "critical",
+        "outcome": "help_requested",
+    })
+
+    # Fan-out to all linked doctors and relatives
+    relations = await repos.relations.find_active_by_self_user(current_user.id)
+    notified: list[str] = []
+    for rel in relations:
+        linked_id = rel["linked_user_id"]
+        await repos.notifications.create({
+            "id": str(uuid4()),
+            "recipient_id": linked_id,
+            "sender_id": current_user.id,
+            "title": "🚨 Yardım Çağrısı",
+            "body": f"{current_user.full_name} yardım istedi. Lütfen kontrol edin.",
+            "notification_type": "help_request",
+            "reference_id": alert_id,
+            "reference_type": "alert",
+            "is_read": False,
+        })
+        notified.append(linked_id)
+
+    await db.commit()
+    return HelpRequestResponse(
+        alert_id=alert_id,
+        notified_count=len(notified),
+        message="Yardım çağrısı gönderildi.",
+    )
+
+
+# Doktor veya yakın alerti goruldu olarak isaretler.
+@router.post("/{alert_id}/ack", status_code=200)
+async def acknowledge_alert(
+    alert_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    repos: RepoSet = Depends(get_repo_set),
+):
+    if current_user.role not in ("DOCTOR", "RELATIVE"):
+        raise HTTPException(status_code=403, detail="Only DOCTOR or RELATIVE can acknowledge alerts")
+
+    alert = await repos.alerts.get_by_id(alert_id)
+    if alert is None:
+        raise HTTPException(status_code=404, detail="Alert not found")
+
+    # ACL: check that the current user is linked to the patient
+    link = await repos.relations.find_active_link(alert["user_id"], current_user.id)
+    if link is None:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    await repos.alerts.update(alert_id, {
+        "status": "acknowledged",
+        "resolved_at": datetime.utcnow(),
+    })
+
+    await repos.notifications.create({
+        "id": str(uuid4()),
+        "recipient_id": alert["user_id"],
+        "sender_id": current_user.id,
+        "title": "Uyarı Görüldü",
+        "body": f"{current_user.full_name} uyarınızı gördü.",
+        "notification_type": "alert_ack",
+        "reference_id": alert_id,
+        "reference_type": "alert",
+        "is_read": False,
+    })
+
+    await db.commit()
+    return {"status": "acknowledged", "alert_id": alert_id}
+
+
+# Hasta canli durumunu anomali kurallariyla degerlendirir.
+@router.post("/evaluate", status_code=201)
+async def evaluate_live_status(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    repos: RepoSet = Depends(get_repo_set),
+):
+    """Evaluate current live status for the SELF user and create alerts if thresholds exceeded."""
+    if current_user.role != "SELF":
+        raise HTTPException(status_code=403, detail="SELF role required")
+
+    live = await repos.live_status.get_by_user(current_user.id)
+    if live is None:
+        return {"evaluated": False, "reason": "no_live_data"}
+
+    alerts_created: list[str] = []
+
+    hr = live.get("heart_rate", 0)
+    spo2 = live.get("spo2", 100)
+    risk = live.get("risk_score", 0)
+    hr_valid = live.get("hr_valid", True)
+    spo2_valid = live.get("spo2_valid", True)
+    signal_quality = live.get("signal_quality", 1.0) or 1.0
+
+    # Only evaluate if signal is usable
+    if signal_quality < 0.2:
+        return {"evaluated": False, "reason": "signal_quality_too_low"}
+
+    existing = await repos.alerts.get_active_by_user(current_user.id)
+    if existing:
+        return {"evaluated": True, "reason": "active_alert_exists", "alerts_created": []}
+
+    alert_type = None
+    title = None
+    description = None
+    severity = "medium"
+
+    if risk >= 0.7:
+        alert_type = "high_risk"
+        title = "Yüksek Risk Algılandı"
+        description = "Risk skoru kritik seviyeye ulaştı."
+        severity = "critical"
+    elif spo2_valid and spo2 < 90:
+        alert_type = "low_spo2_est"
+        title = "Düşük Oksijen Tahmini"
+        description = f"SpO2 tahmini %{spo2:.1f} — düşük."
+        severity = "high"
+    elif hr_valid and (hr > 130 or hr < 45):
+        alert_type = "abnormal_heart_rate"
+        title = "Anormal Kalp Atışı"
+        description = f"Kalp atışı {hr:.0f} BPM — olağandışı."
+        severity = "high"
+
+    if alert_type:
+        aid = str(uuid4())
+        await repos.alerts.create({
+            "id": aid,
+            "user_id": current_user.id,
+            "title": title,
+            "description": description,
+            "severity": severity,
+            "status": "active",
+            "countdown_total_sec": 300,
+            "countdown_remaining_sec": 300,
+            "recommendations": ["Durumunuzu değerlendirin.", "Gerekirse yardım çağırın."],
+        })
+        # Fan-out notifications
+        relations = await repos.relations.find_active_by_self_user(current_user.id)
+        for rel in relations:
+            await repos.notifications.create({
+                "id": str(uuid4()),
+                "recipient_id": rel["linked_user_id"],
+                "sender_id": current_user.id,
+                "title": f"⚠️ {title}",
+                "body": f"{current_user.full_name}: {description}",
+                "notification_type": "anomaly_alert",
+                "reference_id": aid,
+                "reference_type": "alert",
+                "is_read": False,
+            })
+        alerts_created.append(aid)
+        await db.commit()
+
+    return {"evaluated": True, "alerts_created": alerts_created}

@@ -31,8 +31,11 @@ def is_reliable_for_baseline(
     if not settings.BASELINE_ENABLED:
         return False
 
-    # Demo verisinin baseline'i bozmasini gerekirse engeller.
-    if packet_mode == "mock" and not settings.BASELINE_ALLOW_MOCK_DATA:
+    # Demo / presentation-safe verisinin baseline'i bozmasini engeller.
+    if (
+        packet_mode in {"mock", "demo", "presentation_safe"}
+        and not settings.BASELINE_ALLOW_MOCK_DATA
+    ):
         return False
 
     # Gerekli sensor bayraklari gecersizse olcumu disarida birakir.
@@ -48,9 +51,9 @@ def is_reliable_for_baseline(
         return False
 
     # Fizyolojik olarak mantiksiz uc degerleri kabul etmez.
-    if hr < 35 or hr > 190:
+    if hr < 45 or hr > 130:
         return False
-    if spo2 < 70 or spo2 > 100:
+    if spo2 < 88 or spo2 > 100:
         return False
 
     # Yuksek riskli olcumlerin baseline'i kaydirmasini engeller.

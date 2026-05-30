@@ -1,0 +1,24 @@
+{
+  "labels": [
+    "rest_like",
+    "active_like",
+    "poor_signal"
+  ],
+  "matrix": [
+    [
+      8096,
+      1,
+      0
+    ],
+    [
+      0,
+      14032,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ]
+}

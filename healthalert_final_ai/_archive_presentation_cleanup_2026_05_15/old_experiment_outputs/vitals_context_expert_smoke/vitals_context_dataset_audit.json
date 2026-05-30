@@ -1,0 +1,153 @@
+{
+  "task": "vitals_context",
+  "prepared_public_npz_only": true,
+  "live_esp32_max30102_training_used": false,
+  "label_mapping": {
+    "0": 0,
+    "11": 0,
+    "20": 0,
+    "10": 1,
+    "21": 2,
+    "99": -1
+  },
+  "final_classes": [
+    "rest_like",
+    "active_like",
+    "poor_signal",
+    "abnormal_trend"
+  ],
+  "unsupported_or_excluded": {
+    "unknown_99": "excluded",
+    "abnormal_trend": "no supervised label in current NPZ"
+  },
+  "splits": {
+    "train": {
+      "npz_path": "synthetic",
+      "npz_exists": false,
+      "npz_keys": [
+        "synthetic"
+      ],
+      "features_shape": [
+        1600,
+        1400
+      ],
+      "labels_shape": [
+        1600
+      ],
+      "imu_shape": null,
+      "ppg_shape": null,
+      "metadata_present": true,
+      "n_total_in_npz": 1600,
+      "n_removed_bad_source": 0,
+      "n_removed_bad_label": 0,
+      "n_unknown_excluded": 0,
+      "n_missing_vitals_removed": 0,
+      "n_final": 1600,
+      "raw_label_distribution": {},
+      "metadata_label_distribution_after_filter": {},
+      "class_distribution": {
+        "rest_like": 738,
+        "active_like": 709,
+        "poor_signal": 153
+      },
+      "source_distribution": {
+        "synthetic": 1600
+      },
+      "sampling_rate_distribution": {},
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 0,
+      "feature_nonzero_columns": 1400,
+      "feature_zero_rows": 0,
+      "ppg_missing_count": 0,
+      "imu_required": false,
+      "ppg_required": true
+    },
+    "val": {
+      "npz_path": "synthetic",
+      "npz_exists": false,
+      "npz_keys": [
+        "synthetic"
+      ],
+      "features_shape": [
+        400,
+        1400
+      ],
+      "labels_shape": [
+        400
+      ],
+      "imu_shape": null,
+      "ppg_shape": null,
+      "metadata_present": true,
+      "n_total_in_npz": 400,
+      "n_removed_bad_source": 0,
+      "n_removed_bad_label": 0,
+      "n_unknown_excluded": 0,
+      "n_missing_vitals_removed": 0,
+      "n_final": 400,
+      "raw_label_distribution": {},
+      "metadata_label_distribution_after_filter": {},
+      "class_distribution": {
+        "rest_like": 173,
+        "active_like": 187,
+        "poor_signal": 40
+      },
+      "source_distribution": {
+        "synthetic": 400
+      },
+      "sampling_rate_distribution": {},
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 0,
+      "feature_nonzero_columns": 1400,
+      "feature_zero_rows": 0,
+      "ppg_missing_count": 0,
+      "imu_required": false,
+      "ppg_required": true
+    },
+    "test": {
+      "npz_path": "synthetic",
+      "npz_exists": false,
+      "npz_keys": [
+        "synthetic"
+      ],
+      "features_shape": [
+        400,
+        1400
+      ],
+      "labels_shape": [
+        400
+      ],
+      "imu_shape": null,
+      "ppg_shape": null,
+      "metadata_present": true,
+      "n_total_in_npz": 400,
+      "n_removed_bad_source": 0,
+      "n_removed_bad_label": 0,
+      "n_unknown_excluded": 0,
+      "n_missing_vitals_removed": 0,
+      "n_final": 400,
+      "raw_label_distribution": {},
+      "metadata_label_distribution_after_filter": {},
+      "class_distribution": {
+        "rest_like": 173,
+        "active_like": 184,
+        "poor_signal": 43
+      },
+      "source_distribution": {
+        "synthetic": 400
+      },
+      "sampling_rate_distribution": {},
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 0,
+      "feature_nonzero_columns": 1400,
+      "feature_zero_rows": 0,
+      "ppg_missing_count": 0,
+      "imu_required": false,
+      "ppg_required": true
+    }
+  },
+  "split_overlap": {
+    "train_val_window_overlap": 0,
+    "train_test_window_overlap": 0,
+    "val_test_window_overlap": 0
+  }
+}

@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Demo/sunum penceresi: 2026-06-30'a kadar açık.
+    // Sunum sonrası Firebase Auth + custom claims tabanlı rules ile değiştirilecek.
+    function isDemoWindow() {
+      return request.time < timestamp.date(2026, 6, 30);
+    }
+
+    // Kullanıcı profilleri
+    match /users/{userId} {
+      allow read, write: if isDemoWindow();
+    }
+
+    // Hasta kayıtları
+    match /patients/{patientId} {
+      allow read, write: if isDemoWindow();
+    }
+
+    // Hasta-doktor/yakın erişim ilişkileri
+    match /patient_access/{relationId} {
+      allow read, write: if isDemoWindow();
+    }
+
+    // Gerçek zamanlı canlı durum — hasta yazar, doktor/yakın okur
+    match /live_status/{patientId} {
+      allow read, write: if isDemoWindow();
+    }
+
+    // Alarmlar — hasta yazar, doktor/yakın okur
+    match /alerts/{alertId} {
+      allow read, write: if isDemoWindow();
+    }
+
+    // Geçmiş kayıtları — alt koleksiyon
+    match /history/{patientId}/records/{recordId} {
+      allow read, write: if isDemoWindow();
+    }
+  }
+}

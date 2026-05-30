@@ -28,8 +28,7 @@ class LiveDataService {
         if (status != null && !_controller.isClosed) {
           _controller.add(status);
         }
-      } catch (_) {
-      }
+      } catch (_) {}
     });
     if (demoMode || fetchFn == null) {
       _controller.add(_generateDemoStatus(userId));
@@ -51,13 +50,13 @@ class LiveDataService {
   static int _tick = 0;
 
   static final _scenarios = [
-    _DemoScenario('normal', 62, 72, 97, 99, 0.05, 0.12),
-    _DemoScenario('elevated_hr', 100, 118, 96, 97, 0.3, 0.5),
-    _DemoScenario('warning', 118, 130, 95, 96, 0.5, 0.65),
-    _DemoScenario('normal', 65, 74, 97, 99, 0.05, 0.15),
-    _DemoScenario('low_spo2', 72, 82, 88, 91, 0.2, 0.4),
-    _DemoScenario('recovery', 76, 85, 95, 98, 0.1, 0.3),
-    _DemoScenario('normal', 62, 72, 97, 99, 0.05, 0.12),
+    _DemoScenario('normal', 62, 72, 97, 99, 0.00, 0.07),
+    _DemoScenario('elevated_hr', 100, 118, 96, 97, 0.08, 0.18),
+    _DemoScenario('warning', 118, 130, 95, 96, 0.40, 0.65),
+    _DemoScenario('normal', 65, 74, 97, 99, 0.00, 0.07),
+    _DemoScenario('low_spo2', 72, 82, 88, 91, 0.08, 0.18),
+    _DemoScenario('recovery', 76, 85, 95, 98, 0.02, 0.09),
+    _DemoScenario('normal', 62, 72, 97, 99, 0.00, 0.07),
   ];
 
   static const _ticksPerScenario = 8;
@@ -67,15 +66,15 @@ class LiveDataService {
     final scenarioIdx = (_tick ~/ _ticksPerScenario) % _scenarios.length;
     final s = _scenarios[scenarioIdx];
 
-    double rng(double lo, double hi) =>
-        lo + _rng.nextDouble() * (hi - lo);
+    double rng(double lo, double hi) => lo + _rng.nextDouble() * (hi - lo);
 
     return LiveStatus(
       id: 'demo_$_tick',
       userId: userId,
       heartRate: double.parse(rng(s.hrMin, s.hrMax).toStringAsFixed(1)),
       spo2: double.parse(rng(s.spo2Min, s.spo2Max).toStringAsFixed(1)),
-      motionScore: double.parse(rng(s.motionMin, s.motionMax).toStringAsFixed(2)),
+      motionScore:
+          double.parse(rng(s.motionMin, s.motionMax).toStringAsFixed(2)),
       riskScore: s.riskScore,
       scenario: s.name,
       timestamp: DateTime.now(),

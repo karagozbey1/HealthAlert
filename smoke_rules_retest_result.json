@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-05-28T14:44:09.008768Z",
+  "total": 22,
+  "passed": 22,
+  "failed": 0,
+  "all_pass": true,
+  "results": {
+    "rules_contain_isDemoWindow_2026_06_30": "PASS",
+    "rules_cover_live_status": "PASS",
+    "rules_cover_alerts": "PASS",
+    "rules_cover_history_subcol": "PASS",
+    "rules_cover_patient_access": "PASS",
+    "live_status_unauth_write": "PASS",
+    "live_status_unauth_read": "PASS",
+    "live_status_field_roundtrip": "PASS",
+    "alerts_unauth_write": "PASS",
+    "alerts_unauth_read": "PASS",
+    "alerts_field_roundtrip": "PASS",
+    "history_subcol_unauth_write": "PASS",
+    "history_subcol_unauth_read": "PASS",
+    "history_subcol_field_roundtrip": "PASS",
+    "patient_access_unauth_write": "PASS",
+    "patient_access_unauth_read": "PASS",
+    "users_unauth_write": "PASS",
+    "users_unauth_read": "PASS",
+    "cloud_sync_admin_write": "PASS",
+    "cloud_sync_client_read_after_admin_write": "PASS",
+    "cloud_sync_data_visible": "PASS",
+    "cleanup_smoke_docs": "PASS"
+  }
+}

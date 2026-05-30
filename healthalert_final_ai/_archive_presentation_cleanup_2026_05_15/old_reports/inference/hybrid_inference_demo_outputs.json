@@ -1,0 +1,134 @@
+{
+  "imu_only": {
+    "fall_probability": 0.9815,
+    "activity_context": "sitting",
+    "ppg_quality": {
+      "score": null,
+      "label": "missing"
+    },
+    "vitals_contribution": 0.0,
+    "gait_contribution": 10.8,
+    "personalization_adjustment": 0.0,
+    "final_risk_score": 96.182,
+    "risk_level": "normal",
+    "confidence_score": 0.6,
+    "reasons": [
+      "ppg_missing",
+      "fall_probability_very_high",
+      "runtime_motion_instability",
+      "activity_context_sitting",
+      "baseline_missing",
+      "motion_instability_high",
+      "vitals_missing",
+      "baseline_not_calibrated_using_population_defaults"
+    ],
+    "recommended_action": "immediate_check",
+    "raw_final_risk_score": 96.182,
+    "raw_risk_level": "critical",
+    "temporal_smoothing_applied": true,
+    "runtime_vitals_adjustment": 0.0,
+    "runtime_gait_motion_score": 0.9,
+    "ppg_quality_score": null,
+    "ppg_quality_label": "missing",
+    "cold_start_mode": true
+  },
+  "imu_plus_ppg": {
+    "fall_probability": 0.9815,
+    "activity_context": "sitting",
+    "ppg_quality": {
+      "score": 1.0,
+      "label": "good_quality"
+    },
+    "vitals_contribution": 0.0,
+    "gait_contribution": 10.8,
+    "personalization_adjustment": 0.0,
+    "final_risk_score": 97.709,
+    "risk_level": "caution",
+    "confidence_score": 1.0,
+    "reasons": [
+      "fall_probability_very_high",
+      "runtime_motion_instability",
+      "ppg_quality_good",
+      "activity_context_sitting",
+      "baseline_missing",
+      "motion_instability_high",
+      "baseline_not_calibrated_using_population_defaults"
+    ],
+    "recommended_action": "immediate_check",
+    "raw_final_risk_score": 100.0,
+    "raw_risk_level": "critical",
+    "temporal_smoothing_applied": true,
+    "runtime_vitals_adjustment": 0.0,
+    "runtime_gait_motion_score": 0.9,
+    "ppg_quality_score": 1.0,
+    "ppg_quality_label": "good_quality",
+    "cold_start_mode": true
+  },
+  "ppg_missing": {
+    "fall_probability": 0.9815,
+    "activity_context": "sitting",
+    "ppg_quality": {
+      "score": null,
+      "label": "missing"
+    },
+    "vitals_contribution": 0.0,
+    "gait_contribution": 10.8,
+    "personalization_adjustment": 0.0,
+    "final_risk_score": 97.098,
+    "risk_level": "caution",
+    "confidence_score": 0.6,
+    "reasons": [
+      "ppg_missing",
+      "fall_probability_very_high",
+      "runtime_motion_instability",
+      "activity_context_sitting",
+      "baseline_missing",
+      "motion_instability_high",
+      "ppg_quality_gate_closed",
+      "baseline_not_calibrated_using_population_defaults"
+    ],
+    "recommended_action": "immediate_check",
+    "raw_final_risk_score": 96.182,
+    "raw_risk_level": "critical",
+    "temporal_smoothing_applied": true,
+    "runtime_vitals_adjustment": 0.0,
+    "runtime_gait_motion_score": 0.9,
+    "ppg_quality_score": null,
+    "ppg_quality_label": "missing",
+    "cold_start_mode": true
+  },
+  "with_user_baseline": {
+    "fall_probability": 0.9815,
+    "activity_context": "sitting",
+    "ppg_quality": {
+      "score": 1.0,
+      "label": "good_quality"
+    },
+    "vitals_contribution": 13.0,
+    "gait_contribution": 10.8,
+    "personalization_adjustment": 0.0,
+    "final_risk_score": 98.259,
+    "risk_level": "high_risk",
+    "confidence_score": 1.0,
+    "reasons": [
+      "fall_probability_very_high",
+      "runtime_motion_instability",
+      "ppg_quality_good",
+      "activity_context_sitting",
+      "baseline_missing",
+      "motion_instability_high",
+      "hr_above_baseline",
+      "spo2_drop",
+      "baseline_not_calibrated_using_population_defaults"
+    ],
+    "recommended_action": "immediate_check",
+    "raw_final_risk_score": 100.0,
+    "raw_risk_level": "critical",
+    "temporal_smoothing_applied": true,
+    "runtime_vitals_adjustment": 13.0,
+    "runtime_gait_motion_score": 0.9,
+    "ppg_quality_score": 1.0,
+    "ppg_quality_label": "good_quality",
+    "cold_start_mode": true
+  }
+}

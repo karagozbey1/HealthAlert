@@ -25,6 +25,7 @@ from models import (
     LearningWindow,
     LinkCode,
     LiveStatus,
+    ModelWindowLog,
     ModelVersionRegistry,
     NotificationItem,
     PersonalHealthProfile,
@@ -98,6 +99,11 @@ def _live_to_dict(ls: LiveStatus) -> Dict[str, Any]:
         "ml_adjustment": None,
         "fusion_applied": None,
         "model_window_status": None,
+        "ml_base_score": None,
+        "personal_adjustment": None,
+        "fusion_mode": None,
+        "model_version": None,
+        "ml_confidence": None,
     }
 
 
@@ -335,7 +341,65 @@ class SqliteLiveStatusRepo(AbstractLiveStatusRepo):
     async def get_by_user(self, user_id: str) -> Optional[Dict[str, Any]]:
         r = await self.db.execute(select(LiveStatus).where(LiveStatus.user_id == user_id))
         ls = r.scalar_one_or_none()
-        return _live_to_dict(ls) if ls else None
+        if ls is None:
+            return None
+
+        live = _live_to_dict(ls)
+
+        # Enrich with latest DevicePacketLog BLE/sensor quality fields.
+        pkt_result = await self.db.execute(
+            select(DevicePacketLog)
+            .where(DevicePacketLog.user_id == user_id)
+            .order_by(DevicePacketLog.ingested_at.desc())
+            .limit(1)
+        )
+        latest_pkt = pkt_result.scalars().first()
+        if latest_pkt is not None:
+            live["signal_quality"] = latest_pkt.signal_quality
+            live["hr_valid"] = latest_pkt.hr_valid
+            live["spo2_valid"] = latest_pkt.spo2_valid
+            live["finger_present"] = latest_pkt.finger_detected
+            live["source"] = "ble_live" if latest_pkt.mode == "real" else "mock"
+
+        log_result = await self.db.execute(
+            select(ModelWindowLog)
+            .where(ModelWindowLog.user_id == user_id)
+            .order_by(ModelWindowLog.created_at.desc())
+            .limit(1)
+        )
+        latest_log = log_result.scalars().first()
+        if latest_log is not None:
+            live.update(
+                {
+                    "final_risk_score": ls.risk_score,
+                    "personalized_risk_score": latest_log.personalized_risk_score,
+                    "ml_evidence_score": latest_log.ml_evidence_score,
+                    "ml_adjustment": latest_log.personal_adjustment,
+                    "fusion_applied": latest_log.ml_base_score is not None,
+                    "model_window_status": {
+                        "model_ready": latest_log.model_ready,
+                        "sample_rate_hz": latest_log.sample_rate_hz,
+                        "sample_count": latest_log.sample_count,
+                        "fusion_mode": latest_log.fusion_mode,
+                    },
+                    "ml_base_score": latest_log.ml_base_score,
+                    "personal_adjustment": latest_log.personal_adjustment,
+                    "fusion_mode": latest_log.fusion_mode,
+                    "model_version": latest_log.model_version,
+                    "ml_confidence": latest_log.ml_confidence,
+                }
+            )
+        else:
+            live.update(
+                {
+                    "final_risk_score": ls.risk_score,
+                    "personalized_risk_score": ls.risk_score,
+                    "fusion_mode": "fallback_personalization_only",
+                    "fusion_applied": False,
+                }
+            )
+
+        return live
 
     async def upsert(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         r = await self.db.execute(select(LiveStatus).where(LiveStatus.user_id == user_id))

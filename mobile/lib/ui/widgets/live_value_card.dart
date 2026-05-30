@@ -25,45 +25,76 @@ class LiveValueCard extends StatelessWidget {
 
   factory LiveValueCard.heartRate(LiveStatus status) {
     final hr = status.heartRate;
-    final alert = hr != null && (hr > 100 || hr < 50);
+    final isValidBle = status.source != 'ble' || status.heartRateValid != false;
+    final isStabilizing = status.source == 'ble' &&
+        status.fingerPresent == true &&
+        status.heartRateValid == false;
+    final alert = status.source == 'ble' ? false : (hr > 100 || hr < 50);
     return LiveValueCard(
-      title: 'Heart Rate',
-      value: hr?.toStringAsFixed(0) ?? '--',
+      title: 'Kalp Atışı',
+      value: isValidBle ? hr.toStringAsFixed(0) : '--',
       unit: 'BPM',
       icon: Icons.favorite,
       color: alert ? AppTheme.critical : AppTheme.secondary,
       isAlert: alert,
-      subtitle: status.scenarioLabel,
+      subtitle: isStabilizing ? 'Stabil oluyor...' : status.scenarioLabel,
     );
   }
 
   factory LiveValueCard.spo2(LiveStatus status) {
     final sp = status.spo2;
-    final alert = sp != null && sp < 94;
+    final isValidBle = status.source != 'ble' || status.spo2Valid != false;
+    final isStabilizing = status.source == 'ble' &&
+        status.fingerPresent == true &&
+        status.spo2Valid == false;
+    final alert = status.source == 'ble' ? false : sp < 94;
     return LiveValueCard(
-      title: 'SpO₂',
-      value: sp?.toStringAsFixed(1) ?? '--',
+      title: 'Oksijen',
+      value: isValidBle ? sp.toStringAsFixed(1) : '--',
       unit: '%',
       icon: Icons.air,
       color: alert ? AppTheme.critical : AppTheme.primary,
       isAlert: alert,
+      subtitle: isStabilizing ? 'Stabil oluyor...' : null,
     );
   }
 
   factory LiveValueCard.riskScore(LiveStatus status) {
     final score = status.riskScore;
-    final alert = score != null && score > 0.6;
+    final isBleMeasurement = status.source == 'ble';
+    final hasValue =
+        score > 0.0 && (!isBleMeasurement || status.fingerPresent == true);
+    final alert = hasValue && score > 0.6;
+
+    String? subtitle;
+    if (isBleMeasurement) {
+      if (hasValue) {
+        final pct = score * 100;
+        if (pct <= 20) {
+          subtitle = 'Düşük';
+        } else if (pct <= 50) {
+          subtitle = 'Orta';
+        } else if (pct <= 75) {
+          subtitle = 'Yüksek';
+        } else {
+          subtitle = 'Kritik';
+        }
+      } else {
+        subtitle = 'Parmak bekleniyor';
+      }
+    }
+
     return LiveValueCard(
-      title: 'Risk Score',
-      value: score != null ? (score * 100).toStringAsFixed(0) : '--',
-      unit: '%',
+      title: isBleMeasurement ? 'Canlı Risk' : 'Risk Skoru',
+      value: hasValue ? (score * 100).toStringAsFixed(0) : '--',
+      unit: hasValue ? '%' : '',
       icon: Icons.analytics_outlined,
       color: alert ? AppTheme.warning : AppTheme.success,
       isAlert: alert,
+      subtitle: subtitle,
     );
   }
 
-  /// Widget ağacını oluşturur.
   @override
   Widget build(BuildContext context) {
     return GlassCard(
@@ -97,7 +128,7 @@ class LiveValueCard extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -108,7 +139,7 @@ class LiveValueCard extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
                   unit,
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
               ),
             ],
@@ -116,7 +147,7 @@ class LiveValueCard extends StatelessWidget {
           if (subtitle != null)
             Text(
               subtitle!,
-              style: TextStyle(color: Colors.white38, fontSize: 11),
+              style: const TextStyle(color: Colors.white38, fontSize: 11),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

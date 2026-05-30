@@ -1,0 +1,34 @@
+{
+  "accuracy": 0.45,
+  "macro_f1": 0.2946,
+  "weighted_f1": 0.398,
+  "macro_precision": 0.2977,
+  "macro_recall": 0.3309,
+  "best_epoch": 2,
+  "best_val_macro_f1": 0.29625,
+  "vitals_context_classes": [
+    "rest_like",
+    "active_like",
+    "poor_signal",
+    "abnormal_trend"
+  ],
+  "trained_classes": [
+    "rest_like",
+    "active_like",
+    "poor_signal",
+    "abnormal_trend"
+  ],
+  "label_remap": {
+    "0": 0,
+    "11": 0,
+    "20": 0,
+    "10": 1,
+    "21": 2,
+    "99": -1
+  },
+  "model_config": {
+    "mode": "mlp",
+    "input_dim": 1400,
+    "num_classes": 4
+  }
+}

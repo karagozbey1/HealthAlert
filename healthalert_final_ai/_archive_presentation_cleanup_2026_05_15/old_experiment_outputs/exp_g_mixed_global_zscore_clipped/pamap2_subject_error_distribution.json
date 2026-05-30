@@ -1,0 +1,49 @@
+[
+  {
+    "subject_id": "S107",
+    "n": 480,
+    "macro_f1": 0.1042,
+    "posture_confusions": 260,
+    "confusion_pairs": {
+      "walking->standing": 151,
+      "standing->sitting": 127,
+      "lying->sitting": 125,
+      "sitting->standing": 7,
+      "walking->sitting": 3,
+      "lying->standing": 1,
+      "lying->walking": 1,
+      "sitting->walking": 1
+    }
+  },
+  {
+    "subject_id": "S102",
+    "n": 512,
+    "macro_f1": 0.3708,
+    "posture_confusions": 252,
+    "confusion_pairs": {
+      "standing->sitting": 124,
+      "lying->sitting": 110,
+      "sitting->lying": 11,
+      "sitting->standing": 5,
+      "walking->sitting": 3,
+      "lying->standing": 1,
+      "sitting->walking": 1,
+      "standing->lying": 1,
+      "walking->standing": 1
+    }
+  },
+  {
+    "subject_id": "S108",
+    "n": 510,
+    "macro_f1": 0.7834,
+    "posture_confusions": 87,
+    "confusion_pairs": {
+      "standing->sitting": 80,
+      "walking->standing": 11,
+      "sitting->standing": 3,
+      "lying->sitting": 2,
+      "lying->standing": 2,
+      "walking->sitting": 2
+    }
+  }
+]

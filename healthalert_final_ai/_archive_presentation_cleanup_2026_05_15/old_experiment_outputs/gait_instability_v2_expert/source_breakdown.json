@@ -1,0 +1,17 @@
+{
+  "DAPHNET_FOG": {
+    "n": 1667,
+    "accuracy": 0.4373,
+    "macro_f1": 0.4087,
+    "stable_recall": 0.3725,
+    "abnormal_recall": 0.9235,
+    "prediction_distribution": {
+      "stable_gait": 563,
+      "abnormal_or_freezing_movement": 1104
+    },
+    "true_distribution": {
+      "stable_gait": 1471,
+      "abnormal_or_freezing_movement": 196
+    }
+  }
+}

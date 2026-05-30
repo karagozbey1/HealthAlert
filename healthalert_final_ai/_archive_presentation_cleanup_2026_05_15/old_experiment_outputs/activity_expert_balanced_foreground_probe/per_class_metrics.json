@@ -1,0 +1,38 @@
+{
+  "normal": {
+    "precision": 0.9982472447218165,
+    "recall": 0.9737326114550683,
+    "f1": 0.9858375514700097,
+    "support": 38603
+  },
+  "instability": {
+    "precision": 0.7301298386118189,
+    "recall": 0.9998338318378198,
+    "f1": 0.843958201837436,
+    "support": 6018
+  },
+  "walking": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 613
+  },
+  "sitting": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 218
+  },
+  "standing": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 222
+  },
+  "lying": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 232
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "exp_d_mixed_per_window_zscore",
+  "strategy": "Mixed per-window z-score",
+  "sources": [
+    "uci_har",
+    "pamap2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "normalization": "per_window_zscore",
+  "sampler": "shuffle",
+  "clip_after_norm": null
+}

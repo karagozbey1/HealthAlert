@@ -1,0 +1,54 @@
+{
+  "SisFall": {
+    "n": 6962,
+    "accuracy": 0.865,
+    "macro_f1": 0.3128,
+    "class_dist": {
+      "normal": 944,
+      "instability": 6018
+    },
+    "available_class_recall": {
+      "normal": 0.0053,
+      "instability": 0.9998
+    }
+  },
+  "UCI-HAR": {
+    "n": 1285,
+    "accuracy": 0.0,
+    "macro_f1": 0.0,
+    "class_dist": {
+      "walking": 613,
+      "sitting": 218,
+      "standing": 222,
+      "lying": 232
+    },
+    "available_class_recall": {
+      "walking": 0.0,
+      "sitting": 0.0,
+      "standing": 0.0,
+      "lying": 0.0
+    }
+  },
+  "UMAFall": {
+    "n": 36492,
+    "accuracy": 0.998,
+    "macro_f1": 0.333,
+    "class_dist": {
+      "normal": 36492
+    },
+    "available_class_recall": {
+      "normal": 0.998
+    }
+  },
+  "UniMiB-SHAR": {
+    "n": 1167,
+    "accuracy": 0.9974,
+    "macro_f1": 0.4994,
+    "class_dist": {
+      "normal": 1167
+    },
+    "available_class_recall": {
+      "normal": 0.9974
+    }
+  }
+}

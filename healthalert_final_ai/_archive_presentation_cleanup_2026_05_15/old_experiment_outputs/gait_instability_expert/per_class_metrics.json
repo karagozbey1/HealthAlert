@@ -1,0 +1,14 @@
+{
+  "stable_gait": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 1726
+  },
+  "unstable_gait": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+  }
+}

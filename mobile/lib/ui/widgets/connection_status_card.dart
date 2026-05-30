@@ -27,7 +27,10 @@ class ConnectionStatusCard extends StatelessWidget {
   final int wifiPolls;
 
   String get _bleSubtitle {
-    if (!isBackendMode) return 'Demo modu — BLE bağlantısı gerekli değil.';
+    if (!isBackendMode && activeTransport == TransportType.ble) {
+      return 'BLE local live mode aktif - $blePacketsReceived paket alindi';
+    }
+    if (!isBackendMode) return 'Demo modu - BLE baglantisi beklenebilir.';
     switch (bleState) {
       case BleConnectionState.connected:
         return 'Bağlı: ${bleDeviceName ?? "HealthAlert"} — $blePacketsReceived paket alındı';
@@ -45,7 +48,10 @@ class ConnectionStatusCard extends StatelessWidget {
   }
 
   String get _wifiSubtitle {
-    if (!isBackendMode) return 'Ağ bağlantısı gerekli değil — yerel demo modu.';
+    if (!isBackendMode && activeTransport == TransportType.ble) {
+      return 'Backend yok - veri telefonda yerel olarak gosteriliyor';
+    }
+    if (!isBackendMode) return 'Ag baglantisi gerekli degil - yerel demo modu.';
     if (activeTransport == TransportType.wifi) {
       return 'Wi-Fi fallback AKTİF — backend üzerinden veri alınıyor ($wifiPolls sorgu)';
     }
@@ -67,7 +73,9 @@ class ConnectionStatusCard extends StatelessWidget {
           _buildRow(
             title: 'Backend Bağlantısı',
             subtitle: isBackendMode
-                ? (isBackendReachable ? 'Canlı sunucuya bağlı' : 'Sunucuya ulaşılamıyor')
+                ? (isBackendReachable
+                    ? 'Canlı sunucuya bağlı'
+                    : 'Sunucuya ulaşılamıyor')
                 : 'Demo modu — sunucu bağlantısı yok',
             icon: isBackendMode ? Icons.cloud_done : Icons.cloud_off,
             isActive: isBackendMode && isBackendReachable,
@@ -79,7 +87,9 @@ class ConnectionStatusCard extends StatelessWidget {
           _buildRow(
             title: 'Bluetooth (BLE)',
             subtitle: _bleSubtitle,
-            icon: bleActive ? Icons.bluetooth_connected : Icons.bluetooth_searching,
+            icon: bleActive
+                ? Icons.bluetooth_connected
+                : Icons.bluetooth_searching,
             isActive: bleActive,
             color: bleActive
                 ? AppTheme.success
@@ -148,7 +158,8 @@ class ConnectionStatusCard extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: color, fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ),
         ],

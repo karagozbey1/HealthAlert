@@ -25,6 +25,7 @@ from routers.chat_router import router as chat_router
 from routers.learning_router import router as learning_router
 from routers.personalization_router import router as personalization_router
 from routers.model_window_router import router as model_window_router
+from routers.patients_router import router as patients_router
 from services.simulation import run_simulation_loop
 # firestore_watcher import'u sqlite modunda gereksiz bagimlilik yuklemez.
 
@@ -76,6 +77,7 @@ app.include_router(chat_router)
 app.include_router(learning_router)
 app.include_router(personalization_router)
 app.include_router(model_window_router)
+app.include_router(patients_router)
 
 _sim_task: asyncio.Task | None = None
 _firestore_watcher_task: asyncio.Task | None = None

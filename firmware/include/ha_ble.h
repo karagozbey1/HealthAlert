@@ -2,17 +2,33 @@
 #define HA_BLE_H
 
 #include <Arduino.h>
+#include <esp_bt.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
 #include "ha_config.h"
+#include "ha_debug.h"
 
 class HaBle {
 public:
     enum State { OFF, ADVERTISING, CONNECTED, ERROR };
 
     void begin() {
+        if (_initialized) {
+            HA_SERIAL_PRINTLN("[BLE] Already initialized, skipping.");
+            return;
+        }
+
+        HA_SERIAL_PRINTF("[BLE] Free heap before init: %u bytes\n", esp_get_free_heap_size());
+
+        // Release Classic BT controller memory — required before BLE-only init.
+        // Returns ESP_ERR_INVALID_STATE if already released; that is acceptable.
+        esp_err_t mem_err = esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
+        if (mem_err != ESP_OK && mem_err != ESP_ERR_INVALID_STATE) {
+            HA_SERIAL_PRINTF("[BLE] Classic BT mem release warning: %d\n", (int)mem_err);
+        }
+
         BLEDevice::init(BLE_DEVICE_NAME);
 
         _server = BLEDevice::createServer();
@@ -67,7 +83,7 @@ public:
         _lastClientActivity = millis();
         _initialized = true;
 
-        Serial.println("[BLE] GATT server started, advertising...");
+        HA_SERIAL_PRINTLN("[BLE] GATT server started, advertising...");
     }
 
     bool sendPacket(const char* jsonBuf) {
@@ -183,7 +199,7 @@ private:
         else if (cmd == "real_mode") _requestRealMode = true;
 
         _updateStatusValue();
-        Serial.printf("[BLE] Control command: %s\n", cmd.c_str());
+        HA_SERIAL_PRINTF("[BLE] Control command: %s\n", cmd.c_str());
     }
 
     class ServerCallbacks : public BLEServerCallbacks {
@@ -196,7 +212,7 @@ private:
             _parent->_state = CONNECTED;
             _parent->_lastClientActivity = millis();
             _parent->_updateStatusValue();
-            Serial.println("[BLE] Client connected.");
+            HA_SERIAL_PRINTLN("[BLE] Client connected.");
         }
 
         void onDisconnect(BLEServer* server) override {
@@ -204,7 +220,7 @@ private:
             _parent->_state = ADVERTISING;
             _parent->_lastClientActivity = millis();
             _parent->_updateStatusValue();
-            Serial.println("[BLE] Client disconnected, re-advertising...");
+            HA_SERIAL_PRINTLN("[BLE] Client disconnected, re-advertising...");
             server->startAdvertising();
         }
 

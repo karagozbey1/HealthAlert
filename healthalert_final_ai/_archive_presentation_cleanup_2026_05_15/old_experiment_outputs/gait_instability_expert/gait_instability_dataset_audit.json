@@ -1,0 +1,195 @@
+{
+  "task": "gait_instability",
+  "prepared_public_npz_only": true,
+  "live_esp32_mpu6050_training_used": false,
+  "label_mapping": {
+    "0": 0,
+    "3": 1,
+    "10": 0,
+    "11": 0,
+    "12": 0,
+    "13": 0,
+    "20": 0,
+    "21": 0,
+    "99": -1
+  },
+  "final_classes": [
+    "stable_gait",
+    "unstable_gait"
+  ],
+  "splits": {
+    "train": {
+      "npz_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\gait_instability\\train.npz",
+      "npz_exists": true,
+      "npz_keys": [
+        "features",
+        "labels",
+        "imu",
+        "ppg",
+        "metadata"
+      ],
+      "features_shape": [
+        4456,
+        1400
+      ],
+      "labels_shape": [
+        4456
+      ],
+      "imu_shape": [
+        4456,
+        200,
+        6
+      ],
+      "ppg_shape": [
+        4456,
+        200,
+        1
+      ],
+      "metadata_present": true,
+      "n_total_in_npz": 4456,
+      "n_removed_bad_source": 0,
+      "n_removed_bad_label": 554,
+      "n_unknown_excluded": 554,
+      "n_missing_imu_removed": 0,
+      "n_final": 3902,
+      "raw_label_distribution": {
+        "normal": 3902,
+        "unknown": 554
+      },
+      "metadata_label_distribution_after_filter": {
+        "normal": 3902
+      },
+      "class_distribution": {
+        "stable_gait": 3902,
+        "unstable_gait": 0
+      },
+      "source_distribution": {
+        "DAPHNET_FOG": 3902
+      },
+      "sampling_rate_distribution": {
+        "unknown": 3902
+      },
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 5,
+      "imu_required": true,
+      "ppg_required": false
+    },
+    "val": {
+      "npz_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\gait_instability\\val.npz",
+      "npz_exists": true,
+      "npz_keys": [
+        "features",
+        "labels",
+        "imu",
+        "ppg",
+        "metadata"
+      ],
+      "features_shape": [
+        2620,
+        1400
+      ],
+      "labels_shape": [
+        2620
+      ],
+      "imu_shape": [
+        2620,
+        200,
+        6
+      ],
+      "ppg_shape": [
+        2620,
+        200,
+        1
+      ],
+      "metadata_present": true,
+      "n_total_in_npz": 2620,
+      "n_removed_bad_source": 0,
+      "n_removed_bad_label": 212,
+      "n_unknown_excluded": 212,
+      "n_missing_imu_removed": 0,
+      "n_final": 2408,
+      "raw_label_distribution": {
+        "normal": 2408,
+        "unknown": 212
+      },
+      "metadata_label_distribution_after_filter": {
+        "normal": 2408
+      },
+      "class_distribution": {
+        "stable_gait": 2408,
+        "unstable_gait": 0
+      },
+      "source_distribution": {
+        "DAPHNET_FOG": 2408
+      },
+      "sampling_rate_distribution": {
+        "unknown": 2408
+      },
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 3,
+      "imu_required": true,
+      "ppg_required": false
+    },
+    "test": {
+      "npz_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\gait_instability\\test.npz",
+      "npz_exists": true,
+      "npz_keys": [
+        "features",
+        "labels",
+        "imu",
+        "ppg",
+        "metadata"
+      ],
+      "features_shape": [
+        1819,
+        1400
+      ],
+      "labels_shape": [
+        1819
+      ],
+      "imu_shape": [
+        1819,
+        200,
+        6
+      ],
+      "ppg_shape": [
+        1819,
+        200,
+        1
+      ],
+      "metadata_present": true,
+      "n_total_in_npz": 1819,
+      "n_removed_bad_source": 0,
+      "n_removed_bad_label": 93,
+      "n_unknown_excluded": 93,
+      "n_missing_imu_removed": 0,
+      "n_final": 1726,
+      "raw_label_distribution": {
+        "normal": 1726,
+        "unknown": 93
+      },
+      "metadata_label_distribution_after_filter": {
+        "normal": 1726
+      },
+      "class_distribution": {
+        "stable_gait": 1726,
+        "unstable_gait": 0
+      },
+      "source_distribution": {
+        "DAPHNET_FOG": 1726
+      },
+      "sampling_rate_distribution": {
+        "unknown": 1726
+      },
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 2,
+      "imu_required": true,
+      "ppg_required": false
+    }
+  },
+  "split_overlap": {
+    "train_val_window_overlap": 0,
+    "train_test_window_overlap": 0,
+    "val_test_window_overlap": 0
+  }
+}

@@ -97,6 +97,56 @@ class ApiClient {
       return false;
     }
   }
+
+  // ── Convenience wrappers ──────────────────────────────────────────
+
+  /// GET /users/me — returns the current user's profile.
+  Future<Map<String, dynamic>> getMe() async {
+    final data = await get('/users/me');
+    if (data is Map<String, dynamic>) return data;
+    throw const ApiException(200, 'Unexpected response format for /users/me');
+  }
+
+  /// GET /patients/accessible — patients the caller is authorised to monitor.
+  Future<List<Map<String, dynamic>>> getAccessiblePatients() async {
+    final data = await get('/patients/accessible');
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    throw const ApiException(200, 'Unexpected response format for /patients/accessible');
+  }
+
+  /// GET /patients/{patientId}/live — latest live status for a patient.
+  Future<Map<String, dynamic>> getPatientLive(String patientId) async {
+    final data = await get('/patients/$patientId/live');
+    if (data is Map<String, dynamic>) return data;
+    throw ApiException(200, 'Unexpected response format for /patients/$patientId/live');
+  }
+
+  /// GET /patients/{patientId}/summary — compact summary card for a patient.
+  Future<Map<String, dynamic>> getPatientSummary(String patientId) async {
+    final data = await get('/patients/$patientId/summary');
+    if (data is Map<String, dynamic>) return data;
+    throw ApiException(200, 'Unexpected response format for /patients/$patientId/summary');
+  }
+
+  /// GET /doctor/patients — doctor's assigned patients (doctor role only).
+  Future<List<Map<String, dynamic>>> getDoctorPatients() async {
+    final data = await get('/doctor/patients');
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    throw const ApiException(200, 'Unexpected response format for /doctor/patients');
+  }
+
+  /// GET /relative/patients — relative's monitored patients (relative role only).
+  Future<List<Map<String, dynamic>>> getRelativePatients() async {
+    final data = await get('/relative/patients');
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    throw const ApiException(200, 'Unexpected response format for /relative/patients');
+  }
 }
 
 class ApiException implements Exception {

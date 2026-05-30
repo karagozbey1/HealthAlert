@@ -1,0 +1,21 @@
+{
+  "legacy_unknown_windows": 6871,
+  "rescued_abnormal_windows": 943,
+  "remaining_unknown_windows": 5976,
+  "rescued_from_unknown_count": 860,
+  "remaining_unknown_windows_due_to_freeze_mapping": 0,
+  "split_breakdown": {
+    "train": {
+      "rescued_abnormal_windows": 482,
+      "unknown_excluded_count": 4202
+    },
+    "val": {
+      "rescued_abnormal_windows": 239,
+      "unknown_excluded_count": 586
+    },
+    "test": {
+      "rescued_abnormal_windows": 139,
+      "unknown_excluded_count": 1188
+    }
+  }
+}

@@ -1,0 +1,38 @@
+﻿{
+    "accuracy":  1.0,
+    "macro_f1":  0.6666,
+    "weighted_f1":  1.0,
+    "macro_precision":  0.6666,
+    "macro_recall":  0.6666,
+    "best_epoch":  1,
+    "best_val_macro_f1":  0.66667,
+    "vitals_context_classes":  [
+                                   "rest_like",
+                                   "active_like",
+                                   "poor_signal",
+                                   "abnormal_trend"
+                               ],
+    "trained_classes":  [
+                            "rest_like",
+                            "active_like",
+                            "poor_signal",
+                            "abnormal_trend"
+                        ],
+    "label_remap":  {
+                        "0":  0,
+                        "11":  0,
+                        "20":  0,
+                        "10":  1,
+                        "21":  2,
+                        "99":  -1
+                    },
+    "model_config":  {
+                         "mode":  "mlp",
+                         "input_dim":  1400,
+                         "num_classes":  4
+                     },
+    "final_decision":  "REJECT_VITALS_CONTEXT_EXPERT",
+    "checkpoint_valid_training":  true,
+    "application_valid":  false,
+    "risk_fusion_use":  "disabled_do_not_connect_checkpoint"
+}

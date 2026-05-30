@@ -1,0 +1,740 @@
+{
+  "generated_at": "2026-05-13T20:40:28.181472Z",
+  "datasets": [
+    {
+      "dataset": "bidmc",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "bits2_geriatric_fall_hr",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "but_ppg",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "acc",
+        "heart",
+        "imu",
+        "metadata",
+        "ppg"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "daphnet_fog",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "fallalld",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "fallalld_sensor_only",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "gaitpdb",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "metadata"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "hand_tremor_mpu9250",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "allowed",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "hifd",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "mobiact",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "pads_smartwatch_pd",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "ppg_dalia",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "ppg"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "sisfall",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": true,
+      "modalities": [
+        "handcrafted"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "uci_har",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": true,
+      "modalities": [
+        "acc",
+        "gyro",
+        "handcrafted",
+        "imu",
+        "metadata"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "umafall",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": true,
+      "modalities": [
+        "metadata"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "unimib_shar",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "acc",
+        "imu",
+        "metadata"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "upfall",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "weda_fall",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "acc",
+        "gyro",
+        "imu"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "not_applicable",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "wesad",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "acc",
+        "heart",
+        "imu",
+        "ppg"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    },
+    {
+      "dataset": "wildppg",
+      "raw_exists": true,
+      "standardized_exists": false,
+      "windowed_exists": false,
+      "splits_exist": false,
+      "subject_split_possible": false,
+      "modalities": [
+        "ppg"
+      ],
+      "task_routing": {
+        "fall_detection": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "activity_context": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "ppg_quality": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "vitals_context": {
+          "status": "allowed",
+          "task_enabled": true
+        },
+        "gait_instability": {
+          "status": "forbidden",
+          "task_enabled": true
+        },
+        "tremor_context": {
+          "status": "not_applicable",
+          "task_enabled": false
+        }
+      }
+    }
+  ]
+}

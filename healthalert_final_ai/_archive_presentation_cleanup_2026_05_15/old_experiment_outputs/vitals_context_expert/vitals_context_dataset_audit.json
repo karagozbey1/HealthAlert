@@ -1,0 +1,223 @@
+{
+  "task": "vitals_context",
+  "prepared_public_npz_only": true,
+  "live_esp32_max30102_training_used": false,
+  "label_mapping": {
+    "0": 0,
+    "11": 0,
+    "20": 0,
+    "10": 1,
+    "21": 2,
+    "99": -1
+  },
+  "final_classes": [
+    "rest_like",
+    "active_like",
+    "poor_signal",
+    "abnormal_trend"
+  ],
+  "unsupported_or_excluded": {
+    "unknown_99": "excluded",
+    "abnormal_trend": "no supervised label in current NPZ"
+  },
+  "splits": {
+    "train": {
+      "npz_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\vitals_context\\train.npz",
+      "npz_exists": true,
+      "npz_keys": [
+        "features",
+        "labels",
+        "imu",
+        "ppg",
+        "metadata"
+      ],
+      "features_shape": [
+        110884,
+        1400
+      ],
+      "labels_shape": [
+        110884
+      ],
+      "imu_shape": [
+        110884,
+        200,
+        6
+      ],
+      "ppg_shape": [
+        110884,
+        200,
+        1
+      ],
+      "metadata_present": true,
+      "n_total_in_npz": 110884,
+      "n_removed_bad_source": 21886,
+      "n_removed_bad_label": 10764,
+      "n_unknown_excluded": 10764,
+      "n_missing_vitals_removed": 0,
+      "n_final": 78234,
+      "raw_label_distribution": {
+        "walking": 41943,
+        "sitting": 4101,
+        "normal": 32190,
+        "unknown": 10764
+      },
+      "metadata_label_distribution_after_filter": {
+        "walking": 41943,
+        "sitting": 4101,
+        "normal": 32190
+      },
+      "class_distribution": {
+        "rest_like": 36291,
+        "active_like": 41943,
+        "poor_signal": 0,
+        "abnormal_trend": 0
+      },
+      "source_distribution": {
+        "PPG-DaLiA": 46044,
+        "WESAD": 32190
+      },
+      "sampling_rate_distribution": {
+        "unknown": 78234
+      },
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 22,
+      "feature_nonzero_columns": 800,
+      "feature_zero_rows": 0,
+      "ppg_missing_count": 0,
+      "imu_required": false,
+      "ppg_required": true
+    },
+    "val": {
+      "npz_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\vitals_context\\val.npz",
+      "npz_exists": true,
+      "npz_keys": [
+        "features",
+        "labels",
+        "imu",
+        "ppg",
+        "metadata"
+      ],
+      "features_shape": [
+        14577,
+        1400
+      ],
+      "labels_shape": [
+        14577
+      ],
+      "imu_shape": [
+        14577,
+        200,
+        6
+      ],
+      "ppg_shape": [
+        14577,
+        200,
+        1
+      ],
+      "metadata_present": true,
+      "n_total_in_npz": 14577,
+      "n_removed_bad_source": 3210,
+      "n_removed_bad_label": 3588,
+      "n_unknown_excluded": 3588,
+      "n_missing_vitals_removed": 0,
+      "n_final": 7779,
+      "raw_label_distribution": {
+        "walking": 4651,
+        "normal": 3128,
+        "unknown": 3588
+      },
+      "metadata_label_distribution_after_filter": {
+        "walking": 4651,
+        "normal": 3128
+      },
+      "class_distribution": {
+        "rest_like": 3128,
+        "active_like": 4651,
+        "poor_signal": 0,
+        "abnormal_trend": 0
+      },
+      "source_distribution": {
+        "PPG-DaLiA": 4651,
+        "WESAD": 3128
+      },
+      "sampling_rate_distribution": {
+        "unknown": 7779
+      },
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 2,
+      "feature_nonzero_columns": 800,
+      "feature_zero_rows": 0,
+      "ppg_missing_count": 0,
+      "imu_required": false,
+      "ppg_required": true
+    },
+    "test": {
+      "npz_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\vitals_context\\test.npz",
+      "npz_exists": true,
+      "npz_keys": [
+        "features",
+        "labels",
+        "imu",
+        "ppg",
+        "metadata"
+      ],
+      "features_shape": [
+        25252,
+        1400
+      ],
+      "labels_shape": [
+        25252
+      ],
+      "imu_shape": [
+        25252,
+        200,
+        6
+      ],
+      "ppg_shape": [
+        25252,
+        200,
+        1
+      ],
+      "metadata_present": true,
+      "n_total_in_npz": 25252,
+      "n_removed_bad_source": 3123,
+      "n_removed_bad_label": 0,
+      "n_unknown_excluded": 0,
+      "n_missing_vitals_removed": 0,
+      "n_final": 22129,
+      "raw_label_distribution": {
+        "walking": 14032,
+        "normal": 8097
+      },
+      "metadata_label_distribution_after_filter": {
+        "walking": 14032,
+        "normal": 8097
+      },
+      "class_distribution": {
+        "rest_like": 8097,
+        "active_like": 14032,
+        "poor_signal": 0,
+        "abnormal_trend": 0
+      },
+      "source_distribution": {
+        "PPG-DaLiA": 14032,
+        "WESAD": 8097
+      },
+      "sampling_rate_distribution": {
+        "unknown": 22129
+      },
+      "duplicate_window_ids": 0,
+      "unique_subject_count": 6,
+      "feature_nonzero_columns": 800,
+      "feature_zero_rows": 0,
+      "ppg_missing_count": 0,
+      "imu_required": false,
+      "ppg_required": true
+    }
+  },
+  "split_overlap": {
+    "train_val_window_overlap": 0,
+    "train_test_window_overlap": 0,
+    "val_test_window_overlap": 0
+  }
+}

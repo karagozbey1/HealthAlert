@@ -1,0 +1,25 @@
+{
+  "accuracy": 0.9499,
+  "macro_f1": 0.305,
+  "weighted_f1": 0.9396,
+  "macro_precision": 0.2881,
+  "macro_recall": 0.3289,
+  "best_epoch": 0,
+  "best_val_macro_f1": -1.0,
+  "activity_classes": [
+    "normal",
+    "instability",
+    "walking",
+    "sitting",
+    "standing",
+    "lying"
+  ],
+  "label_remap": {
+    "0": 0,
+    "3": 1,
+    "10": 2,
+    "11": 3,
+    "12": 4,
+    "13": 5
+  }
+}

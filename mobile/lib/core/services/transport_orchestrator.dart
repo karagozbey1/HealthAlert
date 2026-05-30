@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'ble_device_service.dart';
 import 'api_client.dart';
+import 'local_risk_calculator.dart';
 import '../models/live_status.dart';
 
 enum TransportType { none, ble, wifi }
@@ -39,10 +40,23 @@ class TransportOrchestrator extends ChangeNotifier {
   int _wifiPolls = 0;
   DateTime? _lastDataTime;
 
+  // BPM smoothing state
+  double? _stableBpm;
+  double? _pendingBpm;
+  int _pendingBpmConfirm = 0;
+
+  // SpO2 last-valid retention state
+  double? _stableSpo2;
+  DateTime? _lastSpo2ValidAt;
+
+  // Motion score EMA (smooths per-packet jumps)
+  double _motionScoreEma = 0.0;
+
   TransportType get activeTransport => _activeTransport;
   bool get wifiAvailable => _wifiAvailable;
   bool get autoFallbackEnabled => _autoFallbackEnabled;
-  bool get isReceivingData => _lastDataTime != null &&
+  bool get isReceivingData =>
+      _lastDataTime != null &&
       DateTime.now().difference(_lastDataTime!).inSeconds < 10;
   int get blePackets => _blePackets;
   int get wifiPolls => _wifiPolls;
@@ -63,11 +77,11 @@ class TransportOrchestrator extends ChangeNotifier {
   }
 
   void start() {
-    debugPrint('[Transport] Starting transport orchestrator (mode: $transportMode)...');
+    debugPrint(
+        '[Transport] Starting transport orchestrator (mode: $transportMode)...');
 
     _connectivitySub?.cancel();
-    _connectivitySub =
-        Connectivity().onConnectivityChanged.listen((results) {
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
       _wifiAvailable = results.any((r) =>
           r == ConnectivityResult.wifi || r == ConnectivityResult.ethernet);
       notifyListeners();
@@ -79,6 +93,10 @@ class TransportOrchestrator extends ChangeNotifier {
     });
 
     switch (transportMode) {
+      case 'off':
+        _autoFallbackEnabled = false;
+        _setTransport(TransportType.none);
+        break;
       case 'wifi_only':
         _autoFallbackEnabled = false;
         _startWifiFallback();
@@ -111,6 +129,13 @@ class TransportOrchestrator extends ChangeNotifier {
     bleService.removeListener(_onBleStateChanged);
     bleService.disconnect();
     _setTransport(TransportType.none);
+    // Reset smoothing state on disconnect
+    _stableBpm = null;
+    _pendingBpm = null;
+    _pendingBpmConfirm = 0;
+    _stableSpo2 = null;
+    _lastSpo2ValidAt = null;
+    _motionScoreEma = 0.0;
   }
 
   void forceTransport(TransportType type) {
@@ -156,7 +181,7 @@ class TransportOrchestrator extends ChangeNotifier {
     bleService.startScan();
 
     _fallbackTimer?.cancel();
-    if (_autoFallbackEnabled) {
+    if (_autoFallbackEnabled && apiClient != null && userId.isNotEmpty) {
       _fallbackTimer = Timer(const Duration(seconds: 16), () {
         if (!bleService.isConnected) {
           debugPrint('[Transport] BLE timeout → switching to Wi-Fi fallback');
@@ -167,6 +192,16 @@ class TransportOrchestrator extends ChangeNotifier {
   }
 
   void _startWifiFallback() {
+    if (apiClient == null || userId.isEmpty) {
+      debugPrint(
+          '[Transport] Wi-Fi fallback unavailable without backend/user; keeping BLE local mode.');
+      _setTransport(TransportType.none);
+      if (_autoFallbackEnabled) {
+        _startBle();
+      }
+      return;
+    }
+
     debugPrint('[Transport] Activating Wi-Fi fallback (HTTP polling)...');
     _setTransport(TransportType.wifi);
 
@@ -239,9 +274,114 @@ class TransportOrchestrator extends ChangeNotifier {
       _packetController.add(packet);
     }
 
-    final status = packet.toLiveStatus(userId);
+    final raw = packet.toLiveStatus(userId);
+    final enriched = _enrichStatus(raw, packet);
     if (!_statusController.isClosed) {
-      _statusController.add(status);
+      _statusController.add(enriched);
+    }
+  }
+
+  /// Enriches a raw BLE LiveStatus with smoothed BPM, SpO2 retention,
+  /// and locally-computed risk score.
+  LiveStatus _enrichStatus(LiveStatus raw, BlePacket packet) {
+    // --- Motion score EMA (alpha=0.20, smooths 1-packet spikes) ---
+    const double motionAlpha = 0.20;
+    _motionScoreEma =
+        _motionScoreEma * (1 - motionAlpha) + raw.motionScore * motionAlpha;
+
+    // --- Reset stable state immediately when finger is not on sensor ---
+    // This ensures stale BPM/SpO2 values are never shown for a new finger
+    // placement session. The firmware already resets on its side; the mobile
+    // must mirror that to avoid blending an old stable value with new data.
+    if (!packet.fingerDetected) {
+      _stableBpm = null;
+      _pendingBpm = null;
+      _pendingBpmConfirm = 0;
+      _stableSpo2 = null;
+      _lastSpo2ValidAt = null;
+    }
+
+    // --- BPM smoothing ---
+    final smoothedBpm = _applySmoothBpm(packet.heartRate, packet.hrValid);
+    final bpmValid = smoothedBpm != null && smoothedBpm > 0;
+
+    // --- SpO2 last-valid retention (10 second window, finger-gated) ---
+    // Do NOT retain SpO2 when finger is absent: showing a stale value from
+    // the previous session would be misleading.
+    double spo2Value;
+    bool spo2Valid;
+    if (packet.fingerDetected && packet.spo2Valid && packet.spo2 > 0) {
+      _stableSpo2 = packet.spo2;
+      _lastSpo2ValidAt = DateTime.now();
+      spo2Value = packet.spo2;
+      spo2Valid = true;
+    } else if (packet.fingerDetected &&
+        _stableSpo2 != null &&
+        _lastSpo2ValidAt != null &&
+        DateTime.now().difference(_lastSpo2ValidAt!).inSeconds < 10) {
+      spo2Value = _stableSpo2!;
+      spo2Valid = true;
+    } else {
+      spo2Value = 0.0;
+      spo2Valid = false;
+    }
+
+    // --- Local runtime risk score ---
+    final localRisk = LocalRiskCalculator.calculate(
+      fingerPresent: packet.fingerDetected,
+      bpm: smoothedBpm ?? 0.0,
+      bpmValid: bpmValid,
+      spo2: spo2Value,
+      spo2Valid: spo2Valid,
+      movementPercent: _motionScoreEma * 100.0,
+      signalQuality: packet.signalQuality,
+    );
+
+    return raw.copyWith(
+      heartRate: bpmValid ? smoothedBpm : 0.0,
+      heartRateValid: bpmValid,
+      spo2: spo2Value,
+      spo2Valid: spo2Valid,
+      motionScore: _motionScoreEma,
+      riskScore: localRisk,
+    );
+  }
+
+  /// Applies EMA smoothing with large-jump confirmation (> 25 BPM).
+  /// Returns the current stable BPM or null when no valid reading exists.
+  double? _applySmoothBpm(double incoming, bool valid) {
+    if (!valid || incoming <= 0) return null;
+
+    final stable = _stableBpm;
+    if (stable == null) {
+      _stableBpm = incoming;
+      return incoming;
+    }
+
+    final diff = (incoming - stable).abs();
+    if (diff > 25.0) {
+      // Large jump — require 2 consecutive similar readings to accept
+      if (_pendingBpm != null && (incoming - _pendingBpm!).abs() < 15.0) {
+        _pendingBpmConfirm++;
+        if (_pendingBpmConfirm >= 2) {
+          // Full replace — do NOT blend stale + incoming (that produces a
+          // midpoint value that is wrong for both old and new BPM levels).
+          _stableBpm = incoming;
+          _pendingBpm = null;
+          _pendingBpmConfirm = 0;
+          return _stableBpm;
+        }
+      } else {
+        _pendingBpm = incoming;
+        _pendingBpmConfirm = 1;
+      }
+      return stable; // Keep showing last stable while confirming
+    } else {
+      // Normal variation — apply EMA (α = 0.3)
+      _stableBpm = stable * 0.7 + incoming * 0.3;
+      _pendingBpm = null;
+      _pendingBpmConfirm = 0;
+      return _stableBpm;
     }
   }
 }

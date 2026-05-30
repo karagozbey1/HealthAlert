@@ -1,0 +1,988 @@
+{
+  "checkpoint": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\hybrid_redesign\\gait_instability_v2_expert\\best_model.pt",
+  "probability_distributions": {
+    "stable_true_abnormal_prob": {
+      "n": 1471,
+      "mean": 0.2464,
+      "median": 0.2393,
+      "p10": 0.0631,
+      "p25": 0.0768,
+      "p75": 0.3433,
+      "p90": 0.463,
+      "histogram": [
+        {
+          "bin_start": 0.0,
+          "bin_end": 0.1,
+          "count": 385,
+          "fraction": 0.2617
+        },
+        {
+          "bin_start": 0.1,
+          "bin_end": 0.2,
+          "count": 163,
+          "fraction": 0.1108
+        },
+        {
+          "bin_start": 0.2,
+          "bin_end": 0.3,
+          "count": 443,
+          "fraction": 0.3012
+        },
+        {
+          "bin_start": 0.3,
+          "bin_end": 0.4,
+          "count": 240,
+          "fraction": 0.1632
+        },
+        {
+          "bin_start": 0.4,
+          "bin_end": 0.5,
+          "count": 147,
+          "fraction": 0.0999
+        },
+        {
+          "bin_start": 0.5,
+          "bin_end": 0.6,
+          "count": 89,
+          "fraction": 0.0605
+        },
+        {
+          "bin_start": 0.6,
+          "bin_end": 0.7,
+          "count": 4,
+          "fraction": 0.0027
+        },
+        {
+          "bin_start": 0.7,
+          "bin_end": 0.8,
+          "count": 0,
+          "fraction": 0.0
+        },
+        {
+          "bin_start": 0.8,
+          "bin_end": 0.9,
+          "count": 0,
+          "fraction": 0.0
+        },
+        {
+          "bin_start": 0.9,
+          "bin_end": 1.0,
+          "count": 0,
+          "fraction": 0.0
+        }
+      ]
+    },
+    "abnormal_true_abnormal_prob": {
+      "n": 196,
+      "mean": 0.3499,
+      "median": 0.3281,
+      "p10": 0.2086,
+      "p25": 0.2517,
+      "p75": 0.4358,
+      "p90": 0.5239,
+      "histogram": [
+        {
+          "bin_start": 0.0,
+          "bin_end": 0.1,
+          "count": 0,
+          "fraction": 0.0
+        },
+        {
+          "bin_start": 0.1,
+          "bin_end": 0.2,
+          "count": 15,
+          "fraction": 0.0765
+        },
+        {
+          "bin_start": 0.2,
+          "bin_end": 0.3,
+          "count": 65,
+          "fraction": 0.3316
+        },
+        {
+          "bin_start": 0.3,
+          "bin_end": 0.4,
+          "count": 49,
+          "fraction": 0.25
+        },
+        {
+          "bin_start": 0.4,
+          "bin_end": 0.5,
+          "count": 39,
+          "fraction": 0.199
+        },
+        {
+          "bin_start": 0.5,
+          "bin_end": 0.6,
+          "count": 26,
+          "fraction": 0.1327
+        },
+        {
+          "bin_start": 0.6,
+          "bin_end": 0.7,
+          "count": 2,
+          "fraction": 0.0102
+        },
+        {
+          "bin_start": 0.7,
+          "bin_end": 0.8,
+          "count": 0,
+          "fraction": 0.0
+        },
+        {
+          "bin_start": 0.8,
+          "bin_end": 0.9,
+          "count": 0,
+          "fraction": 0.0
+        },
+        {
+          "bin_start": 0.9,
+          "bin_end": 1.0,
+          "count": 0,
+          "fraction": 0.0
+        }
+      ]
+    },
+    "overlap_region": {
+      "description": "fraction of stable samples with prob >= 0.20 (false positive region at threshold=0.20)",
+      "fp_rate_at_0_20": 0.6275,
+      "fp_rate_at_0_30": 0.3263,
+      "fp_rate_at_0_40": 0.1632,
+      "fp_rate_at_0_50": 0.0632
+    }
+  },
+  "false_positives": {
+    "threshold": 0.2,
+    "total_stable": 1471,
+    "fp_count": 923,
+    "fp_rate": 0.6275,
+    "prob_mean": 0.3349,
+    "prob_median": 0.3066,
+    "prob_p25": 0.2474,
+    "prob_p75": 0.4095,
+    "subject_distribution": {
+      "S01": 557,
+      "S02": 366
+    },
+    "recording_distribution": {
+      "S01_R01": 401,
+      "S01_R02": 156,
+      "S02_R01": 118,
+      "S02_R02": 248
+    },
+    "abnormal_fraction_mean": 0.0037,
+    "abnormal_fraction_median": 0.0,
+    "abnormal_fraction_histogram": [
+      {
+        "bin_start": 0.0,
+        "bin_end": 0.1,
+        "count": 906,
+        "fraction": 0.9816
+      },
+      {
+        "bin_start": 0.1,
+        "bin_end": 0.2,
+        "count": 17,
+        "fraction": 0.0184
+      },
+      {
+        "bin_start": 0.2,
+        "bin_end": 0.3,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.3,
+        "bin_end": 0.4,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.4,
+        "bin_end": 0.5,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.5,
+        "bin_end": 0.6,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.6,
+        "bin_end": 0.7,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.7,
+        "bin_end": 0.8,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.8,
+        "bin_end": 0.9,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.9,
+        "bin_end": 1.0,
+        "count": 0,
+        "fraction": 0.0
+      }
+    ],
+    "prob_histogram": [
+      {
+        "bin_start": 0.0,
+        "bin_end": 0.1,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.1,
+        "bin_end": 0.2,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.2,
+        "bin_end": 0.3,
+        "count": 443,
+        "fraction": 0.48
+      },
+      {
+        "bin_start": 0.3,
+        "bin_end": 0.4,
+        "count": 240,
+        "fraction": 0.26
+      },
+      {
+        "bin_start": 0.4,
+        "bin_end": 0.5,
+        "count": 147,
+        "fraction": 0.1593
+      },
+      {
+        "bin_start": 0.5,
+        "bin_end": 0.6,
+        "count": 89,
+        "fraction": 0.0964
+      },
+      {
+        "bin_start": 0.6,
+        "bin_end": 0.7,
+        "count": 4,
+        "fraction": 0.0043
+      },
+      {
+        "bin_start": 0.7,
+        "bin_end": 0.8,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.8,
+        "bin_end": 0.9,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.9,
+        "bin_end": 1.0,
+        "count": 0,
+        "fraction": 0.0
+      }
+    ]
+  },
+  "false_negatives": {
+    "threshold": 0.2,
+    "total_abnormal": 196,
+    "fn_count": 15,
+    "fn_rate": 0.0765,
+    "prob_mean": 0.1754,
+    "prob_median": 0.1794,
+    "prob_p25": 0.1664,
+    "prob_p75": 0.1852,
+    "subject_distribution": {
+      "S01": 12,
+      "S02": 3
+    },
+    "recording_distribution": {
+      "S01_R01": 11,
+      "S01_R02": 1,
+      "S02_R01": 2,
+      "S02_R02": 1
+    },
+    "abnormal_fraction_mean": 0.6693,
+    "abnormal_fraction_median": 0.6602,
+    "abnormal_fraction_histogram": [
+      {
+        "bin_start": 0.0,
+        "bin_end": 0.1,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.1,
+        "bin_end": 0.2,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.2,
+        "bin_end": 0.3,
+        "count": 2,
+        "fraction": 0.1333
+      },
+      {
+        "bin_start": 0.3,
+        "bin_end": 0.4,
+        "count": 1,
+        "fraction": 0.0667
+      },
+      {
+        "bin_start": 0.4,
+        "bin_end": 0.5,
+        "count": 1,
+        "fraction": 0.0667
+      },
+      {
+        "bin_start": 0.5,
+        "bin_end": 0.6,
+        "count": 2,
+        "fraction": 0.1333
+      },
+      {
+        "bin_start": 0.6,
+        "bin_end": 0.7,
+        "count": 2,
+        "fraction": 0.1333
+      },
+      {
+        "bin_start": 0.7,
+        "bin_end": 0.8,
+        "count": 2,
+        "fraction": 0.1333
+      },
+      {
+        "bin_start": 0.8,
+        "bin_end": 0.9,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.9,
+        "bin_end": 1.0,
+        "count": 5,
+        "fraction": 0.3333
+      }
+    ],
+    "prob_histogram": [
+      {
+        "bin_start": 0.0,
+        "bin_end": 0.1,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.1,
+        "bin_end": 0.2,
+        "count": 15,
+        "fraction": 1.0
+      },
+      {
+        "bin_start": 0.2,
+        "bin_end": 0.3,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.3,
+        "bin_end": 0.4,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.4,
+        "bin_end": 0.5,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.5,
+        "bin_end": 0.6,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.6,
+        "bin_end": 0.7,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.7,
+        "bin_end": 0.8,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.8,
+        "bin_end": 0.9,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.9,
+        "bin_end": 1.0,
+        "count": 0,
+        "fraction": 0.0
+      }
+    ]
+  },
+  "threshold_sensitivity_val": [
+    {
+      "threshold": 0.1,
+      "stable_recall": 0.0361,
+      "abnormal_recall": 1.0,
+      "abnormal_precision": 0.3,
+      "macro_f1": 0.2656,
+      "fp": 721,
+      "fn": 0,
+      "tp": 309,
+      "tn": 27,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.15,
+      "stable_recall": 0.1404,
+      "abnormal_recall": 0.9709,
+      "abnormal_precision": 0.3181,
+      "macro_f1": 0.3614,
+      "fp": 643,
+      "fn": 9,
+      "tp": 300,
+      "tn": 105,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.2,
+      "stable_recall": 0.4318,
+      "abnormal_recall": 0.7832,
+      "abnormal_precision": 0.3628,
+      "macro_f1": 0.5318,
+      "fp": 425,
+      "fn": 67,
+      "tp": 242,
+      "tn": 323,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.25,
+      "stable_recall": 0.5495,
+      "abnormal_recall": 0.6472,
+      "abnormal_precision": 0.3724,
+      "macro_f1": 0.5605,
+      "fp": 337,
+      "fn": 109,
+      "tp": 200,
+      "tn": 411,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.3,
+      "stable_recall": 0.6791,
+      "abnormal_recall": 0.4628,
+      "abnormal_precision": 0.3734,
+      "macro_f1": 0.5639,
+      "fp": 240,
+      "fn": 166,
+      "tp": 143,
+      "tn": 508,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.35,
+      "stable_recall": 0.7406,
+      "abnormal_recall": 0.2718,
+      "abnormal_precision": 0.3022,
+      "macro_f1": 0.5059,
+      "fp": 194,
+      "fn": 225,
+      "tp": 84,
+      "tn": 554,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.4,
+      "stable_recall": 0.7807,
+      "abnormal_recall": 0.1424,
+      "abnormal_precision": 0.2115,
+      "macro_f1": 0.4508,
+      "fp": 164,
+      "fn": 265,
+      "tp": 44,
+      "tn": 584,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.45,
+      "stable_recall": 0.8142,
+      "abnormal_recall": 0.0615,
+      "abnormal_precision": 0.1203,
+      "macro_f1": 0.4104,
+      "fp": 139,
+      "fn": 290,
+      "tp": 19,
+      "tn": 609,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.5,
+      "stable_recall": 0.8449,
+      "abnormal_recall": 0.0324,
+      "abnormal_precision": 0.0794,
+      "macro_f1": 0.3994,
+      "fp": 116,
+      "fn": 299,
+      "tp": 10,
+      "tn": 632,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.55,
+      "stable_recall": 0.9505,
+      "abnormal_recall": 0.0032,
+      "abnormal_precision": 0.0263,
+      "macro_f1": 0.4053,
+      "fp": 37,
+      "fn": 308,
+      "tp": 1,
+      "tn": 711,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.6,
+      "stable_recall": 0.9973,
+      "abnormal_recall": 0.0,
+      "abnormal_precision": 0.0,
+      "macro_f1": 0.4138,
+      "fp": 2,
+      "fn": 309,
+      "tp": 0,
+      "tn": 746,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.7,
+      "stable_recall": 1.0,
+      "abnormal_recall": 0.0,
+      "abnormal_precision": 0.0,
+      "macro_f1": 0.4144,
+      "fp": 0,
+      "fn": 309,
+      "tp": 0,
+      "tn": 748,
+      "n_pred_cls": 1,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    }
+  ],
+  "threshold_sensitivity_test": [
+    {
+      "threshold": 0.1,
+      "stable_recall": 0.2617,
+      "abnormal_recall": 1.0,
+      "abnormal_precision": 0.1529,
+      "macro_f1": 0.34,
+      "fp": 1086,
+      "fn": 0,
+      "tp": 196,
+      "tn": 385,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.15,
+      "stable_recall": 0.2712,
+      "abnormal_recall": 0.9949,
+      "abnormal_precision": 0.1539,
+      "macro_f1": 0.3465,
+      "fp": 1072,
+      "fn": 1,
+      "tp": 195,
+      "tn": 399,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.2,
+      "stable_recall": 0.3725,
+      "abnormal_recall": 0.9235,
+      "abnormal_precision": 0.1639,
+      "macro_f1": 0.4087,
+      "fp": 923,
+      "fn": 15,
+      "tp": 181,
+      "tn": 548,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.25,
+      "stable_recall": 0.5411,
+      "abnormal_recall": 0.75,
+      "abnormal_precision": 0.1788,
+      "macro_f1": 0.4881,
+      "fp": 675,
+      "fn": 49,
+      "tp": 147,
+      "tn": 796,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.3,
+      "stable_recall": 0.6737,
+      "abnormal_recall": 0.5918,
+      "abnormal_precision": 0.1946,
+      "macro_f1": 0.5363,
+      "fp": 480,
+      "fn": 80,
+      "tp": 116,
+      "tn": 991,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.35,
+      "stable_recall": 0.7559,
+      "abnormal_recall": 0.4388,
+      "abnormal_precision": 0.1933,
+      "macro_f1": 0.5471,
+      "fp": 359,
+      "fn": 110,
+      "tp": 86,
+      "tn": 1112,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.4,
+      "stable_recall": 0.8368,
+      "abnormal_recall": 0.3418,
+      "abnormal_precision": 0.2182,
+      "macro_f1": 0.568,
+      "fp": 240,
+      "fn": 129,
+      "tp": 67,
+      "tn": 1231,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.45,
+      "stable_recall": 0.8824,
+      "abnormal_recall": 0.2143,
+      "abnormal_precision": 0.1953,
+      "macro_f1": 0.5463,
+      "fp": 173,
+      "fn": 154,
+      "tp": 42,
+      "tn": 1298,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.5,
+      "stable_recall": 0.9368,
+      "abnormal_recall": 0.1429,
+      "abnormal_precision": 0.2314,
+      "macro_f1": 0.5451,
+      "fp": 93,
+      "fn": 168,
+      "tp": 28,
+      "tn": 1378,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.55,
+      "stable_recall": 0.9782,
+      "abnormal_recall": 0.0663,
+      "abnormal_precision": 0.2889,
+      "macro_f1": 0.5192,
+      "fp": 32,
+      "fn": 183,
+      "tp": 13,
+      "tn": 1439,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.6,
+      "stable_recall": 0.9973,
+      "abnormal_recall": 0.0102,
+      "abnormal_precision": 0.3333,
+      "macro_f1": 0.4783,
+      "fp": 4,
+      "fn": 194,
+      "tp": 2,
+      "tn": 1467,
+      "n_pred_cls": 2,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    },
+    {
+      "threshold": 0.7,
+      "stable_recall": 1.0,
+      "abnormal_recall": 0.0,
+      "abnormal_precision": 0.0,
+      "macro_f1": 0.4688,
+      "fp": 0,
+      "fn": 196,
+      "tp": 0,
+      "tn": 1471,
+      "n_pred_cls": 1,
+      "meets_constraint_stable_0_75_abnormal_0_60": false
+    }
+  ],
+  "abnormal_fraction_train": {
+    "n_abnormal_windows": 619,
+    "abnormal_fraction_stats": {
+      "mean": 0.7648,
+      "median": 0.9648,
+      "min": 0.2031,
+      "max": 1.0,
+      "p10": 0.3195,
+      "p25": 0.5352,
+      "p75": 1.0,
+      "p90": 1.0
+    },
+    "histogram": [
+      {
+        "bin_start": 0.0,
+        "bin_end": 0.1,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.1,
+        "bin_end": 0.2,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.2,
+        "bin_end": 0.3,
+        "count": 49,
+        "fraction": 0.0792
+      },
+      {
+        "bin_start": 0.3,
+        "bin_end": 0.4,
+        "count": 50,
+        "fraction": 0.0808
+      },
+      {
+        "bin_start": 0.4,
+        "bin_end": 0.5,
+        "count": 38,
+        "fraction": 0.0614
+      },
+      {
+        "bin_start": 0.5,
+        "bin_end": 0.6,
+        "count": 55,
+        "fraction": 0.0889
+      },
+      {
+        "bin_start": 0.6,
+        "bin_end": 0.7,
+        "count": 50,
+        "fraction": 0.0808
+      },
+      {
+        "bin_start": 0.7,
+        "bin_end": 0.8,
+        "count": 34,
+        "fraction": 0.0549
+      },
+      {
+        "bin_start": 0.8,
+        "bin_end": 0.9,
+        "count": 18,
+        "fraction": 0.0291
+      },
+      {
+        "bin_start": 0.9,
+        "bin_end": 1.0,
+        "count": 325,
+        "fraction": 0.525
+      }
+    ],
+    "purity_thresholds": {
+      "0.0": {
+        "threshold": 0.0,
+        "windows_kept": 619,
+        "windows_dropped": 0,
+        "kept_fraction": 1.0
+      },
+      "0.1": {
+        "threshold": 0.1,
+        "windows_kept": 619,
+        "windows_dropped": 0,
+        "kept_fraction": 1.0
+      },
+      "0.2": {
+        "threshold": 0.2,
+        "windows_kept": 619,
+        "windows_dropped": 0,
+        "kept_fraction": 1.0
+      },
+      "0.3": {
+        "threshold": 0.3,
+        "windows_kept": 570,
+        "windows_dropped": 49,
+        "kept_fraction": 0.9208
+      },
+      "0.4": {
+        "threshold": 0.4,
+        "windows_kept": 520,
+        "windows_dropped": 99,
+        "kept_fraction": 0.8401
+      },
+      "0.5": {
+        "threshold": 0.5,
+        "windows_kept": 482,
+        "windows_dropped": 137,
+        "kept_fraction": 0.7787
+      }
+    }
+  },
+  "abnormal_fraction_test": {
+    "n_abnormal_windows": 196,
+    "abnormal_fraction_stats": {
+      "mean": 0.7097,
+      "median": 0.75,
+      "min": 0.2031,
+      "max": 1.0,
+      "p10": 0.2676,
+      "p25": 0.4482,
+      "p75": 1.0,
+      "p90": 1.0
+    },
+    "histogram": [
+      {
+        "bin_start": 0.0,
+        "bin_end": 0.1,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.1,
+        "bin_end": 0.2,
+        "count": 0,
+        "fraction": 0.0
+      },
+      {
+        "bin_start": 0.2,
+        "bin_end": 0.3,
+        "count": 25,
+        "fraction": 0.1276
+      },
+      {
+        "bin_start": 0.3,
+        "bin_end": 0.4,
+        "count": 16,
+        "fraction": 0.0816
+      },
+      {
+        "bin_start": 0.4,
+        "bin_end": 0.5,
+        "count": 16,
+        "fraction": 0.0816
+      },
+      {
+        "bin_start": 0.5,
+        "bin_end": 0.6,
+        "count": 14,
+        "fraction": 0.0714
+      },
+      {
+        "bin_start": 0.6,
+        "bin_end": 0.7,
+        "count": 17,
+        "fraction": 0.0867
+      },
+      {
+        "bin_start": 0.7,
+        "bin_end": 0.8,
+        "count": 17,
+        "fraction": 0.0867
+      },
+      {
+        "bin_start": 0.8,
+        "bin_end": 0.9,
+        "count": 9,
+        "fraction": 0.0459
+      },
+      {
+        "bin_start": 0.9,
+        "bin_end": 1.0,
+        "count": 82,
+        "fraction": 0.4184
+      }
+    ],
+    "purity_thresholds": {
+      "0.0": {
+        "threshold": 0.0,
+        "windows_kept": 196,
+        "windows_dropped": 0,
+        "kept_fraction": 1.0
+      },
+      "0.1": {
+        "threshold": 0.1,
+        "windows_kept": 196,
+        "windows_dropped": 0,
+        "kept_fraction": 1.0
+      },
+      "0.2": {
+        "threshold": 0.2,
+        "windows_kept": 196,
+        "windows_dropped": 0,
+        "kept_fraction": 1.0
+      },
+      "0.3": {
+        "threshold": 0.3,
+        "windows_kept": 171,
+        "windows_dropped": 25,
+        "kept_fraction": 0.8724
+      },
+      "0.4": {
+        "threshold": 0.4,
+        "windows_kept": 155,
+        "windows_dropped": 41,
+        "kept_fraction": 0.7908
+      },
+      "0.5": {
+        "threshold": 0.5,
+        "windows_kept": 139,
+        "windows_dropped": 57,
+        "kept_fraction": 0.7092
+      }
+    }
+  }
+}

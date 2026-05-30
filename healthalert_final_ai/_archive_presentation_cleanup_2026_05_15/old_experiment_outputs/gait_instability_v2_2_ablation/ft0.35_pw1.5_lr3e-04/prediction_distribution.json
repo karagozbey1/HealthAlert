@@ -1,0 +1,10 @@
+{
+  "predicted": {
+    "stable_gait": 1285,
+    "abnormal_or_freezing_movement": 382
+  },
+  "true": {
+    "stable_gait": 1508,
+    "abnormal_or_freezing_movement": 159
+  }
+}

@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include "ha_config.h"
+#include "ha_debug.h"
 #include "ha_types.h"
 #include "ha_mpu6050.h"
 #include "ha_max30102.h"
@@ -41,7 +42,7 @@ public:
             _status.imu_ok = true;
             any_ok = true;
         } else {
-            Serial.println("[ACQ] MPU6050 unavailable – IMU degraded.");
+            HA_SERIAL_PRINTLN("[ACQ] MPU6050 unavailable - IMU degraded.");
             _status.imu_present = false;
             _status.imu_ok = false;
             _status.last_error |= 0x01;
@@ -52,7 +53,7 @@ public:
             _status.ppg_ok = true;
             any_ok = true;
         } else {
-            Serial.println("[ACQ] MAX30102 unavailable – PPG degraded.");
+            HA_SERIAL_PRINTLN("[ACQ] MAX30102 unavailable - PPG degraded.");
             _status.ppg_present = false;
             _status.ppg_ok = false;
             _status.last_error |= 0x02;
@@ -61,7 +62,7 @@ public:
         _status.degraded_mode = !(_status.imu_ok && _status.ppg_ok);
 
         if (_status.degraded_mode) {
-            Serial.printf("[ACQ] Degraded mode active (imu=%d ppg=%d err=0x%02X)\n",
+            HA_SERIAL_PRINTF("[ACQ] Degraded mode active (imu=%d ppg=%d err=0x%02X)\n",
                           _status.imu_ok, _status.ppg_ok, _status.last_error);
         }
 
@@ -104,9 +105,9 @@ public:
             _status.ppg_ok = true;
             _status.degraded_mode = false;
             _status.last_error = 0;
-            Serial.println("[ACQ] Switched to MOCK mode.");
+            HA_SERIAL_PRINTLN("[ACQ] Switched to MOCK mode.");
         } else {
-            Serial.println("[ACQ] Switched to REAL mode – call initRealSensors() to activate.");
+            HA_SERIAL_PRINTLN("[ACQ] Switched to REAL mode - call initRealSensors() to activate.");
         }
     }
 
@@ -164,6 +165,9 @@ public:
         raw.ppg_ok = pkt.ppg_ok;
         raw.finger_detected = pkt.finger_detected;
         raw.signal_quality = pkt.signal_quality;
+        raw.pi_percent = pkt.pi_percent;
+        raw.r_ratio = pkt.r_ratio;
+        raw.ir_range_percent = pkt.ir_range_percent;
         return raw;
     }
 
@@ -204,7 +208,7 @@ private:
                     _status.imu_ok = true;
                     _status.imu_present = true;
                     _status.last_error &= ~0x01;
-                    Serial.println("[ACQ] IMU recovered.");
+                    HA_SERIAL_PRINTLN("[ACQ] IMU recovered.");
                 }
             }
             _setImuFailed(pkt);
@@ -213,16 +217,40 @@ private:
         if (_status.ppg_ok) {
             PpgSample ppg = _ppg.read();
             if (ppg.valid) {
-                pkt.red_value       = ppg.red_value;
-                pkt.ir_value        = ppg.ir_value;
-                pkt.heart_rate      = ppg.heart_rate;
-                pkt.spo2            = ppg.spo2;
-                pkt.signal_quality  = ppg.signal_quality;
-                pkt.finger_detected = ppg.finger_detected;
-                pkt.hr_valid        = ppg.hr_valid;
-                pkt.spo2_valid      = ppg.spo2_valid;
-                pkt.ppg_ok          = true;
-                _status.ppg_ok      = true;
+                pkt.red_value        = ppg.red_value;
+                pkt.ir_value         = ppg.ir_value;
+                pkt.heart_rate       = ppg.heart_rate;
+                pkt.spo2             = ppg.spo2;
+                pkt.signal_quality   = ppg.signal_quality;
+                pkt.pi_percent       = ppg.pi_percent;
+                pkt.r_ratio          = ppg.r_ratio;
+                pkt.ir_range_percent = ppg.ir_range_percent;
+                pkt.finger_detected  = ppg.finger_detected;
+                pkt.hr_valid         = ppg.hr_valid;
+                pkt.spo2_valid       = ppg.spo2_valid;
+                pkt.bpm_raw          = ppg.bpm_raw;
+                pkt.spo2_raw         = ppg.spo2_raw;
+                pkt.measurement_state = (uint8_t)ppg.measurement_state;
+                pkt.motion_artifact  = false;
+                pkt.ppg_ok           = true;
+                _status.ppg_ok       = true;
+
+                // Motion gate: applied unconditionally when IMU data is valid.
+                // Invalidates both hr_valid and spo2_valid and sets
+                // motion_artifact=true to signal the cause to the mobile app.
+                if (pkt.imu_ok) {
+                    float gx = pkt.gyro_x, gy = pkt.gyro_y, gz = pkt.gyro_z;
+                    float ax = pkt.accel_x, ay = pkt.accel_y, az = pkt.accel_z;
+                    float gyroMag = sqrtf(gx*gx + gy*gy + gz*gz);
+                    float accMag  = sqrtf(ax*ax + ay*ay + az*az);
+                    float accDyn  = accMag > 1.0f ? accMag - 1.0f : 1.0f - accMag;
+                    if (gyroMag > MOTION_GYRO_GATE_DPS || accDyn > MOTION_ACCEL_GATE_G) {
+                        pkt.hr_valid        = false;
+                        pkt.spo2_valid      = false;
+                        pkt.motion_artifact = true;
+                        pkt.measurement_state = (uint8_t)PPG_MOTION_ARTIFACT;
+                    }
+                }
             } else {
                 _setPpgFailed(pkt);
             }
@@ -232,7 +260,7 @@ private:
                     _status.ppg_ok = true;
                     _status.ppg_present = true;
                     _status.last_error &= ~0x02;
-                    Serial.println("[ACQ] PPG recovered.");
+                    HA_SERIAL_PRINTLN("[ACQ] PPG recovered.");
                 }
             }
             _setPpgFailed(pkt);
@@ -242,7 +270,7 @@ private:
 
 #if DEBUG_LOGGING
         if (_status.degraded_mode) {
-            Serial.printf("[ACQ] Degraded – imu=%d ppg=%d seq=%lu\n",
+            HA_SERIAL_PRINTF("[ACQ] Degraded - imu=%d ppg=%d seq=%lu\n",
                           pkt.imu_ok, pkt.ppg_ok, (unsigned long)pkt.packet_seq);
         }
 #endif
@@ -267,6 +295,9 @@ private:
         pkt.heart_rate      = ppg.heart_rate;
         pkt.spo2            = ppg.spo2;
         pkt.signal_quality  = ppg.signal_quality;
+        pkt.pi_percent      = ppg.pi_percent;
+        pkt.r_ratio         = ppg.r_ratio;
+        pkt.ir_range_percent = ppg.ir_range_percent;
         pkt.finger_detected = ppg.finger_detected;
         pkt.hr_valid        = ppg.hr_valid;
         pkt.spo2_valid      = ppg.spo2_valid;
@@ -288,17 +319,24 @@ private:
     }
 
     void _setPpgFailed(DevicePacket& pkt) {
-        pkt.red_value       = 0;
-        pkt.ir_value        = 0;
-        pkt.heart_rate      = 0.0f;
-        pkt.spo2            = 0.0f;
-        pkt.signal_quality  = 0.0f;
-        pkt.finger_detected = false;
-        pkt.hr_valid        = false;
-        pkt.spo2_valid      = false;
-        pkt.ppg_ok          = false;
-        _status.ppg_ok = false;
-        _status.last_error |= 0x02;
+        pkt.red_value        = 0;
+        pkt.ir_value         = 0;
+        pkt.heart_rate       = 0.0f;
+        pkt.spo2             = 0.0f;
+        pkt.signal_quality   = 0.0f;
+        pkt.pi_percent       = 0.0f;
+        pkt.r_ratio          = 0.0f;
+        pkt.ir_range_percent = 0.0f;
+        pkt.finger_detected  = false;
+        pkt.hr_valid         = false;
+        pkt.spo2_valid       = false;
+        pkt.bpm_raw          = 0.0f;
+        pkt.spo2_raw         = 0.0f;
+        pkt.measurement_state = (uint8_t)PPG_NO_FINGER;
+        pkt.motion_artifact  = false;
+        pkt.ppg_ok           = false;
+        _status.ppg_ok       = false;
+        _status.last_error  |= 0x02;
     }
 };
 

@@ -1,0 +1,129 @@
+{
+  "PAMAP2": {
+    "accuracy": 0.6897,
+    "macro_f1": 0.6709,
+    "weighted_f1": 0.706,
+    "per_class": {
+      "walking": {
+        "precision": 1.0,
+        "recall": 0.9709,
+        "f1": 0.9852,
+        "support": 481
+      },
+      "sitting": {
+        "precision": 0.3359,
+        "recall": 0.6184,
+        "f1": 0.4353,
+        "support": 283
+      },
+      "standing": {
+        "precision": 0.572,
+        "recall": 0.3899,
+        "f1": 0.4637,
+        "support": 377
+      },
+      "lying": {
+        "precision": 0.9611,
+        "recall": 0.6842,
+        "f1": 0.7994,
+        "support": 361
+      }
+    },
+    "confusion_matrix": [
+      [
+        467,
+        6,
+        7,
+        1
+      ],
+      [
+        0,
+        175,
+        99,
+        9
+      ],
+      [
+        0,
+        230,
+        147,
+        0
+      ],
+      [
+        0,
+        110,
+        4,
+        247
+      ]
+    ],
+    "n": 1502,
+    "subjects": [
+      "S102",
+      "S107",
+      "S108"
+    ]
+  },
+  "UCI-HAR": {
+    "accuracy": 0.8715,
+    "macro_f1": 0.8103,
+    "weighted_f1": 0.8681,
+    "per_class": {
+      "walking": {
+        "precision": 0.958,
+        "recall": 0.9984,
+        "f1": 0.9778,
+        "support": 617
+      },
+      "sitting": {
+        "precision": 0.6199,
+        "recall": 0.8615,
+        "f1": 0.721,
+        "support": 195
+      },
+      "standing": {
+        "precision": 0.7863,
+        "recall": 0.5049,
+        "f1": 0.6149,
+        "support": 204
+      },
+      "lying": {
+        "precision": 1.0,
+        "recall": 0.8645,
+        "f1": 0.9273,
+        "support": 214
+      }
+    },
+    "confusion_matrix": [
+      [
+        616,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        168,
+        27,
+        0
+      ],
+      [
+        0,
+        101,
+        103,
+        0
+      ],
+      [
+        27,
+        2,
+        0,
+        185
+      ]
+    ],
+    "n": 1230,
+    "subjects": [
+      "s01",
+      "s07",
+      "s08",
+      "s10"
+    ]
+  }
+}

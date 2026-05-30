@@ -1,0 +1,30 @@
+{
+  "S01": {
+    "n": 956,
+    "stable_support": 898,
+    "abnormal_support": 58,
+    "stable_precision": 0.9914,
+    "stable_recall": 0.7695,
+    "abnormal_precision": 0.2008,
+    "abnormal_recall": 0.8966,
+    "macro_f1": 0.5973,
+    "tp": 52,
+    "tn": 691,
+    "fp": 207,
+    "fn": 6
+  },
+  "S02": {
+    "n": 711,
+    "stable_support": 610,
+    "abnormal_support": 101,
+    "stable_precision": 0.9912,
+    "stable_recall": 0.9213,
+    "abnormal_precision": 0.6667,
+    "abnormal_recall": 0.9505,
+    "macro_f1": 0.8693,
+    "tp": 96,
+    "tn": 562,
+    "fp": 48,
+    "fn": 5
+  }
+}

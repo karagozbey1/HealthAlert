@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "ha_config.h"
+#include "ha_debug.h"
 #include "ha_types.h"
 
 class HaMpu6050 {
@@ -15,16 +16,16 @@ public:
             if (_try_init()) {
                 _initialized = true;
                 _ok = true;
-                Serial.printf("[MPU6050] Init OK (attempt %d)\n", attempt + 1);
+                HA_SERIAL_PRINTF("[MPU6050] Init OK (attempt %d)\n", attempt + 1);
                 _calibrate();
                 return true;
             }
-            Serial.printf("[MPU6050] Init failed (attempt %d/%d)\n", attempt + 1, SENSOR_INIT_RETRIES);
+            HA_SERIAL_PRINTF("[MPU6050] Init failed (attempt %d/%d)\n", attempt + 1, SENSOR_INIT_RETRIES);
             delay(SENSOR_INIT_RETRY_MS);
         }
         _initialized = false;
         _ok = false;
-        Serial.println("[MPU6050] Init FAILED after all retries.");
+        HA_SERIAL_PRINTLN("[MPU6050] Init FAILED after all retries.");
         return false;
     }
 
@@ -99,9 +100,10 @@ private:
     }
 
     void _calibrate() {
-        Serial.println("[MPU6050] Calibrating (32 samples)...");
+        HA_SERIAL_PRINTLN("[MPU6050] Calibrating (128 samples)...");
+        delay(200); // let vibration settle after USB-connect
         int32_t sax = 0, say = 0, saz = 0, sgx = 0, sgy = 0, sgz = 0;
-        const int N = 32;
+        const int N = 128;
         for (int i = 0; i < N; i++) {
             Wire.beginTransmission(MPU6050_I2C_ADDR);
             Wire.write(0x3B);
@@ -122,7 +124,7 @@ private:
         _gx_offset = sgx / N;
         _gy_offset = sgy / N;
         _gz_offset = sgz / N;
-        Serial.println("[MPU6050] Calibration done.");
+        HA_SERIAL_PRINTLN("[MPU6050] Calibration done.");
     }
 
     void _write_reg(uint8_t reg, uint8_t val) {

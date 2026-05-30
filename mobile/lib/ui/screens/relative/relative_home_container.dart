@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../core/state/app_scope.dart';
+
 import '../health_assistant_screen.dart';
-import '../login_screen.dart';
+import 'relative_alerts_screen.dart';
 import 'relative_dashboard_screen.dart';
 import 'relative_history_screen.dart';
 import 'relative_settings_screen.dart';
-import 'relative_generate_code_screen.dart';
-import 'relative_alerts_screen.dart';
 
 class RelativeHomeContainer extends StatefulWidget {
   const RelativeHomeContainer({super.key});
@@ -26,11 +24,8 @@ class _RelativeHomeContainerState extends State<RelativeHomeContainer> {
     const RelativeSettingsScreen(),
   ];
 
-  /// Widget ağacını oluşturur.
   @override
   Widget build(BuildContext context) {
-    final app = AppScope.of(context);
-
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
@@ -48,39 +43,22 @@ class _RelativeHomeContainerState extends State<RelativeHomeContainer> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.family_restroom, size: 14, color: Colors.greenAccent),
+                  Icon(Icons.family_restroom,
+                      size: 14, color: Colors.greenAccent),
                   SizedBox(width: 6),
-                    Text('Yakın',
-                      style: TextStyle(
-                          color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Yakın',
+                    style: TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Kod Gir',
-            onPressed: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const RelativeGenerateCodeScreen()));
-              if (context.mounted) AppScope.of(context).loadMonitoredUsers();
-            },
-            icon: const Icon(Icons.link, color: Colors.greenAccent),
-          ),
-          IconButton(
-            tooltip: 'Çıkış yap',
-            onPressed: () async {
-              await app.logout();
-              if (!context.mounted) return;
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (_) => false,
-              );
-            },
-            icon: const Icon(Icons.logout_outlined),
-          ),
-        ],
       ),
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
@@ -97,27 +75,32 @@ class _RelativeHomeContainerState extends State<RelativeHomeContainer> {
           type: BottomNavigationBarType.fixed,
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
-          items: [
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_outlined),
-                activeIcon: Icon(Icons.dashboard),
-                label: 'Panel'),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_outlined),
-                activeIcon: Icon(Icons.notifications),
-                label: 'Uyarılar'),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.health_and_safety_outlined),
-                activeIcon: Icon(Icons.health_and_safety),
-                label: 'Asistan'),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.history_outlined),
-                activeIcon: Icon(Icons.history),
-                label: 'Geçmiş'),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined),
-                activeIcon: Icon(Icons.settings),
-                label: 'Ayarlar'),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard),
+              label: 'Panel',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_outlined),
+              activeIcon: Icon(Icons.notifications),
+              label: 'Uyarılar',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.health_and_safety_outlined),
+              activeIcon: Icon(Icons.health_and_safety),
+              label: 'Asistan',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_outlined),
+              activeIcon: Icon(Icons.history),
+              label: 'Geçmiş',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: 'Ayarlar',
+            ),
           ],
         ),
       ),

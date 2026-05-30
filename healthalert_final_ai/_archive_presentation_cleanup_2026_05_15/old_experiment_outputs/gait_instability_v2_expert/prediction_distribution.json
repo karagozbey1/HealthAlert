@@ -1,0 +1,11 @@
+{
+  "threshold": 0.2,
+  "predicted": {
+    "stable_gait": 563,
+    "abnormal_or_freezing_movement": 1104
+  },
+  "true": {
+    "stable_gait": 1471,
+    "abnormal_or_freezing_movement": 196
+  }
+}

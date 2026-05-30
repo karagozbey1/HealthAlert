@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include "ha_config.h"
+#include "ha_debug.h"
 #include "ha_types.h"
 
 enum MockScenario : uint8_t {
@@ -60,7 +61,7 @@ public:
         _tick = 0;
         _transition_ticks = 0;
         _prev_scenario = SCENARIO_NORMAL;
-        Serial.println("[MOCK] Mock sensor engine initialized.");
+        HA_SERIAL_PRINTLN("[MOCK] Mock sensor engine initialized.");
     }
 
     void setScenario(MockScenario s) {
@@ -69,7 +70,7 @@ public:
         _prev_scenario = _scenario;
         _scenario = s;
         _transition_ticks = 50;
-        Serial.printf("[MOCK] Scenario → %s\n", SCENARIO_NAMES[s]);
+        HA_SERIAL_PRINTF("[MOCK] Scenario -> %s\n", SCENARIO_NAMES[s]);
     }
 
     MockScenario getScenario() const { return _scenario; }
@@ -94,7 +95,12 @@ public:
 
     // PPG verisini okur ve PpgSample döndürür.
     PpgSample readPpg() {
-        PpgSample s = {0, 0, 0, 0, 0, false, false, false, false};
+        PpgSample s = {
+            0, 0,
+            0, 0, 0,
+            0, 0, 0,
+            false, false, false, false
+        };
         const ScenarioProfile& p = _blended_profile();
 
         float t = _tick * 0.04f;
@@ -123,6 +129,10 @@ public:
         s.spo2 = p.spo2_center + p.spo2_amplitude * sinf(t * 0.08f) + _noise(0.3f);
         if (s.spo2 > 100.0f) s.spo2 = 100.0f;
         if (s.spo2 < 0.0f) s.spo2 = 0.0f;
+
+        s.pi_percent = max(0.1f, p.signal_quality * 3.0f + _noise(0.2f));
+        s.r_ratio = max(0.1f, (110.0f - s.spo2) / 25.0f);
+        s.ir_range_percent = max(0.1f, s.pi_percent + _noise(0.3f));
 
         s.hr_valid = (s.signal_quality > 0.3f);
         s.spo2_valid = (s.signal_quality > 0.4f);

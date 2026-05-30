@@ -1,0 +1,26 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 1.4318,
+    "val_loss": 1.32307,
+    "val_accuracy": 0.45,
+    "val_macro_f1": 0.27553,
+    "val_weighted_f1": 0.37816,
+    "n_pred_classes": 3,
+    "checkpoint_valid": true,
+    "checkpoint_reason": "ok",
+    "best_checkpoint_saved": true
+  },
+  {
+    "epoch": 2,
+    "train_loss": 1.27315,
+    "val_loss": 1.27832,
+    "val_accuracy": 0.4625,
+    "val_macro_f1": 0.29625,
+    "val_weighted_f1": 0.40503,
+    "n_pred_classes": 3,
+    "checkpoint_valid": true,
+    "checkpoint_reason": "ok",
+    "best_checkpoint_saved": true
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "sampler_type": "WeightedRandomSampler(replacement=True)",
+  "original_class_counts": {
+    "normal": 67977,
+    "instability": 34220,
+    "walking": 3537,
+    "sitting": 1389,
+    "standing": 1502,
+    "lying": 1520
+  },
+  "target_adl_ratio": 0.35,
+  "effective_adl_ratio": 0.3499952297662585,
+  "effective_epoch_size": 157225,
+  "effective_class_sample_targets": {
+    "normal": 67977,
+    "instability": 34220,
+    "walking": 13757,
+    "sitting": 13757,
+    "standing": 13757,
+    "lying": 13757
+  },
+  "oversampling_factors": {
+    "normal": 1.0,
+    "instability": 1.0,
+    "walking": 3.8895,
+    "sitting": 9.9042,
+    "standing": 9.1591,
+    "lying": 9.0507
+  },
+  "class_sampling_weights": {
+    "normal": 1.0,
+    "instability": 1.0,
+    "walking": 3.889454,
+    "sitting": 9.904248,
+    "standing": 9.159121,
+    "lying": 9.050658
+  },
+  "augmentation_enabled": true,
+  "augmentation_parameters": {
+    "gaussian_noise_std": 0.015,
+    "time_shift_max_steps": 5,
+    "scale_jitter_range": [
+      0.97,
+      1.03
+    ],
+    "gyro_noise_std": 0.01,
+    "applied_to": "train split ADL classes only",
+    "forbidden": [
+      "axis_rotation",
+      "label_changing_transforms",
+      "val_test_augmentation"
+    ]
+  },
+  "random_seed": 42
+}

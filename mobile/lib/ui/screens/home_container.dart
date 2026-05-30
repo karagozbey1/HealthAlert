@@ -5,8 +5,6 @@ import 'health_assistant_screen.dart';
 import 'live_monitor_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
-import 'profile_screen.dart';
-import 'self/linked_people_screen.dart';
 
 class HomeContainer extends StatefulWidget {
   const HomeContainer({super.key});
@@ -38,22 +36,6 @@ class _HomeContainerState extends State<HomeContainer> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(
-            tooltip: 'Bağlantılarım',
-            onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const LinkedPeopleScreen()));
-            },
-            icon: const Icon(Icons.people_outline),
-          ),
-          IconButton(
-            tooltip: 'Hesabım',
-            onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
-            },
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
           if (hasActiveAlert)
             IconButton(
               tooltip: 'Aktif Alarm',

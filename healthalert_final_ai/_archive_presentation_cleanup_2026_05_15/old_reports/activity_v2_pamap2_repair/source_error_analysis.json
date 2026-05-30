@@ -1,0 +1,799 @@
+{
+  "current_report_excerpt": "# Activity v2 Pure ADL Detailed Report\n\nGenerated: 2026-05-15\nDecision: REVIEW_ACTIVITY_V2_PURE_ADL\n\n## 1. Executive Summary\n- Objective: train a contamination-free 4-class Activity v2 expert for walking / sitting / standing / lying.\n- Usable sources in this run: PAMAP2, UCI-HAR.\n- Final split sizes: train=9569, val=1974, test=2732.\n- Best validation macro_f1: 0.8970 at epoch 31.\n- Final test macro_f1: 0.6490; acceptance threshold: 0.7000.\n- Decision rationale: review required because the test macro_f1 stayed below the 0.70 target despite strong validation performance.\n\n## 2. Scope and Label Contract\n- Target labels: walking, sitting, standing, lying.\n- Excluded from Activity v2: generic normal / instability / fall style labels and any dataset that collapses ADL subclasses.\n- Split coverage complete: True.\n- PAMAP2 integration note: PAMAP2 raw path exists and is integrated into the pure ADL builder.\n\n## 3. Dataset Audit\n| Dataset | Status | Raw Present | Records | Subjects | Pure Label Support | Feasible Now | Notes |\n|---------|--------|-------------|---------|----------|--------------------|--------------|-------|\n| UCI-HAR | ok | True | 10299 | 30 | {\"standing\": 1906, \"sitting\": 1777, \"lying\": 1944, \"walking\": 4672} | True | Provides all four target labels with preserved subject IDs. |\n| MobiAct | partial | True | 0 | 0 | {} | False | Could provide pure ADL via activity_code metadata, but current raw data is missing in repo. |\n| PAMAP2 | ok | True | 32 | 8 | {\"lying\": 8, \"sitting\": 8, \"standing\": 8, \"walking\": 8} | True | Parser recovers lying/sitting/standing/walking segments from Protocol files. |\n| UniMiB-SHAR | ok | True | 11771 | 11771 | {} | False | ADL windows are collapsed to normal; subclasses are not preserved. |\n| UMAFall | ok | True | 1492 | 19 | {} | False | ADL is exposed only as normal; sitting/standing/lying subclasses are absent. |\n| SisFall | ok | True | 10318 | 469 | {} | False | Current repo copy is instability/normal oriented, not clean ADL context. |\n\n## 4. Final Export Summary\n| Split | Windows | Unique Subjects | Sources | Labels |\n|-------|---------|-----------------|---------|--------|\n| train | 9569 | 26 | {\"UCI-HAR\": 7590, \"PAMAP2\": 1979} | {\"standing\": 1854, \"sitting\": 1791, \"lying\": 1919, \"walking\": 4005} |\n| val | 1974 | 5 | {\"UCI-HAR\": 1479, \"PAMAP2\": 495} | {\"standing\": 407, \"sitting\": 422, \"lying\": 400, \"walking\": 745} |\n| test | 2732 | 7 | {\"UCI-HAR\": 1230, \"PAMAP2\": 1502} | {\"standing\": 581, \"sitting\": 478, \"lying\": 575, \"walking\": 1098} |\n\n### Source Window Totals\n| Source | Label Counts |\n|--------|--------------|\n| UCI-HAR | {\"standing\": 1906, \"sitting\": 1777, \"lying\": 1944, \"walking\": 4672} |\n| PAMAP2 | {\"lying\": 950, \"sitting\": 914, \"standing\": 936, \"walking\": 1176} |\n\n## 5. Training Setup\n- Model: ActivityExpertCNN (CNN1D + GRU), parameters=94500\n- Input shape: (batch, 6, 200)\n- Loss: CrossEntropyLoss\n- Optimizer: AdamW\n- Scheduler: CosineAnnealingLR\n- Class weights: {\"walking\": 0.75, \"sitting\": 1.1953, \"standing\": 1.1547, \"lying\": 1.1155}\n- Normalization: z-score per channel from train split only; stats saved in imu_norm_stats.json.\n- Training time: 214.8 sec\n\n## 6. Overall Results\n- Best epoch: 31\n- Best validation macro_f1: 0.8970\n- Validation loss at best epoch: 0.3085\n- Test accuracy: 0.6951\n- Test macro_f1: 0.6490\n- Test weighted_f1: 0.7055\n\n## 7. Per-Class Test Metrics\n| Class | Precision | Recall | F1 | Support |\n|-------|-----------|--------|----|---------|\n| walking | 0.999 | 0.857 | 0.923 | 1,098 |\n| sitting | 0.393 | 0.776 | 0.521 | 478 |\n| standing | 0.673 | 0.365 | 0.473 | 581 |\n| lying | 0.708 | 0.652 | 0.679 | 575 |\n\n## 8. Source-Level Test Breakdown\n| Source | n | Macro F1 |\n|--------|---|----------|\n| PAMAP2 | 1502 | 0.5419 |\n| UCI-HAR | 1230 | 0.7991 |\n\n## 9. Prediction Distribution\n| Class | Predicted Count |\n|-------|-----------------|\n| walking | 942 |\n| sitting | 945 |\n| standing | 315 |\n| lying | 530 |\n\n## 10. Test Confusion Matrix\nRows = actual, columns = predicted.\n\n| Actual \\ Pred | walking | sitting | standing | lying |\n|---------------|---|---|---|---|\n| walking | 941 | 6 | 9 | 142 |\n| sitting | 1 | 371 | 93 | 13 |\n| standing | 0 | 369 | 212 | 0 |\n| lying | 0 | 199 | 1 | 375 |\n\n## 11. Activity v0 Comparison\n- v0 overall macro_f1: 0.7869\n- v2 pure ADL macro_f1: 0.6490\n- note: v0 was trained on contaminated mixed activity_context data, so its overall macro_f1 is not directly comparable to pure ADL v2.\n\n| ADL Class | v0 Recall | v2 Recall | Delta |\n|-----------|-----------|-----------|-------|\n| walking | 0.9821 | 0.8570 | -0.1250 |\n| sitting | 0.4862 | 0.7762 | +0.2899 |\n| standing | 0.7838 | 0.3649 | -0.4189 |\n| lying | 0.6853 | 0.6522 | -0.0332 |\n\n## 12. Interpretation\n- Strongest class by recall: walking (0.8570).\n- Weakest class by recall: standing (0.3649).\n- Source gap in macro_f1: 0.2572.\n- UCI-HAR source macro_f1: 0.7991\n- PAMAP2 source macro_f1: 0.5419\n- Interpretation: current multi-source merge is not stable enough for acceptance; validation stayed high but test performance dropped because source behaviour is uneven.\n\n## 13. Decision\n- Decision: REVIEW_ACTIVITY_V2_PURE_ADL\n- Acceptance threshold used here: test macro_f1 >= 0.70.\n- Result: 0.6490\n- MobiAct status: loader integrated, but raw CSV files are still absent from the repo.\n- PAMAP2 status: raw data successfully integrated and included in this run.\n\n## 14. Training Config\n- epochs: 50\n- batch_size: 256\n- lr: 0.0003\n- weight_decay: 0.0001\n- patience: 10\n- device: cpu\n- seed: 42\n- loss: CrossEntropyLoss\n- optimizer: AdamW\n- scheduler: CosineAnnealingLR\n- checkpoint_metric: validation macro_f1\n- dataset_dir: C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\activity_v2_pure_adl\n- class_weights: {'walking': 0.75, 'sitting': 1.1953, 'standing': 1.1547, 'lying': 1.1155}\n\n## 15. Validation Trace\n| Epoch | Train Loss | Val Loss | Val Macro F1 | Checkpoint |\n|-------|------------|----------|--------------|------------|\n| 1 | 1.1250 | 0.8960 | 0.5943 | yes |\n| 2 | 0.6111 | 0.4781 | 0.7944 | yes |\n| 3 | 0.4256 | 0.4102 | 0.6888 | yes |\n| 4 | 0.3770 | 0.3642 | 0.8546 | yes |\n| 5 | 0.3173 | 0.3533 | 0.8528 | yes |\n| 6 | 0.2981 | 0.3070 | 0.8755 | yes |\n| 7 | 0.2761 | 0.3462 | 0.8640 | yes |\n| 8 | 0.2495 | 0.3747 | 0.8656 | yes |\n| 9 | 0.2249 | 0.3872 | 0.8340 | yes |\n| 10 | 0.2197 | 0.3653 | 0.8651 | yes |\n| 11 | 0.2220 | 0.3789 | 0.8577 | yes |\n| 12 | 0.2272 | 0.4348 | 0.8543 | yes |\n| 13 | 0.2014 | 0.3613 | 0.8864 | yes |\n| 14 | 0.2411 | 0.3436 | 0.8741 | yes |\n| 15 | 0.2176 | 0.3443 | 0.8719 | yes |\n| 16 | 0.1945 | 0.3422 | 0.8917 | yes |\n| 17 | 0.2294 | 0.3151 | 0.8940 | yes |\n| 18 | 0.1959 | 0.3664 | 0.8740 | yes |\n| 19 | 0.1937 | 0.3125 | 0.8871 | yes |\n| 20 | 0.1925 | 0.3306 | 0.8829 | yes |\n| 21 | 0.1931 | 0.3347 | 0.8789 | yes |\n| 22 | 0.1822 | 0.3342 | 0.8949 | yes |\n| 23 | 0.1728 | 0.3364 | 0.8769 | yes |\n| 24 | 0.1748 | 0.3797 | 0.8509 | yes |\n| 25 | 0.1750 | 0.3572 | 0.8778 | yes |\n| 26 | 0.1724 | 0.3315 | 0.8776 | yes |\n| 27 | 0.1776 | 0.3135 | 0.8947 | yes |\n| 28 | 0.1696 | 0.3271 | 0.8746 | yes |\n| 29 | 0.1681 | 0.3261 | 0.8833 | yes |\n| 30 | 0.1706 | 0.3660 | 0.8654 | yes |\n| 31 | 0.1735 | 0.3085 | 0.8970 | yes |\n| 32 | 0.1689 | 0.3223 | 0.8853 | yes |\n| 33 | 0.1575 | 0.3179 | 0.8878 | yes |\n| 34 | 0.1650 | 0.3319 | 0.8768 | yes |\n| 35 | 0.1629 | 0.3748 | 0.8668 | yes |\n| 36 | 0.1625 | 0.3418 | 0.8740 | yes |\n| 37 | 0.1553 | 0.3397 | 0.8733 | yes |\n| 38 | 0.1600 | 0.3301 | 0.8798 | yes |\n| 39 | 0.1612 | 0.3391 | 0.8772 | yes |\n| 40 | 0.1579 | 0.3471 | 0.8731 | yes |\n| 41 | 0.1602 | 0.3351 | 0.8769 | yes |\n",
+  "current_metrics": {
+    "accuracy": 0.6951,
+    "macro_f1": 0.649,
+    "weighted_f1": 0.7055,
+    "best_epoch": 31,
+    "best_val_macro_f1": 0.89699,
+    "activity_classes": [
+      "walking",
+      "sitting",
+      "standing",
+      "lying"
+    ],
+    "class_weights": {
+      "walking": 0.75,
+      "sitting": 1.1953,
+      "standing": 1.1547,
+      "lying": 1.1155
+    }
+  },
+  "current_dataset_audit": {
+    "decision": "READY_FOR_ACTIVITY_V2_DATASET_BUILD",
+    "target_labels": [
+      "walking",
+      "sitting",
+      "standing",
+      "lying"
+    ],
+    "datasets": [
+      {
+        "dataset": "uci_har",
+        "display_name": "UCI-HAR",
+        "status": "ok",
+        "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\uci_har",
+        "raw_path_exists": true,
+        "n_records": 10299,
+        "n_unique_subjects": 30,
+        "supports_subject_split": true,
+        "top_primary_labels": {
+          "walking": 4672,
+          "lying": 1944,
+          "standing": 1906,
+          "sitting": 1777
+        },
+        "top_activity_codes": {},
+        "pure_label_support": {
+          "standing": 1906,
+          "sitting": 1777,
+          "lying": 1944,
+          "walking": 4672
+        },
+        "pure_label_missing": [],
+        "feasible_for_pure_adl_now": true,
+        "errors": [],
+        "notes": [
+          "Provides all four target labels with preserved subject IDs."
+        ]
+      },
+      {
+        "dataset": "mobiact",
+        "display_name": "MobiAct",
+        "status": "partial",
+        "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\mobiact",
+        "raw_path_exists": true,
+        "n_records": 0,
+        "n_unique_subjects": 0,
+        "supports_subject_split": false,
+        "top_primary_labels": {},
+        "top_activity_codes": {},
+        "pure_label_support": {},
+        "pure_label_missing": [
+          "walking",
+          "sitting",
+          "standing",
+          "lying"
+        ],
+        "feasible_for_pure_adl_now": false,
+        "errors": [
+          "No CSV files found under C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\mobiact"
+        ],
+        "notes": [
+          "Could provide pure ADL via activity_code metadata, but current raw data is missing in repo."
+        ]
+      },
+      {
+        "dataset": "pamap2",
+        "display_name": "PAMAP2",
+        "status": "ok",
+        "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\pamap2",
+        "raw_path_exists": true,
+        "n_records": 32,
+        "n_unique_subjects": 8,
+        "supports_subject_split": true,
+        "top_primary_labels": {
+          "lying": 8,
+          "sitting": 8,
+          "standing": 8,
+          "walking": 8
+        },
+        "top_activity_codes": {},
+        "pure_label_support": {
+          "lying": 8,
+          "sitting": 8,
+          "standing": 8,
+          "walking": 8
+        },
+        "pure_label_missing": [],
+        "feasible_for_pure_adl_now": true,
+        "errors": [],
+        "notes": [
+          "Parser recovers lying/sitting/standing/walking segments from Protocol files."
+        ]
+      },
+      {
+        "dataset": "unimib_shar",
+        "display_name": "UniMiB-SHAR",
+        "status": "ok",
+        "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\unimib_shar",
+        "raw_path_exists": true,
+        "n_records": 11771,
+        "n_unique_subjects": 11771,
+        "supports_subject_split": true,
+        "top_primary_labels": {
+          "normal": 7726,
+          "fall": 4045
+        },
+        "top_activity_codes": {},
+        "pure_label_support": {},
+        "pure_label_missing": [
+          "walking",
+          "sitting",
+          "standing",
+          "lying"
+        ],
+        "feasible_for_pure_adl_now": false,
+        "errors": [],
+        "notes": [
+          "ADL windows are collapsed to normal; subclasses are not preserved."
+        ]
+      },
+      {
+        "dataset": "umafall",
+        "display_name": "UMAFall",
+        "status": "ok",
+        "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\umafall",
+        "raw_path_exists": true,
+        "n_records": 1492,
+        "n_unique_subjects": 19,
+        "supports_subject_split": true,
+        "top_primary_labels": {
+          "normal": 1076,
+          "fall": 416
+        },
+        "top_activity_codes": {},
+        "pure_label_support": {},
+        "pure_label_missing": [
+          "walking",
+          "sitting",
+          "standing",
+          "lying"
+        ],
+        "feasible_for_pure_adl_now": false,
+        "errors": [],
+        "notes": [
+          "ADL is exposed only as normal; sitting/standing/lying subclasses are absent."
+        ]
+      },
+      {
+        "dataset": "sisfall",
+        "display_name": "SisFall",
+        "status": "ok",
+        "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\sisfall",
+        "raw_path_exists": true,
+        "n_records": 10318,
+        "n_unique_subjects": 469,
+        "supports_subject_split": true,
+        "top_primary_labels": {
+          "instability": 8580,
+          "normal": 1738
+        },
+        "top_activity_codes": {},
+        "pure_label_support": {},
+        "pure_label_missing": [
+          "walking",
+          "sitting",
+          "standing",
+          "lying"
+        ],
+        "feasible_for_pure_adl_now": false,
+        "errors": [],
+        "notes": [
+          "Current repo copy is instability/normal oriented, not clean ADL context."
+        ]
+      }
+    ],
+    "key_findings": [
+      "Current activity_context export is contaminated by generic normal/instability sources and is not suitable for pure ADL training.",
+      "Usable pure ADL sources available now: PAMAP2, UCI-HAR.",
+      "UCI-HAR preserves walking/sitting/standing/lying labels end-to-end and remains the active training source in the current repo snapshot.",
+      "MobiAct loader is integrated for pure ADL, but the raw folder is empty in this repo snapshot.",
+      "PAMAP2 raw path exists and is integrated into the pure ADL builder."
+    ],
+    "pamap2": {
+      "present_in_config": true,
+      "raw_path_exists": true,
+      "feasibility_note": "PAMAP2 raw path exists and is integrated into the pure ADL builder."
+    }
+  },
+  "current_dataset_summary": {
+    "target_labels": [
+      "walking",
+      "sitting",
+      "standing",
+      "lying"
+    ],
+    "usable_sources": [
+      "PAMAP2",
+      "UCI-HAR"
+    ],
+    "builder_source_summary": {
+      "UCI-HAR": {
+        "standing": 1906,
+        "sitting": 1777,
+        "lying": 1944,
+        "walking": 4672
+      },
+      "PAMAP2": {
+        "lying": 950,
+        "sitting": 914,
+        "standing": 936,
+        "walking": 1176
+      }
+    },
+    "split_info": {
+      "seed": 42,
+      "all_splits_have_all_labels": true,
+      "missing_label_count": 0,
+      "split_label_coverage": {
+        "train": [
+          "lying",
+          "sitting",
+          "standing",
+          "walking"
+        ],
+        "val": [
+          "lying",
+          "sitting",
+          "standing",
+          "walking"
+        ],
+        "test": [
+          "lying",
+          "sitting",
+          "standing",
+          "walking"
+        ]
+      }
+    },
+    "ready_for_training": true,
+    "train": {
+      "path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\activity_v2_pure_adl\\train.npz",
+      "n_windows": 9569,
+      "label_counts": {
+        "standing": 1854,
+        "sitting": 1791,
+        "lying": 1919,
+        "walking": 4005
+      },
+      "source_counts": {
+        "UCI-HAR": 7590,
+        "PAMAP2": 1979
+      },
+      "n_unique_subjects": 26
+    },
+    "val": {
+      "path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\activity_v2_pure_adl\\val.npz",
+      "n_windows": 1974,
+      "label_counts": {
+        "standing": 407,
+        "sitting": 422,
+        "lying": 400,
+        "walking": 745
+      },
+      "source_counts": {
+        "UCI-HAR": 1479,
+        "PAMAP2": 495
+      },
+      "n_unique_subjects": 5
+    },
+    "test": {
+      "path": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\activity_v2_pure_adl\\test.npz",
+      "n_windows": 2732,
+      "label_counts": {
+        "standing": 581,
+        "sitting": 478,
+        "lying": 575,
+        "walking": 1098
+      },
+      "source_counts": {
+        "UCI-HAR": 1230,
+        "PAMAP2": 1502
+      },
+      "n_unique_subjects": 7
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.6951,
+    "macro_f1": 0.649,
+    "weighted_f1": 0.7055,
+    "per_class": {
+      "walking": {
+        "precision": 0.9989,
+        "recall": 0.857,
+        "f1": 0.9225,
+        "support": 1098
+      },
+      "sitting": {
+        "precision": 0.3926,
+        "recall": 0.7762,
+        "f1": 0.5214,
+        "support": 478
+      },
+      "standing": {
+        "precision": 0.673,
+        "recall": 0.3649,
+        "f1": 0.4732,
+        "support": 581
+      },
+      "lying": {
+        "precision": 0.7075,
+        "recall": 0.6522,
+        "f1": 0.6787,
+        "support": 575
+      }
+    },
+    "confusion_matrix": [
+      [
+        941,
+        6,
+        9,
+        142
+      ],
+      [
+        1,
+        371,
+        93,
+        13
+      ],
+      [
+        0,
+        369,
+        212,
+        0
+      ],
+      [
+        0,
+        199,
+        1,
+        375
+      ]
+    ],
+    "prediction_distribution": {
+      "walking": 942,
+      "sitting": 945,
+      "standing": 315,
+      "lying": 530
+    },
+    "source_breakdown": {
+      "PAMAP2": {
+        "accuracy": 0.5459,
+        "macro_f1": 0.5419,
+        "weighted_f1": 0.5681,
+        "per_class": {
+          "walking": {
+            "precision": 0.9969,
+            "recall": 0.6757,
+            "f1": 0.8055,
+            "support": 481
+          },
+          "sitting": {
+            "precision": 0.3069,
+            "recall": 0.6961,
+            "f1": 0.4259,
+            "support": 283
+          },
+          "standing": {
+            "precision": 0.6284,
+            "recall": 0.3634,
+            "f1": 0.4605,
+            "support": 377
+          },
+          "lying": {
+            "precision": 0.5095,
+            "recall": 0.446,
+            "f1": 0.4756,
+            "support": 361
+          }
+        },
+        "confusion_matrix": [
+          [
+            325,
+            6,
+            8,
+            142
+          ],
+          [
+            1,
+            197,
+            72,
+            13
+          ],
+          [
+            0,
+            240,
+            137,
+            0
+          ],
+          [
+            0,
+            199,
+            1,
+            161
+          ]
+        ],
+        "n": 1502,
+        "subjects": [
+          "S102",
+          "S107",
+          "S108"
+        ]
+      },
+      "UCI-HAR": {
+        "accuracy": 0.8772,
+        "macro_f1": 0.7991,
+        "weighted_f1": 0.8686,
+        "per_class": {
+          "walking": {
+            "precision": 1.0,
+            "recall": 0.9984,
+            "f1": 0.9992,
+            "support": 617
+          },
+          "sitting": {
+            "precision": 0.5743,
+            "recall": 0.8923,
+            "f1": 0.6988,
+            "support": 195
+          },
+          "standing": {
+            "precision": 0.7732,
+            "recall": 0.3676,
+            "f1": 0.4983,
+            "support": 204
+          },
+          "lying": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 214
+          }
+        },
+        "confusion_matrix": [
+          [
+            616,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            174,
+            21,
+            0
+          ],
+          [
+            0,
+            129,
+            75,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            214
+          ]
+        ],
+        "n": 1230,
+        "subjects": [
+          "s01",
+          "s07",
+          "s08",
+          "s10"
+        ]
+      }
+    },
+    "source_confusion_matrices": {
+      "PAMAP2": [
+        [
+          325,
+          6,
+          8,
+          142
+        ],
+        [
+          1,
+          197,
+          72,
+          13
+        ],
+        [
+          0,
+          240,
+          137,
+          0
+        ],
+        [
+          0,
+          199,
+          1,
+          161
+        ]
+      ],
+      "UCI-HAR": [
+        [
+          616,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          174,
+          21,
+          0
+        ],
+        [
+          0,
+          129,
+          75,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          214
+        ]
+      ]
+    },
+    "subject_breakdown": [
+      {
+        "subject_id": "S102",
+        "source": "PAMAP2",
+        "n": 512,
+        "accuracy": 0.3008,
+        "macro_f1": 0.2318,
+        "per_class_recall": {
+          "walking": 0.0994,
+          "sitting": 0.8545,
+          "standing": 0.0,
+          "lying": 0.3826
+        }
+      },
+      {
+        "subject_id": "S107",
+        "source": "PAMAP2",
+        "n": 480,
+        "accuracy": 0.3979,
+        "macro_f1": 0.3192,
+        "per_class_recall": {
+          "walking": 0.9639,
+          "sitting": 0.05,
+          "standing": 0.2047,
+          "lying": 0.0157
+        }
+      },
+      {
+        "subject_id": "S108",
+        "source": "PAMAP2",
+        "n": 510,
+        "accuracy": 0.9314,
+        "macro_f1": 0.9283,
+        "per_class_recall": {
+          "walking": 0.9675,
+          "sitting": 0.885,
+          "standing": 0.8952,
+          "lying": 0.9664
+        }
+      },
+      {
+        "subject_id": "s01",
+        "source": "UCI-HAR",
+        "n": 347,
+        "accuracy": 0.9597,
+        "macro_f1": 0.9295,
+        "per_class_recall": {
+          "walking": 1.0,
+          "sitting": 1.0,
+          "standing": 0.7358,
+          "lying": 1.0
+        }
+      },
+      {
+        "subject_id": "s07",
+        "source": "UCI-HAR",
+        "n": 308,
+        "accuracy": 0.8571,
+        "macro_f1": 0.7578,
+        "per_class_recall": {
+          "walking": 0.9935,
+          "sitting": 0.9583,
+          "standing": 0.2264,
+          "lying": 1.0
+        }
+      },
+      {
+        "subject_id": "s08",
+        "source": "UCI-HAR",
+        "n": 281,
+        "accuracy": 0.8114,
+        "macro_f1": 0.6677,
+        "per_class_recall": {
+          "walking": 1.0,
+          "sitting": 1.0,
+          "standing": 0.0185,
+          "lying": 1.0
+        }
+      },
+      {
+        "subject_id": "s10",
+        "source": "UCI-HAR",
+        "n": 294,
+        "accuracy": 0.8639,
+        "macro_f1": 0.7928,
+        "per_class_recall": {
+          "walking": 1.0,
+          "sitting": 0.6481,
+          "standing": 0.5227,
+          "lying": 1.0
+        }
+      }
+    ],
+    "pamap2_subject_error_distribution": [
+      {
+        "subject_id": "S107",
+        "n": 480,
+        "macro_f1": 0.3192,
+        "posture_confusions": 283,
+        "confusion_pairs": {
+          "lying->sitting": 125,
+          "standing->sitting": 101,
+          "sitting->standing": 55,
+          "walking->standing": 5,
+          "sitting->lying": 2,
+          "walking->sitting": 1
+        }
+      },
+      {
+        "subject_id": "S102",
+        "n": 512,
+        "macro_f1": 0.2318,
+        "posture_confusions": 212,
+        "confusion_pairs": {
+          "walking->lying": 142,
+          "standing->sitting": 126,
+          "lying->sitting": 71,
+          "sitting->lying": 11,
+          "sitting->standing": 4,
+          "walking->sitting": 3,
+          "sitting->walking": 1
+        }
+      },
+      {
+        "subject_id": "S108",
+        "n": 510,
+        "macro_f1": 0.9283,
+        "posture_confusions": 30,
+        "confusion_pairs": {
+          "sitting->standing": 13,
+          "standing->sitting": 13,
+          "lying->sitting": 3,
+          "walking->standing": 3,
+          "walking->sitting": 2,
+          "lying->standing": 1
+        }
+      }
+    ]
+  },
+  "channel_stats_by_source_raw": {
+    "PAMAP2": {
+      "n": 3976,
+      "mean": [
+        0.460798,
+        7.66872,
+        1.91824,
+        0.004593,
+        0.006106,
+        -0.015215
+      ],
+      "std": [
+        1.213199,
+        3.996798,
+        4.60078,
+        0.199837,
+        0.273431,
+        0.179562
+      ]
+    },
+    "UCI-HAR": {
+      "n": 10299,
+      "mean": [
+        0.806737,
+        0.020894,
+        0.084699,
+        -0.002993,
+        1e-06,
+        0.001898
+      ],
+      "std": [
+        0.412435,
+        0.397373,
+        0.344685,
+        0.406942,
+        0.366841,
+        0.253681
+      ]
+    },
+    "delta_pamap2_minus_uci": {
+      "mean": [
+        -0.345939,
+        7.647826,
+        1.833541,
+        0.007586,
+        0.006105,
+        -0.017113
+      ],
+      "std": [
+        0.800764,
+        3.599425,
+        4.256095,
+        -0.207105,
+        -0.09341,
+        -0.074119
+      ]
+    }
+  },
+  "standing_sitting_lying_confusion_subjects": [
+    {
+      "subject_id": "S107",
+      "n": 480,
+      "macro_f1": 0.3192,
+      "posture_confusions": 283,
+      "confusion_pairs": {
+        "lying->sitting": 125,
+        "standing->sitting": 101,
+        "sitting->standing": 55,
+        "walking->standing": 5,
+        "sitting->lying": 2,
+        "walking->sitting": 1
+      }
+    },
+    {
+      "subject_id": "S102",
+      "n": 512,
+      "macro_f1": 0.2318,
+      "posture_confusions": 212,
+      "confusion_pairs": {
+        "walking->lying": 142,
+        "standing->sitting": 126,
+        "lying->sitting": 71,
+        "sitting->lying": 11,
+        "sitting->standing": 4,
+        "walking->sitting": 3,
+        "sitting->walking": 1
+      }
+    },
+    {
+      "subject_id": "S108",
+      "n": 510,
+      "macro_f1": 0.9283,
+      "posture_confusions": 30,
+      "confusion_pairs": {
+        "sitting->standing": 13,
+        "standing->sitting": 13,
+        "lying->sitting": 3,
+        "walking->standing": 3,
+        "walking->sitting": 2,
+        "lying->standing": 1
+      }
+    }
+  ],
+  "analysis_notes": [
+    "Current checkpoint is the existing failed UCI-HAR + PAMAP2 combined model.",
+    "Channel stats are computed on raw windows before normalization across train+val+test.",
+    "Subject breakdown and source confusion matrices are computed on the test split only."
+  ]
+}

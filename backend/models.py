@@ -420,6 +420,14 @@ class ModelWindowLog(Base):
     avg_signal_quality: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     ml_evidence_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     ml_adjustment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    ml_base_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    personalized_risk_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    personal_adjustment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    quality_adjustment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    safety_adjustment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    ml_confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    fusion_mode: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    model_version: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 
 

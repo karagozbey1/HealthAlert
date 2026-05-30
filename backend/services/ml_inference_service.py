@@ -54,6 +54,7 @@ class MLInferenceService:
         self._load_error: Optional[str] = None
         self._predictor = None
         self._postprocessor = None
+        self._model_version = "unloaded"
 
         # Her kullanici icin ayri EMA durumunu izler.
         self._ema_states_by_user: Dict[str, Dict[str, float]] = {}
@@ -88,6 +89,7 @@ class MLInferenceService:
             sys.path.insert(0, _AI_ROOT)
 
         model_path = _resolve_model_path(settings.ML_MODEL_PATH)
+        self._model_version = os.path.splitext(os.path.basename(model_path))[0] or "unknown"
 
         if not os.path.exists(model_path):
             err = f"Checkpoint not found: {model_path!r}"
@@ -351,25 +353,49 @@ class MLInferenceService:
 
         return {"imu": imu, "ppg": ppg, "vitals": vitals}
 
+    # Ham model cikisini backend fusion kontratina normalize eder.
+    def normalize_model_output(
+        self,
+        raw_output: Optional[Dict[str, Any]],
+        *,
+        reason: str = "ok",
+        ml_available: bool = True,
+        model_ready: bool = True,
+        sample_rate_warning: bool = False,
+    ) -> Dict[str, Any]:
+        raw_output = raw_output or {}
+        return {
+            "fall_probability": float(raw_output.get("fall_probability", 0.0) or 0.0),
+            "instability_probability": float(
+                raw_output.get("instability_probability", 0.0) or 0.0
+            ),
+            "ppg_quality_score": float(raw_output.get("ppg_quality_score", 1.0) or 1.0),
+            "ml_risk_score": float(raw_output.get("ml_risk_score", 0.0) or 0.0),
+            "confidence": float(raw_output.get("confidence", 0.0) or 0.0),
+            "model_version": raw_output.get("model_version") or self._model_version,
+            "ml_available": bool(ml_available and raw_output.get("ml_available", True)),
+            "sample_rate_warning": bool(sample_rate_warning),
+            "model_ready": bool(model_ready),
+            "ml_skipped": bool(raw_output.get("ml_skipped", False)),
+            "reason": reason,
+        }
+
     # Hazir 50Hz model penceresi icin dogrudan inference calistirir.
     def predict_model_window(self, model_input: Dict[str, Any]) -> dict:
         if not self._loaded:
             self.load_once()
 
-        base_result = {
-            "fall_probability": 0.0,
-            "instability_probability": 0.0,
-            "ppg_quality_score": 1.0,
-            "ml_risk_score": 0.0,
-            "confidence": 0.0,
-            "ml_available": False,
-            "sample_rate_warning": bool(
-                (model_input.get("meta") or {}).get("sample_rate_warning", False)
-            ),
-            "model_ready": bool((model_input.get("meta") or {}).get("model_ready", False)),
-            "ml_skipped": False,
-            "reason": "unavailable",
-        }
+        sample_rate_warning = bool(
+            (model_input.get("meta") or {}).get("sample_rate_warning", False)
+        )
+        model_ready = bool((model_input.get("meta") or {}).get("model_ready", False))
+        base_result = self.normalize_model_output(
+            None,
+            reason="unavailable",
+            ml_available=False,
+            model_ready=model_ready,
+            sample_rate_warning=sample_rate_warning,
+        )
 
         if not self._available or self._predictor is None or self._postprocessor is None:
             return base_result
@@ -418,22 +444,23 @@ class MLInferenceService:
             )
 
             confidence = float(post.get("confidence", 0.0) or 0.0)
-            return {
-                "fall_probability": float(post.get("fall_probability", 0.0) or 0.0),
-                "instability_probability": float(
-                    post.get("instability_probability", 0.0) or 0.0
-                ),
-                "ppg_quality_score": float(post.get("ppg_quality_score", 1.0) or 1.0),
-                "ml_risk_score": float(post.get("early_risk_score", 0.0) or 0.0),
-                "confidence": confidence,
-                "ml_available": True,
-                "sample_rate_warning": bool(
-                    (model_input.get("meta") or {}).get("sample_rate_warning", False)
-                ),
-                "model_ready": bool((model_input.get("meta") or {}).get("model_ready", False)),
-                "ml_skipped": False,
-                "reason": "ok",
-            }
+            return self.normalize_model_output(
+                {
+                    "fall_probability": float(post.get("fall_probability", 0.0) or 0.0),
+                    "instability_probability": float(
+                        post.get("instability_probability", 0.0) or 0.0
+                    ),
+                    "ppg_quality_score": float(post.get("ppg_quality_score", 1.0) or 1.0),
+                    "ml_risk_score": float(post.get("early_risk_score", 0.0) or 0.0),
+                    "confidence": confidence,
+                    "model_version": self._model_version,
+                    "ml_available": True,
+                },
+                reason="ok",
+                ml_available=True,
+                model_ready=model_ready,
+                sample_rate_warning=sample_rate_warning,
+            )
         except Exception as exc:
             logger.warning("Model-window inference failed (fail-open): %s", exc)
             if settings.ML_FAIL_OPEN:

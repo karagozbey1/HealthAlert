@@ -1,0 +1,103 @@
+{
+  "generated_on": "2026-05-14",
+  "policy": {
+    "statuses": [
+      "TRAINABLE_NOW",
+      "TRAINABLE_WITH_LABEL_FIX",
+      "TRAINABLE_WITH_NEW_DATASET",
+      "NOT_TRAINABLE_CURRENT_DATA",
+      "SHOULD_BE_RULE_BASED_FOR_CURRENT_VERSION"
+    ],
+    "notes": [
+      "application_valid is separate from training artifact validity",
+      "support=0 means not trainable for supervised acceptance",
+      "accuracy alone is never sufficient"
+    ]
+  },
+  "tasks": {
+    "fall_detection": {
+      "status": "TRAINABLE_NOW",
+      "reason": "Accepted Fall Expert Core no-UMAFall already demonstrates strong label support and stable metrics.",
+      "current_model_status": "ACCEPTED",
+      "main_datasets": [
+        "upfall",
+        "weda_fall",
+        "unimib_shar",
+        "hifd",
+        "bits2_geriatric_fall_hr",
+        "mobiact",
+        "fallalld_sensor_only"
+      ]
+    },
+    "ppg_quality": {
+      "status": "TRAINABLE_NOW",
+      "reason": "Accepted binary good/bad quality gate already has strong supervision and strong deployment value.",
+      "current_model_status": "ACCEPTED",
+      "main_datasets": [
+        "but_ppg",
+        "ppg_dalia",
+        "wildppg",
+        "wesad",
+        "bidmc",
+        "hifd"
+      ]
+    },
+    "activity_context_current": {
+      "status": "TRAINABLE_WITH_NEW_DATASET",
+      "reason": "Current mixed task is trainable but not ideal. ADL supervision is effectively single-source and mixed with source-heavy normal/instability windows.",
+      "current_model_status": "TEMPORARY_CONTEXT_BASELINE",
+      "main_datasets": [
+        "uci_har",
+        "sisfall",
+        "umafall",
+        "unimib_shar"
+      ]
+    },
+    "activity_v2_pure_adl": {
+      "status": "TRAINABLE_WITH_NEW_DATASET",
+      "reason": "Pure ADL target is viable, but needs broader true posture/activity data beyond UCI-HAR. PAMAP2 is the main addition candidate.",
+      "current_model_status": "PLANNED",
+      "main_datasets": [
+        "uci_har",
+        "pamap2_candidate",
+        "mobiact_candidate"
+      ]
+    },
+    "vitals_context_current": {
+      "status": "SHOULD_BE_RULE_BASED_FOR_CURRENT_VERSION",
+      "reason": "poor_signal support is zero, abnormal_trend has no supervised examples, and the current checkpoint is source-confounded.",
+      "current_model_status": "REJECTED",
+      "main_datasets": [
+        "wesad",
+        "ppg_dalia"
+      ]
+    },
+    "vitals_load_v2": {
+      "status": "TRAINABLE_WITH_LABEL_FIX",
+      "reason": "A binary normal_load/elevated_load task is plausible if WESAD target mapping is repaired and handcrafted runtime-compatible features are exported.",
+      "current_model_status": "PLANNED",
+      "main_datasets": [
+        "wesad",
+        "ppg_dalia",
+        "but_ppg_optional",
+        "bidmc_optional"
+      ]
+    },
+    "gait_instability_current": {
+      "status": "TRAINABLE_WITH_LABEL_FIX",
+      "reason": "Raw DAPHNET freeze labels exist, but they are lost in canonical mapping/export. Support must be recounted after rescue.",
+      "current_model_status": "REJECTED",
+      "main_datasets": [
+        "daphnet_fog"
+      ]
+    },
+    "tremor_context": {
+      "status": "NOT_TRAINABLE_CURRENT_DATA",
+      "reason": "Only 138 windows are present and the task is already explicitly disabled for supervised training.",
+      "current_model_status": "DISABLED",
+      "main_datasets": [
+        "hand_tremor_mpu9250"
+      ]
+    }
+  }
+}

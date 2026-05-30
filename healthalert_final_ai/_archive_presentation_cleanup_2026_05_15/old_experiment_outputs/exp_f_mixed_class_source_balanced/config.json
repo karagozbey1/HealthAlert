@@ -1,0 +1,12 @@
+{
+  "id": "exp_f_mixed_class_source_balanced",
+  "strategy": "Mixed class+source balanced sampler",
+  "sources": [
+    "uci_har",
+    "pamap2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "normalization": "global_train_zscore",
+  "sampler": "class_source_balanced",
+  "clip_after_norm": null
+}

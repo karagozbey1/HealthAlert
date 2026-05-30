@@ -1,143 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-import '../models/live_status.dart';
+import 'ble_payload_parser.dart';
+
+export 'ble_payload_parser.dart' show BlePacket;
 
 const _kServiceUuid = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const _kTelemetryCharUuid = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-const _kDeviceInfoCharUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-
-class BlePacket {
-  const BlePacket({
-    required this.deviceId,
-    required this.timestampMs,
-    required this.mode,
-    required this.packetSeq,
-    required this.heartRate,
-    required this.spo2,
-    required this.accelX,
-    required this.accelY,
-    required this.accelZ,
-    required this.gyroX,
-    required this.gyroY,
-    required this.gyroZ,
-    required this.signalQuality,
-    required this.imuOk,
-    required this.ppgOk,
-    required this.hrValid,
-    required this.spo2Valid,
-    required this.fingerDetected,
-    required this.stateHint,
-  });
-
-  final String deviceId;
-  final int timestampMs;
-  final String mode;
-  final int packetSeq;
-  final double heartRate;
-  final double spo2;
-  final double accelX;
-  final double accelY;
-  final double accelZ;
-  final double gyroX;
-  final double gyroY;
-  final double gyroZ;
-  final double signalQuality;
-  final bool imuOk;
-  final bool ppgOk;
-  final bool hrValid;
-  final bool spo2Valid;
-  final bool fingerDetected;
-  final String stateHint;
-
-  factory BlePacket.fromJson(Map<String, dynamic> json) {
-    return BlePacket(
-      deviceId: json['device_id'] as String? ?? '',
-      timestampMs: (json['timestamp_ms'] as num?)?.toInt() ?? 0,
-      mode: json['mode'] as String? ?? 'unknown',
-      packetSeq: (json['packet_seq'] as num?)?.toInt() ?? 0,
-      heartRate: (json['heart_rate'] as num?)?.toDouble() ?? 0,
-      spo2: (json['spo2'] as num?)?.toDouble() ?? 0,
-      accelX: (json['accel_x'] as num?)?.toDouble() ?? 0,
-      accelY: (json['accel_y'] as num?)?.toDouble() ?? 0,
-      accelZ: (json['accel_z'] as num?)?.toDouble() ?? 0,
-      gyroX: (json['gyro_x'] as num?)?.toDouble() ?? 0,
-      gyroY: (json['gyro_y'] as num?)?.toDouble() ?? 0,
-      gyroZ: (json['gyro_z'] as num?)?.toDouble() ?? 0,
-      signalQuality: (json['signal_quality'] as num?)?.toDouble() ?? 0,
-      imuOk: json['imu_ok'] as bool? ?? false,
-      ppgOk: json['ppg_ok'] as bool? ?? false,
-      hrValid: json['hr_valid'] as bool? ?? false,
-      spo2Valid: json['spo2_valid'] as bool? ?? false,
-      fingerDetected: json['finger_detected'] as bool? ?? false,
-      stateHint: json['state_hint'] as String? ?? 'unknown',
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'device_id': deviceId,
-        'timestamp_ms': timestampMs,
-        'mode': mode,
-        'packet_seq': packetSeq,
-        'heart_rate': heartRate,
-        'spo2': spo2,
-        'accel_x': accelX,
-        'accel_y': accelY,
-        'accel_z': accelZ,
-        'gyro_x': gyroX,
-        'gyro_y': gyroY,
-        'gyro_z': gyroZ,
-        'signal_quality': signalQuality,
-        'imu_ok': imuOk,
-        'ppg_ok': ppgOk,
-        'hr_valid': hrValid,
-        'spo2_valid': spo2Valid,
-        'finger_detected': fingerDetected,
-        'state_hint': stateHint,
-      };
-
-  LiveStatus toLiveStatus(String userId) {
-    final motionScore = _computeMotionScore();
-    final riskScore = _computeRiskScore(motionScore);
-    return LiveStatus(
-      id: 'ble_${packetSeq}',
-      userId: userId,
-      heartRate: heartRate,
-      spo2: spo2,
-      motionScore: motionScore,
-      riskScore: riskScore,
-      scenario: stateHint,
-      timestamp: DateTime.now(),
-    );
-  }
-
-  double _computeMotionScore() {
-    final accelMag =
-        (accelX * accelX + accelY * accelY + accelZ * accelZ);
-    final accelDev = (accelMag - 1.0).abs(); // 1g is rest
-    final gyroMag =
-        (gyroX * gyroX + gyroY * gyroY + gyroZ * gyroZ);
-    return (accelDev * 0.6 + (gyroMag / 250.0) * 0.4).clamp(0.0, 1.0);
-  }
-
-  double _computeRiskScore(double motionScore) {
-    double risk = 0.0;
-    if (hrValid) {
-      if (heartRate > 120) risk += 0.3;
-      else if (heartRate > 100) risk += 0.15;
-      else if (heartRate < 50) risk += 0.25;
-    }
-    if (spo2Valid) {
-      if (spo2 < 90) risk += 0.4;
-      else if (spo2 < 94) risk += 0.2;
-    }
-    risk += motionScore * 0.3;
-    return risk.clamp(0.0, 1.0);
-  }
-}
 
 enum BleConnectionState {
   disconnected,
@@ -148,9 +22,18 @@ enum BleConnectionState {
 }
 
 class BleDeviceService extends ChangeNotifier {
-  BleDeviceService();
+  BleDeviceService({FlutterReactiveBle? reactiveBle})
+      : _ble = reactiveBle ?? _createBle();
 
-  final FlutterReactiveBle? _ble = kIsWeb ? null : FlutterReactiveBle();
+  final FlutterReactiveBle? _ble;
+
+  static FlutterReactiveBle? _createBle() {
+    if (kIsWeb) return null;
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return null;
+    }
+    return FlutterReactiveBle();
+  }
 
   BleConnectionState _state = BleConnectionState.disconnected;
   StreamSubscription<DiscoveredDevice>? _scanSub;
@@ -161,6 +44,7 @@ class BleDeviceService extends ChangeNotifier {
   String? _connectedDeviceName;
   int _packetsReceived = 0;
   DateTime? _lastPacketTime;
+  String _partialJson = '';
 
   final _packetController = StreamController<BlePacket>.broadcast();
 
@@ -173,13 +57,24 @@ class BleDeviceService extends ChangeNotifier {
   Stream<BlePacket> get packetStream => _packetController.stream;
 
   void startScan() {
+    unawaited(_startScan());
+  }
+
+  Future<void> _startScan() async {
     if (_ble == null) {
-      debugPrint('[BLE] Web platform detected; BLE scanning is unavailable.');
+      debugPrint('[BLE] BLE scanning is unavailable on this platform.');
       _setState(BleConnectionState.disconnected);
       return;
     }
 
     if (_state == BleConnectionState.scanning) return;
+
+    final permissionsOk = await _ensureBlePermissions();
+    if (!permissionsOk) {
+      debugPrint('[BLE] Required Bluetooth permissions were not granted.');
+      _setState(BleConnectionState.error);
+      return;
+    }
 
     _setState(BleConnectionState.scanning);
     debugPrint('[BLE] Starting scan for service $_kServiceUuid');
@@ -218,7 +113,7 @@ class BleDeviceService extends ChangeNotifier {
 
   void connectToDevice(String deviceId, String deviceName) {
     if (_ble == null) {
-      debugPrint('[BLE] Web platform detected; BLE connection is unavailable.');
+      debugPrint('[BLE] BLE connection is unavailable on this platform.');
       _setState(BleConnectionState.disconnected);
       return;
     }
@@ -238,14 +133,16 @@ class BleDeviceService extends ChangeNotifier {
           case DeviceConnectionState.connected:
             debugPrint('[BLE] Connected to $deviceName');
             _connectedDeviceId = deviceId;
-            _connectedDeviceName = deviceName;
+            _connectedDeviceName =
+                deviceName.isEmpty ? 'HealthAlert' : deviceName;
             _setState(BleConnectionState.connected);
-            _subscribeToTelemetry(deviceId);
+            unawaited(_prepareConnection(deviceId));
             break;
           case DeviceConnectionState.disconnected:
             debugPrint('[BLE] Disconnected from $deviceName');
             _connectedDeviceId = null;
             _connectedDeviceName = null;
+            _partialJson = '';
             _telemetrySub?.cancel();
             _telemetrySub = null;
             _setState(BleConnectionState.disconnected);
@@ -273,10 +170,10 @@ class BleDeviceService extends ChangeNotifier {
     _connectionSub = null;
     _connectedDeviceId = null;
     _connectedDeviceName = null;
+    _partialJson = '';
     _setState(BleConnectionState.disconnected);
   }
 
-  /// Kaynakları serbest bırakır.
   @override
   void dispose() {
     _scanSub?.cancel();
@@ -293,6 +190,48 @@ class BleDeviceService extends ChangeNotifier {
     }
   }
 
+  Future<bool> _ensureBlePermissions() async {
+    if (kIsWeb) return false;
+
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) {
+      return true;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final statuses = await [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.locationWhenInUse,
+      ].request();
+
+      final scanGranted = statuses[Permission.bluetoothScan]?.isGranted ?? true;
+      final connectGranted =
+          statuses[Permission.bluetoothConnect]?.isGranted ?? true;
+      final legacyLocationGranted =
+          statuses[Permission.locationWhenInUse]?.isGranted ?? true;
+
+      return connectGranted && (scanGranted || legacyLocationGranted);
+    }
+
+    return true;
+  }
+
+  Future<void> _prepareConnection(String deviceId) async {
+    if (_ble == null) return;
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final mtu = await _ble!.requestMtu(deviceId: deviceId, mtu: 247);
+        debugPrint('[BLE] Negotiated MTU: $mtu');
+      } catch (error) {
+        debugPrint('[BLE] MTU request failed, using default MTU: $error');
+      }
+    }
+
+    _subscribeToTelemetry(deviceId);
+  }
+
   void _subscribeToTelemetry(String deviceId) {
     if (_ble == null) return;
 
@@ -305,9 +244,7 @@ class BleDeviceService extends ChangeNotifier {
     debugPrint('[BLE] Subscribing to telemetry notifications...');
     _telemetrySub?.cancel();
     _telemetrySub = _ble!.subscribeToCharacteristic(characteristic).listen(
-      (data) {
-        _onTelemetryData(data);
-      },
+      _onTelemetryData,
       onError: (Object error) {
         debugPrint('[BLE] Telemetry subscription error: $error');
       },
@@ -316,9 +253,10 @@ class BleDeviceService extends ChangeNotifier {
 
   void _onTelemetryData(List<int> data) {
     try {
-      final jsonStr = utf8.decode(data);
-      final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final packet = BlePacket.fromJson(json);
+      final chunk = utf8.decode(data, allowMalformed: true).trim();
+      final packet = _parsePacket(chunk);
+      if (packet == null) return;
+
       _packetsReceived++;
       _lastPacketTime = DateTime.now();
       if (!_packetController.isClosed) {
@@ -326,6 +264,38 @@ class BleDeviceService extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('[BLE] Failed to parse telemetry: $e');
+    }
+  }
+
+  BlePacket? _parsePacket(String chunk) {
+    if (chunk.isEmpty) return null;
+
+    final direct = _tryParseJson(chunk);
+    if (direct != null) return direct;
+
+    _partialJson += chunk;
+    final buffered = _tryParseJson(_partialJson);
+    if (buffered != null) {
+      _partialJson = '';
+      return buffered;
+    }
+
+    if (_partialJson.length > 1024 || chunk.startsWith('{')) {
+      _partialJson = chunk;
+    }
+    return null;
+  }
+
+  BlePacket? _tryParseJson(String text) {
+    try {
+      final decoded = jsonDecode(text);
+      if (decoded is! Map<String, dynamic>) return null;
+      return BlePacket.fromJson(
+        decoded,
+        fallbackPacketSeq: _packetsReceived + 1,
+      );
+    } catch (_) {
+      return null;
     }
   }
 }

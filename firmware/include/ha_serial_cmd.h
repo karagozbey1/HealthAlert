@@ -1,15 +1,14 @@
-
 #ifndef HA_SERIAL_CMD_H
 #define HA_SERIAL_CMD_H
 
 #include <Arduino.h>
 #include "ha_config.h"
+#include "ha_debug.h"
 #include "ha_mock_sensors.h"
 #include "ha_types.h"
 
 class SerialCmd {
 public:
-    // Sensörü başlatır.
     void begin(MockSensors* mock, SensorStatus* status) {
         _mock = mock;
         _status = status;
@@ -17,8 +16,8 @@ public:
     }
 
     bool poll() {
-        while (Serial.available()) {
-            char c = Serial.read();
+        while (HA_SERIAL_AVAILABLE()) {
+            char c = (char)HA_SERIAL_READ();
             if (c == '\n' || c == '\r') {
                 if (_buf_pos > 0) {
                     _buf[_buf_pos] = '\0';
@@ -54,82 +53,82 @@ private:
         } else if (s == "status") {
             _print_status();
         } else if (s == "scan") {
-            Serial.println("[CMD] Triggering I2C rescan...");
+            HA_SERIAL_PRINTLN("[CMD] Triggering I2C rescan...");
             request_restart_sensors = true;
         } else if (s == "mode mock") {
             request_mock_mode = true;
-            Serial.println("[CMD] Switching to MOCK mode.");
+            HA_SERIAL_PRINTLN("[CMD] Switching to MOCK mode.");
         } else if (s == "mode real") {
             request_real_mode = true;
-            Serial.println("[CMD] Switching to REAL mode (requires hardware).");
+            HA_SERIAL_PRINTLN("[CMD] Switching to REAL mode (requires hardware).");
         } else if (s.startsWith("scenario ")) {
             String name = s.substring(9);
             _set_scenario(name);
         } else if (s == "restart_sensors") {
             request_restart_sensors = true;
-            Serial.println("[CMD] Sensor restart requested.");
+            HA_SERIAL_PRINTLN("[CMD] Sensor restart requested.");
         } else if (s == "print_config") {
             _print_config();
         } else if (s == "autocycle on") {
             if (_mock) { _mock->enableAutoCycle(true); }
-            Serial.println("[CMD] Auto-cycle enabled.");
+            HA_SERIAL_PRINTLN("[CMD] Auto-cycle enabled.");
         } else if (s == "autocycle off") {
             if (_mock) { _mock->enableAutoCycle(false); }
-            Serial.println("[CMD] Auto-cycle disabled.");
+            HA_SERIAL_PRINTLN("[CMD] Auto-cycle disabled.");
         } else {
-            Serial.printf("[CMD] Unknown command: '%s'. Type 'help'.\n", cmd);
+            HA_SERIAL_PRINTF("[CMD] Unknown command: '%s'. Type 'help'.\n", cmd);
         }
     }
 
     void _print_help() {
-        Serial.println("=== HealthAlert Serial Commands ===");
-        Serial.println("  help                 – Show this help");
-        Serial.println("  status               – Print sensor status");
-        Serial.println("  scan                 – Re-scan I2C bus");
-        Serial.println("  mode mock            – Switch to mock sensor mode");
-        Serial.println("  mode real            – Switch to real sensor mode");
-        Serial.println("  scenario <name>      – Set mock scenario");
-        Serial.println("    Scenarios: normal, elevated_hr, low_spo2,");
-        Serial.println("      motion_instability, warning_state,");
-        Serial.println("      critical_state, recovery_state");
-        Serial.println("  restart_sensors      – Reinitialize sensors");
-        Serial.println("  print_config         – Print current config");
-        Serial.println("  autocycle on|off     – Auto-cycle mock scenarios");
-        Serial.println("===================================");
+        HA_SERIAL_PRINTLN("=== HealthAlert Serial Commands ===");
+        HA_SERIAL_PRINTLN("  help                 - Show this help");
+        HA_SERIAL_PRINTLN("  status               - Print sensor status");
+        HA_SERIAL_PRINTLN("  scan                 - Re-scan I2C bus");
+        HA_SERIAL_PRINTLN("  mode mock            - Switch to mock sensor mode");
+        HA_SERIAL_PRINTLN("  mode real            - Switch to real sensor mode");
+        HA_SERIAL_PRINTLN("  scenario <name>      - Set mock scenario");
+        HA_SERIAL_PRINTLN("    Scenarios: normal, elevated_hr, low_spo2,");
+        HA_SERIAL_PRINTLN("      motion_instability, warning_state,");
+        HA_SERIAL_PRINTLN("      critical_state, recovery_state");
+        HA_SERIAL_PRINTLN("  restart_sensors      - Reinitialize sensors");
+        HA_SERIAL_PRINTLN("  print_config         - Print current config");
+        HA_SERIAL_PRINTLN("  autocycle on|off     - Auto-cycle mock scenarios");
+        HA_SERIAL_PRINTLN("===================================");
     }
 
     void _print_status() {
-        Serial.println("=== Sensor Status ===");
-        Serial.printf("  IMU present:      %s\n", _status->imu_present ? "YES" : "NO");
-        Serial.printf("  PPG present:      %s\n", _status->ppg_present ? "YES" : "NO");
-        Serial.printf("  IMU OK:           %s\n", _status->imu_ok ? "YES" : "NO");
-        Serial.printf("  PPG OK:           %s\n", _status->ppg_ok ? "YES" : "NO");
-        Serial.printf("  Degraded mode:    %s\n", _status->degraded_mode ? "YES" : "NO");
-        Serial.printf("  Last error:       %u\n", _status->last_error);
+        HA_SERIAL_PRINTLN("=== Sensor Status ===");
+        HA_SERIAL_PRINTF("  IMU present:      %s\n", _status->imu_present ? "YES" : "NO");
+        HA_SERIAL_PRINTF("  PPG present:      %s\n", _status->ppg_present ? "YES" : "NO");
+        HA_SERIAL_PRINTF("  IMU OK:           %s\n", _status->imu_ok ? "YES" : "NO");
+        HA_SERIAL_PRINTF("  PPG OK:           %s\n", _status->ppg_ok ? "YES" : "NO");
+        HA_SERIAL_PRINTF("  Degraded mode:    %s\n", _status->degraded_mode ? "YES" : "NO");
+        HA_SERIAL_PRINTF("  Last error:       %u\n", _status->last_error);
         if (_mock) {
-            Serial.printf("  Mock scenario:    %s\n", _mock->getScenarioName());
+            HA_SERIAL_PRINTF("  Mock scenario:    %s\n", _mock->getScenarioName());
         }
-        Serial.println("=====================");
+        HA_SERIAL_PRINTLN("=====================");
     }
 
     void _print_config() {
-        Serial.println("=== Configuration ===");
-        Serial.printf("  Firmware:         %s v%s\n", FW_NAME, FW_VERSION);
-        Serial.printf("  Device ID:        %s\n", HA_DEVICE_ID);
-        Serial.printf("  I2C SDA:          %d\n", I2C_SDA_PIN);
-        Serial.printf("  I2C SCL:          %d\n", I2C_SCL_PIN);
-        Serial.printf("  I2C freq:         %lu Hz\n", I2C_FREQUENCY);
-        Serial.printf("  Sample rate:      %d Hz\n", SAMPLING_RATE_HZ);
-        Serial.printf("  Packet interval:  %d ms\n", PACKET_INTERVAL_MS);
-        Serial.printf("  Force mock:       %d\n", FORCE_MOCK_MODE);
-        Serial.printf("  Serial baud:      %d\n", SERIAL_BAUD);
-        Serial.printf("  Debug logging:    %d\n", DEBUG_LOGGING);
-        Serial.println("=====================");
+        HA_SERIAL_PRINTLN("=== Configuration ===");
+        HA_SERIAL_PRINTF("  Firmware:         %s v%s\n", FW_NAME, FW_VERSION);
+        HA_SERIAL_PRINTF("  Device ID:        %s\n", HA_DEVICE_ID);
+        HA_SERIAL_PRINTF("  I2C SDA:          %d\n", I2C_SDA_PIN);
+        HA_SERIAL_PRINTF("  I2C SCL:          %d\n", I2C_SCL_PIN);
+        HA_SERIAL_PRINTF("  I2C freq:         %lu Hz\n", I2C_FREQUENCY);
+        HA_SERIAL_PRINTF("  Sample rate:      %d Hz\n", SAMPLING_RATE_HZ);
+        HA_SERIAL_PRINTF("  Packet interval:  %d ms\n", PACKET_INTERVAL_MS);
+        HA_SERIAL_PRINTF("  Force mock:       %d\n", FORCE_MOCK_MODE);
+        HA_SERIAL_PRINTF("  Serial baud:      %d\n", SERIAL_BAUD);
+        HA_SERIAL_PRINTF("  Debug logging:    %d\n", DEBUG_LOGGING);
+        HA_SERIAL_PRINTLN("=====================");
     }
 
     void _set_scenario(const String& name) {
         if (!_mock) {
-            Serial.println("[CMD] Mock engine not available.");
+            HA_SERIAL_PRINTLN("[CMD] Mock engine not available.");
             return;
         }
         for (int i = 0; i < SCENARIO_COUNT; i++) {
@@ -138,9 +137,9 @@ private:
                 return;
             }
         }
-        Serial.printf("[CMD] Unknown scenario: '%s'\n", name.c_str());
-        Serial.println("[CMD] Available: normal, elevated_hr, low_spo2,");
-        Serial.println("  motion_instability, warning_state, critical_state, recovery_state");
+        HA_SERIAL_PRINTF("[CMD] Unknown scenario: '%s'\n", name.c_str());
+        HA_SERIAL_PRINTLN("[CMD] Available: normal, elevated_hr, low_spo2,");
+        HA_SERIAL_PRINTLN("  motion_instability, warning_state, critical_state, recovery_state");
     }
 };
 

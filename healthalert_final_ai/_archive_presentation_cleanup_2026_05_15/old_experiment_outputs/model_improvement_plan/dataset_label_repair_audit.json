@@ -1,0 +1,283 @@
+{
+  "generated_on": "2026-05-14",
+  "repo_scope": {
+    "config_files": [
+      "config/datasets.yaml",
+      "config/hybrid_task_routing.yaml"
+    ],
+    "core_pipeline_files": [
+      "src/data/windowing.py",
+      "src/data/splitting.py",
+      "scripts/build_multi_source_windowed_dataset.py"
+    ],
+    "training_scripts": [
+      "scripts/train_activity_expert.py",
+      "scripts/train_activity_expert_balanced.py",
+      "scripts/train_vitals_context_expert.py",
+      "scripts/train_gait_instability_expert.py"
+    ],
+    "feature_files": [
+      "src/data/feature_engineering/feature_pipeline.py",
+      "src/data/feature_engineering/ppg_features.py"
+    ]
+  },
+  "tasks": {
+    "activity_context": {
+      "raw_datasets_available_or_declared": [
+        "uci_har",
+        "unimib_shar",
+        "umafall",
+        "mobiact",
+        "sisfall",
+        "hifd",
+        "ppg_dalia",
+        "wildppg",
+        "bits2_geriatric_fall_hr",
+        "upfall"
+      ],
+      "routing_allowed": [
+        "uci_har",
+        "unimib_shar",
+        "umafall",
+        "mobiact",
+        "sisfall"
+      ],
+      "actual_final_training_sources": [
+        "UMAFall",
+        "SisFall",
+        "UCI-HAR",
+        "UniMiB-SHAR"
+      ],
+      "raw_labels_seen_in_task_export": [
+        "fall",
+        "normal",
+        "near_fall",
+        "instability",
+        "standing",
+        "sitting",
+        "lying",
+        "walking",
+        "unknown"
+      ],
+      "training_label_remap": {
+        "0": "normal",
+        "3": "instability",
+        "10": "walking",
+        "11": "sitting",
+        "12": "standing",
+        "13": "lying",
+        "1": "excluded_fall",
+        "2": "excluded_near_fall"
+      },
+      "unknown_to_99_risk": "present in task export, but filtered out by activity train script because only remapped labels are kept",
+      "export_exclusions": [
+        "fall",
+        "near_fall",
+        "forbidden sources such as ppg_dalia and wildppg in final activity training"
+      ],
+      "final_support": {
+        "train": {
+          "normal": 67977,
+          "instability": 34220,
+          "walking": 3537,
+          "sitting": 1389,
+          "standing": 1502,
+          "lying": 1520
+        },
+        "val": {
+          "normal": 18847,
+          "instability": 5782,
+          "walking": 522,
+          "sitting": 170,
+          "standing": 182,
+          "lying": 192
+        },
+        "test": {
+          "normal": 38603,
+          "instability": 6018,
+          "walking": 613,
+          "sitting": 218,
+          "standing": 222,
+          "lying": 232
+        }
+      },
+      "subject_or_session_integrity": {
+        "pipeline_split_policy": "subject-aware split when subject_id exists, else recording-aware split",
+        "uci_har_subject_ids_preserved": true,
+        "uci_har_original_split_metadata_preserved": true,
+        "note": "subject-aware infrastructure exists, but final activity benchmark is still source-skewed"
+      },
+      "source_distribution_risk": {
+        "main_issue": "true ADL labels come mostly from UCI-HAR, while other datasets heavily reinforce normal or instability",
+        "balanced_v1_result": "oversampling increased ADL frequency but worsened sitting/standing/lying recall",
+        "source_confounding_risk": true
+      },
+      "trainability_decision": "TRAINABLE_WITH_NEW_DATASET"
+    },
+    "vitals_context": {
+      "raw_datasets_available_or_declared": [
+        "bidmc",
+        "wesad",
+        "ppg_dalia",
+        "wildppg",
+        "hifd",
+        "but_ppg"
+      ],
+      "routing_allowed": [
+        "bidmc",
+        "wesad",
+        "ppg_dalia",
+        "wildppg",
+        "hifd"
+      ],
+      "actual_final_training_sources": [
+        "PPG-DaLiA",
+        "WESAD"
+      ],
+      "raw_labels_seen_in_task_export": [
+        "good_quality",
+        "bad_quality",
+        "unknown",
+        "walking",
+        "sitting",
+        "normal"
+      ],
+      "training_label_remap": {
+        "0": "rest_like",
+        "11": "rest_like",
+        "20": "rest_like",
+        "10": "active_like",
+        "21": "poor_signal",
+        "99": "excluded_unknown"
+      },
+      "unknown_to_99_risk": "present and explicitly excluded",
+      "export_exclusions": [
+        "unknown=99",
+        "all labels not present in LABEL_REMAP",
+        "abnormal_trend had no explicit raw supervised label"
+      ],
+      "final_support": {
+        "train": {
+          "rest_like": 36291,
+          "active_like": 41943,
+          "poor_signal": 0,
+          "abnormal_trend": 0
+        },
+        "val": {
+          "rest_like": 3128,
+          "active_like": 4651,
+          "poor_signal": 0,
+          "abnormal_trend": 0
+        },
+        "test": {
+          "rest_like": 8097,
+          "active_like": 14032,
+          "poor_signal": 0,
+          "abnormal_trend": 0
+        }
+      },
+      "subject_or_session_integrity": {
+        "pipeline_split_policy": "subject-aware split when subject_id exists",
+        "reported_window_overlap": 0,
+        "note": "split leakage does not appear to be the main issue"
+      },
+      "source_distribution_risk": {
+        "main_issue": "PPG-DaLiA behaves like active_like and WESAD behaves like rest_like in the final supervised data",
+        "source_confounding_risk": true,
+        "task_definition_problem": true
+      },
+      "feature_representation": {
+        "current_features_shape": 1400,
+        "meaning": "flattened 200x6 IMU plus 200x1 PPG window",
+        "true_handcrafted_feature_pipeline_exists": true,
+        "current_training_uses_handcrafted_pipeline": false
+      },
+      "trainability_decision": "SHOULD_BE_RULE_BASED_FOR_CURRENT_VERSION"
+    },
+    "gait_instability": {
+      "raw_datasets_available_or_declared": [
+        "daphnet_fog",
+        "gaitpdb",
+        "pads_smartwatch_pd",
+        "bits2_geriatric_fall_hr",
+        "sisfall"
+      ],
+      "routing_allowed": [
+        "daphnet_fog",
+        "gaitpdb",
+        "pads_smartwatch_pd",
+        "bits2_geriatric_fall_hr",
+        "sisfall"
+      ],
+      "actual_final_training_sources": [
+        "DAPHNET_FOG"
+      ],
+      "raw_label_mapping_declared_in_config": {
+        "0": "normal",
+        "1": "pre_freeze",
+        "2": "freeze"
+      },
+      "loader_mapping": {
+        "0": "excluded_not_annotated",
+        "1": "normal",
+        "2": "freeze"
+      },
+      "canonical_mapping_gap": {
+        "windowing_assign_window_label_recognizes_freeze": false,
+        "windowing_assign_window_label_recognizes_pre_freeze": false,
+        "effect": "freeze/pre_freeze become unknown"
+      },
+      "unknown_to_99_risk": "high; unknown windows are excluded in gait training",
+      "export_exclusions": [
+        "unknown=99",
+        "all unmapped freeze-like labels after canonicalization"
+      ],
+      "final_support": {
+        "train": {
+          "stable_gait": 3902,
+          "unstable_gait": 0
+        },
+        "val": {
+          "stable_gait": 2408,
+          "unstable_gait": 0
+        },
+        "test": {
+          "stable_gait": 1726,
+          "unstable_gait": 0
+        }
+      },
+      "subject_or_session_integrity": {
+        "reported_window_overlap": 0,
+        "unique_subjects_train": 5,
+        "unique_subjects_val": 3,
+        "unique_subjects_test": 2
+      },
+      "source_distribution_risk": {
+        "main_issue": "single-source task plus label loss before training",
+        "source_confounding_risk": false,
+        "label_rescue_required": true
+      },
+      "trainability_decision": "TRAINABLE_WITH_LABEL_FIX"
+    },
+    "tremor_context": {
+      "final_support": {
+        "train": {
+          "instability": 78,
+          "normal": 60
+        },
+        "val": {},
+        "test": {}
+      },
+      "trainability_decision": "NOT_TRAINABLE_CURRENT_DATA",
+      "reason": "too few labeled windows and no validation/test support"
+    }
+  },
+  "global_findings": {
+    "accuracy_is_not_sufficient": true,
+    "macro_f1_and_per_class_recall_required": true,
+    "support_zero_classes_cannot_be_accepted": true,
+    "oversampling_is_not_a_substitute_for_task_repair": true,
+    "rejected_models_must_not_connect_to_risk_fusion": true,
+    "live_sensor_data_for_training_forbidden": true
+  }
+}

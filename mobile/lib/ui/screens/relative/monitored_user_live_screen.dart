@@ -20,19 +20,54 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
   LiveStatus? _live;
   bool _loading = true;
   Timer? _timer;
+  StreamSubscription<LiveStatus?>? _firestoreSub;
 
   /// Widget durumunu başlatır.
   @override
   void initState() {
     super.initState();
     _fetchLive();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _fetchLive());
+    // Setup realtime updates after the first frame so context is ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _setupLiveUpdates());
+  }
+
+  void _setupLiveUpdates() {
+    if (!mounted) return;
+    final app = AppScope.of(context);
+    if (app.isFirestoreSyncAvailable) {
+      // Firestore realtime listener – preferred over polling.
+      final stream = app.getFirestoreLiveStatusStream(widget.user.id);
+      if (stream != null) {
+        _firestoreSub = stream.listen(_onFirestoreLive, onError: (e) {
+          debugPrint('[MonitoredUserLive] Firestore stream error: $e');
+          // Fall back to timer if stream fails.
+          _ensureTimerRunning();
+        });
+        return;
+      }
+    }
+    // No Firestore: fall back to periodic polling.
+    _ensureTimerRunning();
+  }
+
+  void _ensureTimerRunning() {
+    _timer ??= Timer.periodic(
+        const Duration(seconds: 5), (_) => _fetchLive());
+  }
+
+  void _onFirestoreLive(LiveStatus? status) {
+    if (!mounted || status == null) return;
+    setState(() {
+      _live = status;
+      _loading = false;
+    });
   }
 
   /// Kaynakları serbest bırakır.
   @override
   void dispose() {
     _timer?.cancel();
+    _firestoreSub?.cancel();
     super.dispose();
   }
 
@@ -51,6 +86,14 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  bool get _isStale =>
+      _live != null &&
+      DateTime.now().difference(_live!.timestamp).inSeconds > 60;
+
+  bool get _isDelayed =>
+      _live != null &&
+      DateTime.now().difference(_live!.timestamp).inSeconds > 30;
 
   /// Widget ağacını oluşturur.
   @override
@@ -142,13 +185,26 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
                             height: 8,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isAlert ? AppTheme.critical : AppTheme.success,
+                              color: _isStale
+                                  ? AppTheme.warning
+                                  : isAlert
+                                      ? AppTheme.critical
+                                      : AppTheme.success,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Son güncelleme: ${_timeAgo(live.timestamp)}',
-                            style: const TextStyle(color: Colors.white38, fontSize: 12),
+                            _isStale
+                                ? 'Veri gecikti — ${_timeAgo(live.timestamp)}'
+                                : _isDelayed
+                                    ? 'Sinyal yavaş — ${_timeAgo(live.timestamp)}'
+                                    : 'Son güncelleme: ${_timeAgo(live.timestamp)}',
+                            style: TextStyle(
+                              color: _isStale
+                                  ? AppTheme.warning
+                                  : Colors.white38,
+                              fontSize: 12,
+                            ),
                           ),
                           const Spacer(),
                           Text(
@@ -180,21 +236,6 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
                             style: TextStyle(color: Colors.white38)),
                       ),
                     ),
-
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _fetchLive,
-                      icon: const Icon(Icons.refresh, color: Colors.greenAccent),
-                      label: const Text('Yenile', style: TextStyle(color: Colors.greenAccent)),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.greenAccent.withOpacity(0.4)),
-                        shape:
-                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

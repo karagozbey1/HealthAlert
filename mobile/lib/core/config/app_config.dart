@@ -42,6 +42,7 @@ class AppConfig {
     environment: AppEnvironment.mock,
     useFirebaseAdapters: false,
     demoMode: true,
+    transportMode: 'auto',
   );
 
   static const AppConfig backendDefault = AppConfig(
@@ -49,6 +50,7 @@ class AppConfig {
     useFirebaseAdapters: false,
     backendBaseUrl: _kDefaultBackendUrl,
     demoMode: false,
+    firebaseProjectId: 'healthalertsystem-2776a',
   );
 
   static const AppConfig production = AppConfig(
@@ -56,7 +58,7 @@ class AppConfig {
     useFirebaseAdapters: true,
     backendBaseUrl: _kDefaultBackendUrl,
     demoMode: false,
-    firebaseProjectId: _kFirebaseProjectId,
+    firebaseProjectId: 'healthalertsystem-2776a',
     transportMode: 'auto',
   );
 }

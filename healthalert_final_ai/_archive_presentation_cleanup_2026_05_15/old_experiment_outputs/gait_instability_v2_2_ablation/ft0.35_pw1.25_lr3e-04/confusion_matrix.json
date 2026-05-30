@@ -1,0 +1,17 @@
+{
+  "labels": [
+    "stable_gait",
+    "abnormal_or_freezing_movement"
+  ],
+  "threshold": 0.05,
+  "matrix": [
+    [
+      1297,
+      211
+    ],
+    [
+      14,
+      145
+    ]
+  ]
+}

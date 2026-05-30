@@ -1,0 +1,13 @@
+{
+  "DAPHNET_FOG": {
+    "n": 1726,
+    "accuracy": 1.0,
+    "macro_f1": 0.5,
+    "class_dist": {
+      "stable_gait": 1726
+    },
+    "available_class_recall": {
+      "stable_gait": 1.0
+    }
+  }
+}

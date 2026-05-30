@@ -1,0 +1,75 @@
+{
+  "patient_id": "live_baseline_missing",
+  "timestamp": "2026-05-15T12:00:199Z",
+  "data_mode": "live",
+  "risk": {
+    "final_risk_score": 8.503,
+    "risk_level": "normal",
+    "confidence_score": 1.0,
+    "recommended_action": "continue_monitoring",
+    "reasons": [
+      "gait_auxiliary_abnormal",
+      "ppg_quality_bad_vitals_reduced",
+      "baseline_missing",
+      "motion_stable",
+      "ppg_quality_gate_closed",
+      "baseline_not_calibrated_using_population_defaults"
+    ]
+  },
+  "experts": {
+    "fall": {
+      "enabled": true,
+      "fall_probability": 0.2007,
+      "threshold_caution": 0.35,
+      "threshold_balanced": 0.45
+    },
+    "activity": {
+      "enabled": true,
+      "status": "accepted_single_source_baseline",
+      "activity_context": "walking",
+      "confidence": 0.8031
+    },
+    "ppg_quality": {
+      "enabled": true,
+      "quality_label": "bad_quality",
+      "quality_score": 0.0785
+    },
+    "vitals": {
+      "ml_enabled": false,
+      "mode": "runtime_rules_plus_personalization",
+      "contribution": 0.0,
+      "reasons": [
+        "ppg_quality_bad_vitals_reduced",
+        "baseline_missing",
+        "ppg_quality_gate_closed"
+      ]
+    },
+    "gait": {
+      "ml_enabled": true,
+      "mode": "accepted_auxiliary_low_weight",
+      "contribution": 1.902,
+      "reasons": [
+        "motion_stable"
+      ],
+      "gait_abnormal_probability": 0.9511
+    }
+  },
+  "personalization": {
+    "baseline_available": false,
+    "cold_start_mode": true,
+    "personalization_adjustment": 0.0,
+    "baseline_update_allowed": true
+  },
+  "missing_modalities": {
+    "imu_missing": false,
+    "ppg_missing": false,
+    "baseline_missing": true
+  },
+  "ui": {
+    "title": "Durum normal",
+    "message": "Durum normal gorunuyor.",
+    "color_level": "green",
+    "show_alert": false,
+    "ask_user_confirmation": false
+  }
+}

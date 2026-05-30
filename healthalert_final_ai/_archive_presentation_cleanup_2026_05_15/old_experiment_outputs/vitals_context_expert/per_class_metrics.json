@@ -1,0 +1,26 @@
+{
+  "rest_like": {
+    "precision": 1.0,
+    "recall": 0.9998764974681981,
+    "f1": 0.9999382449206448,
+    "support": 8097
+  },
+  "active_like": {
+    "precision": 0.9999287393999857,
+    "recall": 1.0,
+    "f1": 0.9999643684304294,
+    "support": 14032
+  },
+  "poor_signal": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+  },
+  "abnormal_trend": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+  }
+}

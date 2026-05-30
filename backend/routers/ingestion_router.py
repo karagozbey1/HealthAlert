@@ -252,7 +252,11 @@ async def ingest_device_packet(
 
                 # Part 5B kisisellestirme katmani riski ek baglamla zenginlestirir.
                 try:
-                    if settings.PERSONALIZATION_ENABLED and repos.personalization is not None:
+                    if (
+                        settings.PERSONALIZATION_ENABLED
+                        and repos.personalization is not None
+                        and pkt.mode == "real"
+                    ):
                         # Kisisel profil kaydini gunceller.
                         profile = await adaptive_personalization_service.update_profile_from_packet(
                             repos=repos,
@@ -310,11 +314,17 @@ async def ingest_device_packet(
             sensitivity_offset = 0.10
 
         existing = await repos.live_status.get_by_user(user_id)
-        hr_display = pkt.heart_rate if pkt.hr_valid else (existing["heart_rate"] if existing else 72.0)
-        spo2_display = pkt.spo2 if pkt.spo2_valid else (existing["spo2"] if existing else 98.0)
+        # When invalid, store 0.0 — NOT the stale 72/98 defaults.
+        # hr_valid/spo2_valid come from the DevicePacketLog enrichment in
+        # repos.live_status.get_by_user(), so the mobile always gets the
+        # correct validity flag regardless of what heart_rate value is stored.
+        hr_display   = pkt.heart_rate if pkt.hr_valid  else 0.0
+        spo2_display = pkt.spo2       if pkt.spo2_valid else 0.0
 
-        hr_display = max(20.0, min(250.0, hr_display))
-        spo2_display = max(50.0, min(100.0, spo2_display))
+        if hr_display > 0:
+            hr_display = max(20.0, min(250.0, hr_display))
+        if spo2_display > 0:
+            spo2_display = max(50.0, min(100.0, spo2_display))
 
         await repos.live_status.upsert(user_id, {
             "heart_rate": hr_display,

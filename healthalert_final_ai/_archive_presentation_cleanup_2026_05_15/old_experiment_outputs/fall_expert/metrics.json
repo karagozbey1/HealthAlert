@@ -1,0 +1,48 @@
+{
+  "fall_recall": 0.57798,
+  "fall_precision": 0.81019,
+  "normal_recall": 0.94409,
+  "fall_f1": 0.67466,
+  "macro_f1": 0.783,
+  "fall_application_score": 0.7422,
+  "roc_auc": 0.8427,
+  "tp": 9506,
+  "fp": 2227,
+  "tn": 37602,
+  "fn": 6941,
+  "total_samples": 56276,
+  "threshold_used": 0.5,
+  "threshold_analysis": [
+    {
+      "threshold": 0.3,
+      "fall_recall": 0.7132607770414058,
+      "fall_precision": 0.6822332073277115,
+      "macro_f1": 0.7841971633134657
+    },
+    {
+      "threshold": 0.4,
+      "fall_recall": 0.6460144707241442,
+      "fall_precision": 0.7795876439944237,
+      "macro_f1": 0.7997652370529892
+    },
+    {
+      "threshold": 0.5,
+      "fall_recall": 0.5779777467015261,
+      "fall_precision": 0.8101934714054376,
+      "macro_f1": 0.7830006200867112
+    },
+    {
+      "threshold": 0.6,
+      "fall_recall": 0.4915182100079042,
+      "fall_precision": 0.8412070759625391,
+      "macro_f1": 0.7530777749082787
+    },
+    {
+      "threshold": 0.7,
+      "fall_recall": 0.3548975497051134,
+      "fall_precision": 0.8706742243436754,
+      "macro_f1": 0.6879390178708064
+    }
+  ],
+  "collapse_detected": false
+}

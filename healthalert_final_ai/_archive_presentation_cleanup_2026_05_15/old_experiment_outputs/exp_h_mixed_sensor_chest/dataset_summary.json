@@ -1,0 +1,90 @@
+{
+  "usable_sources": [
+    "UCI-HAR",
+    "PAMAP2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "split_info": {
+    "seed": 42,
+    "all_splits_have_all_labels": true,
+    "missing_label_count": 0,
+    "split_label_coverage": {
+      "train": [
+        "lying",
+        "sitting",
+        "standing",
+        "walking"
+      ],
+      "val": [
+        "lying",
+        "sitting",
+        "standing",
+        "walking"
+      ],
+      "test": [
+        "lying",
+        "sitting",
+        "standing",
+        "walking"
+      ]
+    }
+  },
+  "train": {
+    "n_windows": 9569,
+    "label_counts": {
+      "standing": 1854,
+      "sitting": 1791,
+      "lying": 1919,
+      "walking": 4005
+    },
+    "source_counts": {
+      "UCI-HAR": 7590,
+      "PAMAP2": 1979
+    },
+    "n_unique_subjects": 26
+  },
+  "val": {
+    "n_windows": 1974,
+    "label_counts": {
+      "standing": 407,
+      "sitting": 422,
+      "lying": 400,
+      "walking": 745
+    },
+    "source_counts": {
+      "UCI-HAR": 1479,
+      "PAMAP2": 495
+    },
+    "n_unique_subjects": 5
+  },
+  "test": {
+    "n_windows": 2732,
+    "label_counts": {
+      "standing": 581,
+      "sitting": 478,
+      "lying": 575,
+      "walking": 1098
+    },
+    "source_counts": {
+      "UCI-HAR": 1230,
+      "PAMAP2": 1502
+    },
+    "n_unique_subjects": 7
+  },
+  "source_record_audit": {
+    "uci_har": {
+      "status": "ok",
+      "n_records": 10299,
+      "errors": [],
+      "warnings": []
+    },
+    "pamap2": {
+      "status": "ok",
+      "n_records": 32,
+      "errors": [],
+      "warnings": [
+        "subject109.dat: no target ADL rows after activity filter"
+      ]
+    }
+  }
+}

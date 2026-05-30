@@ -1,0 +1,43 @@
+[
+  {
+    "subject_id": "S102",
+    "n": 512,
+    "macro_f1": 0.4444,
+    "posture_confusions": 237,
+    "confusion_pairs": {
+      "standing->sitting": 109,
+      "lying->sitting": 104,
+      "sitting->standing": 15,
+      "sitting->lying": 9,
+      "walking->sitting": 4,
+      "walking->lying": 1
+    }
+  },
+  {
+    "subject_id": "S107",
+    "n": 480,
+    "macro_f1": 0.5406,
+    "posture_confusions": 173,
+    "confusion_pairs": {
+      "standing->sitting": 110,
+      "sitting->standing": 57,
+      "lying->sitting": 5,
+      "walking->standing": 4,
+      "lying->standing": 1
+    }
+  },
+  {
+    "subject_id": "S108",
+    "n": 510,
+    "macro_f1": 0.9027,
+    "posture_confusions": 42,
+    "confusion_pairs": {
+      "sitting->standing": 27,
+      "standing->sitting": 11,
+      "lying->standing": 3,
+      "walking->standing": 3,
+      "walking->sitting": 2,
+      "lying->sitting": 1
+    }
+  }
+]

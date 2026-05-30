@@ -1,0 +1,23 @@
+{
+  "synthetic": {
+    "n": 400,
+    "accuracy": 0.1925,
+    "macro_f1": 0.1081,
+    "class_dist": {
+      "normal": 61,
+      "instability": 87,
+      "walking": 61,
+      "sitting": 57,
+      "standing": 61,
+      "lying": 73
+    },
+    "available_class_recall": {
+      "normal": 0.377,
+      "instability": 0.5747,
+      "walking": 0.0164,
+      "sitting": 0.0526,
+      "standing": 0.0,
+      "lying": 0.0
+    }
+  }
+}

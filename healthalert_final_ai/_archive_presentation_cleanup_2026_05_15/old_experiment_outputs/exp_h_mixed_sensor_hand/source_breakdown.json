@@ -1,0 +1,129 @@
+{
+  "PAMAP2": {
+    "accuracy": 0.695,
+    "macro_f1": 0.6933,
+    "weighted_f1": 0.7095,
+    "per_class": {
+      "walking": {
+        "precision": 0.9777,
+        "recall": 0.7421,
+        "f1": 0.8438,
+        "support": 473
+      },
+      "sitting": {
+        "precision": 0.5871,
+        "recall": 0.6431,
+        "f1": 0.6138,
+        "support": 283
+      },
+      "standing": {
+        "precision": 0.8304,
+        "recall": 0.7401,
+        "f1": 0.7826,
+        "support": 377
+      },
+      "lying": {
+        "precision": 0.4633,
+        "recall": 0.6271,
+        "f1": 0.5329,
+        "support": 362
+      }
+    },
+    "confusion_matrix": [
+      [
+        351,
+        2,
+        6,
+        114
+      ],
+      [
+        3,
+        182,
+        40,
+        58
+      ],
+      [
+        1,
+        6,
+        279,
+        91
+      ],
+      [
+        4,
+        120,
+        11,
+        227
+      ]
+    ],
+    "n": 1495,
+    "subjects": [
+      "S102",
+      "S107",
+      "S108"
+    ]
+  },
+  "UCI-HAR": {
+    "accuracy": 0.8976,
+    "macro_f1": 0.8466,
+    "weighted_f1": 0.8992,
+    "per_class": {
+      "walking": {
+        "precision": 0.9984,
+        "recall": 1.0,
+        "f1": 0.9992,
+        "support": 617
+      },
+      "sitting": {
+        "precision": 0.7124,
+        "recall": 0.8256,
+        "f1": 0.7648,
+        "support": 195
+      },
+      "standing": {
+        "precision": 0.6985,
+        "recall": 0.6814,
+        "f1": 0.6898,
+        "support": 204
+      },
+      "lying": {
+        "precision": 1.0,
+        "recall": 0.8738,
+        "f1": 0.9327,
+        "support": 214
+      }
+    },
+    "confusion_matrix": [
+      [
+        617,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        161,
+        34,
+        0
+      ],
+      [
+        0,
+        65,
+        139,
+        0
+      ],
+      [
+        1,
+        0,
+        26,
+        187
+      ]
+    ],
+    "n": 1230,
+    "subjects": [
+      "s01",
+      "s07",
+      "s08",
+      "s10"
+    ]
+  }
+}

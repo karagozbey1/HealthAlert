@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/models/alert_event.dart';
 import '../../../core/models/enums.dart';
@@ -19,20 +20,38 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
   bool _refreshing = false;
   final Map<String, _UserAlerts> _data = {};
   String? _error;
+  Timer? _autoRefreshTimer;
 
   /// Widget durumunu başlatır.
   @override
   void initState() {
     super.initState();
     _loadAlerts();
+    // Auto-refresh: alerts should surface within the final presentation SLA.
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (mounted) _loadAlerts(isRefresh: true);
+    });
+  }
+
+  /// Kaynakları serbest bırakır.
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadAlerts({bool isRefresh = false}) async {
     if (!mounted) return;
     if (!isRefresh || _data.isEmpty) {
-      setState(() { _loading = true; _error = null; });
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
     } else {
-      setState(() { _refreshing = true; _error = null; });
+      setState(() {
+        _refreshing = true;
+        _error = null;
+      });
     }
 
     try {
@@ -57,13 +76,19 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
     } catch (e) {
       debugPrint('[RelativeAlerts] _loadAlerts error: $e');
     } finally {
-      if (mounted) setState(() { _loading = false; _refreshing = false; });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _refreshing = false;
+        });
     }
   }
 
   /// Widget ağacını oluşturur.
   @override
   Widget build(BuildContext context) {
+    final app = AppScope.of(context);
+    final linkedPatients = app.monitoredUsers;
     final hasAlerts = _data.values.any((d) => d.alerts.isNotEmpty);
 
     return SingleChildScrollView(
@@ -71,11 +96,13 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Alarm Akışı', style: AppTheme.darkTheme.textTheme.displayMedium),
+          Text('Alarm Akışı',
+              style: AppTheme.darkTheme.textTheme.displayMedium),
           const SizedBox(height: 4),
           Text(
             'Bağlı hastalardan gelen son alarmlar',
-            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(color: Colors.white54),
+            style: AppTheme.darkTheme.textTheme.bodyMedium
+                ?.copyWith(color: Colors.white54),
           ),
           const SizedBox(height: 20),
           if (_loading)
@@ -86,31 +113,21 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
             ))
           else if (_error != null)
             _buildErrorState()
-          else if (_data.isEmpty)
+          else if (linkedPatients.isEmpty)
             _buildEmptyState('Henüz bağlı hasta yok.',
                 'Asıl kişinin paylaştığı kodu girerek bağlantı kurun.')
           else if (!hasAlerts)
-            _buildEmptyState('Kayıtlı alarm yok.', 'Bağlı hastalarınızın alarm geçmişi yok.')
+            _buildEmptyState('Aktif uyarı yok.',
+                'Bağlı hastalarınızda aktif alarm bulunmuyor.')
           else ...[
             for (final entry in _data.entries)
-              if (entry.value.alerts.isNotEmpty) _buildPatientSection(entry.value),
+              if (entry.value.alerts.isNotEmpty)
+                _buildPatientSection(entry.value),
           ],
           const SizedBox(height: 16),
           if (_refreshing)
-            const LinearProgressIndicator(color: Colors.greenAccent, backgroundColor: Colors.transparent)
-          else
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _loadAlerts(isRefresh: true),
-                icon: const Icon(Icons.refresh, color: Colors.greenAccent),
-                label: const Text('Yenile', style: TextStyle(color: Colors.greenAccent)),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.greenAccent.withOpacity(0.4)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
+            const LinearProgressIndicator(
+                color: Colors.greenAccent, backgroundColor: Colors.transparent),
         ],
       ),
     );
@@ -128,16 +145,22 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
                 radius: 14,
                 backgroundColor: Colors.greenAccent.withOpacity(0.15),
                 child: Text(
-                  d.user.fullName.isNotEmpty ? d.user.fullName[0].toUpperCase() : '?',
+                  d.user.fullName.isNotEmpty
+                      ? d.user.fullName[0].toUpperCase()
+                      : '?',
                   style: const TextStyle(
-                      color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                      color: Colors.greenAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 d.user.fullName,
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14),
               ),
               const SizedBox(width: 8),
               Text(
@@ -200,7 +223,8 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
                       const SizedBox(height: 2),
                       Text(
                         alert.description,
-                        style: const TextStyle(color: Colors.white60, fontSize: 12),
+                        style: const TextStyle(
+                            color: Colors.white60, fontSize: 12),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -220,12 +244,16 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: (isPending ? Colors.orangeAccent : Colors.white10).withOpacity(0.1),
+                    color: (isPending ? Colors.orangeAccent : Colors.white10)
+                        .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                        color: (isPending ? Colors.orangeAccent : Colors.white24).withOpacity(0.3)),
+                        color:
+                            (isPending ? Colors.orangeAccent : Colors.white24)
+                                .withOpacity(0.3)),
                   ),
                   child: Text(
                     statusLabel,
@@ -248,9 +276,11 @@ class _RelativeAlertsScreenState extends State<RelativeAlertsScreen> {
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
-          const Icon(Icons.notifications_none_outlined, size: 48, color: Colors.white24),
+          const Icon(Icons.notifications_none_outlined,
+              size: 48, color: Colors.white24),
           const SizedBox(height: 16),
-          Text(title, style: const TextStyle(color: Colors.white54, fontSize: 16)),
+          Text(title,
+              style: const TextStyle(color: Colors.white54, fontSize: 16)),
           const SizedBox(height: 8),
           Text(subtitle,
               style: const TextStyle(color: Colors.white30, fontSize: 12),

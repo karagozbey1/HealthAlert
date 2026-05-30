@@ -110,9 +110,41 @@ class LiveStatusResponse(BaseModel):
     ml_adjustment: Optional[float] = None
     fusion_applied: Optional[bool] = None
     model_window_status: Optional[dict] = None
+    ml_base_score: Optional[float] = None
+    personal_adjustment: Optional[float] = None
+    fusion_mode: Optional[str] = None
+    model_version: Optional[str] = None
+    ml_confidence: Optional[float] = None
+    # BLE / sensor quality fields (populated from latest device packet)
+    signal_quality: Optional[float] = None
+    hr_valid: Optional[bool] = None
+    spo2_valid: Optional[bool] = None
+    finger_present: Optional[bool] = None
+    source: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class PatientSummaryResponse(BaseModel):
+    """Compact summary of a patient's latest health data for doctor/relative views."""
+    patient_id: str
+    display_name: str
+    email: str
+    role: str
+    has_live_data: bool = False
+    latest_timestamp: Optional[datetime] = None
+    heart_rate: Optional[float] = None
+    heart_rate_valid: Optional[bool] = None
+    spo2: Optional[float] = None
+    spo2_valid: Optional[bool] = None
+    movement_percent: Optional[float] = None
+    risk_score: Optional[float] = None
+    risk_level: str = "unknown"
+    signal_quality: Optional[float] = None
+    last_seen_seconds: Optional[int] = None
+    finger_present: Optional[bool] = None
+    source: Optional[str] = None
 
 class AnomalyResponse(BaseModel):
     id: str
@@ -146,6 +178,11 @@ class AlertResponse(BaseModel):
 
 class AlertRespondRequest(BaseModel):
     action: str
+
+class HelpRequestResponse(BaseModel):
+    alert_id: str
+    notified_count: int
+    message: str
 
 class PostEventSessionResponse(BaseModel):
     id: str

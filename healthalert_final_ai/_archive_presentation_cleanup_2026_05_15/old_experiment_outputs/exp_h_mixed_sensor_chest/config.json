@@ -1,0 +1,12 @@
+{
+  "id": "exp_h_mixed_sensor_chest",
+  "strategy": "Mixed sensor variant chest",
+  "sources": [
+    "uci_har",
+    "pamap2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "normalization": "global_train_zscore",
+  "sampler": "shuffle",
+  "clip_after_norm": null
+}

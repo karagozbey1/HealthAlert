@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -42,7 +42,7 @@ class AppController extends ChangeNotifier {
     ApiClient? apiClient,
     bool demoMode = true,
     String backendUrl = 'http://localhost:8000',
-    String transportMode = 'auto',
+    String transportMode = 'off',
     BleDeviceService? bleService,
     TransportOrchestrator? transportOrchestrator,
     FirestoreSyncService? firestoreSync,
@@ -79,7 +79,7 @@ class AppController extends ChangeNotifier {
   ApiClient? _apiClient;
   bool _demoMode;
   String _backendUrl = 'http://localhost:8000';
-  final String _transportMode;
+  String _transportMode;
 
   final BleDeviceService _bleService;
   TransportOrchestrator? _transportOrchestrator;
@@ -157,6 +157,22 @@ class AppController extends ChangeNotifier {
       _transportOrchestrator?.transportLabel ?? 'Bağlantı yok';
   bool get isFirestoreSyncAvailable => _firestoreSync?.isAvailable ?? false;
 
+  /// Returns a reactive stream of [LiveStatus] for a monitored patient from
+  /// Firestore, or [null] if Firestore is not available.
+  Stream<LiveStatus?>? getFirestoreLiveStatusStream(String userId) {
+    if (!isFirestoreSyncAvailable || _firestoreSync == null) return null;
+    return _firestoreSync!.getLiveStatusStream(userId).map((doc) {
+      if (!doc.exists) return null;
+      try {
+        final data = doc.data();
+        if (data == null) return null;
+        return FirestoreSyncService.liveStatusFromFirestoreMap(data, userId);
+      } catch (_) {
+        return null;
+      }
+    });
+  }
+
   String? get selectedMonitoredUserId =>
       _monitoredUsers.isNotEmpty ? _monitoredUsers.first.id : null;
 
@@ -178,7 +194,8 @@ class AppController extends ChangeNotifier {
       _apiClient?.setToken(savedToken);
       try {
         if (isBackendMode) {
-          final data = await _apiClient!.get('/users/me') as Map<String, dynamic>;
+          final data =
+              await _apiClient!.get('/users/me') as Map<String, dynamic>;
           _user = UserProfile.fromJson(data);
         } else {
           _user = await _userRepository.getProfile(savedUserId);
@@ -196,6 +213,18 @@ class AppController extends ChangeNotifier {
         debugPrint('[AppController] Session restore failed: $e');
         await _clearSession();
       }
+    }
+
+    // Start BLE transport for unauthenticated demo/local mode (no saved session).
+    if (!_authenticated && _transportMode != 'off' && _transportOrchestrator != null) {
+      _transportPacketSub?.cancel();
+      _transportPacketSub =
+          _transportOrchestrator!.packetStream.listen(_onTransportPacket);
+      _transportStatusSub?.cancel();
+      _transportStatusSub =
+          _transportOrchestrator!.statusStream.listen(_onTransportStatus);
+      _transportOrchestrator!.start();
+      debugPrint('[AppController] BLE transport started in unauthenticated demo mode.');
     }
 
     _initialized = true;
@@ -218,7 +247,13 @@ class AppController extends ChangeNotifier {
   }
 
   void _startTransportLayer() {
-    if (_demoMode) return;
+    if (_transportMode == 'off') return;
+
+    _transportPacketSub?.cancel();
+    _transportPacketSub = null;
+    _transportStatusSub?.cancel();
+    _transportStatusSub = null;
+    _transportOrchestrator?.stop();
 
     _transportOrchestrator = TransportOrchestrator(
       bleService: _bleService,
@@ -227,11 +262,9 @@ class AppController extends ChangeNotifier {
       transportMode: _transportMode,
     );
 
-    _transportPacketSub?.cancel();
     _transportPacketSub =
         _transportOrchestrator!.packetStream.listen(_onTransportPacket);
 
-    _transportStatusSub?.cancel();
     _transportStatusSub =
         _transportOrchestrator!.statusStream.listen(_onTransportStatus);
 
@@ -243,7 +276,8 @@ class AppController extends ChangeNotifier {
 
     _transportOrchestrator!.start();
 
-    debugPrint('[AppController] Transport layer started for user ${_user?.id} (mode: $_transportMode)');
+    debugPrint(
+        '[AppController] Transport layer started for user ${_user?.id} (mode: $_transportMode)');
   }
 
   void _stopTransportLayer() {
@@ -266,7 +300,15 @@ class AppController extends ChangeNotifier {
   void _onTransportStatus(LiveStatus status) {
     _latestLiveStatus = status;
 
-    _firestoreSync?.syncLiveStatus(status);
+    if (_firestoreSync?.isAvailable ?? false) {
+      _firestoreSync!.writeLiveStatusForPatient(
+        _user?.id ?? status.userId,
+        status,
+        patientName: _user?.fullName,
+      );
+    } else {
+      _firestoreSync?.syncLiveStatus(status);
+    }
 
     notifyListeners();
   }
@@ -277,6 +319,23 @@ class AppController extends ChangeNotifier {
     } catch (e) {
       debugPrint('[AppController] Forward packet to backend failed: $e');
     }
+  }
+
+  /// Changes connection mode (ble_only | wifi_only | auto) and restarts transport.
+  Future<void> setConnectionMode(String mode) async {
+    // Normalize to the modes TransportOrchestrator understands.
+    final mapped = switch (mode) {
+      'ble' => 'ble_only',
+      'wifi' => 'wifi_only',
+      'auto' => 'auto',
+      _ => 'auto',
+    };
+    if (_transportMode == mapped) return;
+    _transportMode = mapped;
+    if (_authenticated && role == UserRole.self) {
+      _startTransportLayer();
+    }
+    notifyListeners();
   }
 
   Future<String?> switchToLive({String? url}) async {
@@ -330,7 +389,8 @@ class AppController extends ChangeNotifier {
     if (!isBackendMode || _user == null) return;
 
     try {
-      final List<dynamic> anomalyData = await _apiClient!.get('/anomalies') as List<dynamic>;
+      final List<dynamic> anomalyData =
+          await _apiClient!.get('/anomalies') as List<dynamic>;
       _anomalies = anomalyData
           .map((e) => AnomalyEvent.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -339,7 +399,8 @@ class AppController extends ChangeNotifier {
     }
 
     try {
-      final List<dynamic> historyData = await _apiClient!.get('/history') as List<dynamic>;
+      final List<dynamic> historyData =
+          await _apiClient!.get('/history') as List<dynamic>;
       _history = historyData
           .map((e) => _historyFromApiJson(e as Map<String, dynamic>))
           .toList();
@@ -348,7 +409,8 @@ class AppController extends ChangeNotifier {
     }
 
     try {
-      final List<dynamic> notifData = await _apiClient!.get('/notifications') as List<dynamic>;
+      final List<dynamic> notifData =
+          await _apiClient!.get('/notifications') as List<dynamic>;
       _notifications = notifData
           .map((e) => _notifFromApiJson(e as Map<String, dynamic>))
           .toList();
@@ -368,8 +430,9 @@ class AppController extends ChangeNotifier {
     try {
       final List<dynamic> relData =
           await _apiClient!.get('/link-codes/relations') as List<dynamic>;
-      _relations =
-          relData.map((e) => UserRelation.fromJson(e as Map<String, dynamic>)).toList();
+      _relations = relData
+          .map((e) => UserRelation.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       debugPrint('[AppController] relations load failed: $e');
     }
@@ -410,7 +473,8 @@ class AppController extends ChangeNotifier {
           ? () async {
               try {
                 final data = await _apiClient!.get('/live/${_user!.id}');
-                if (data is Map<String, dynamic>) return LiveStatus.fromJson(data);
+                if (data is Map<String, dynamic>)
+                  return LiveStatus.fromJson(data);
               } catch (e) {
                 debugPrint('[AppController] Live status fetch failed: $e');
               }
@@ -419,6 +483,9 @@ class AppController extends ChangeNotifier {
           : null,
     );
     _liveDataService!.stream.listen((status) {
+      if (_demoMode && _bleService.isConnected) {
+        return;
+      }
       _latestLiveStatus = status;
       notifyListeners();
     });
@@ -466,12 +533,13 @@ class AppController extends ChangeNotifier {
           final live = await getLiveStatusForUser(user.id, notify: false);
           if (live != null) {
             final prev = _monitoredLiveStatuses[user.id];
-            if (prev == null || prev.timestamp != live.timestamp || prev.scenario != live.scenario) {
+            if (prev == null ||
+                prev.timestamp != live.timestamp ||
+                prev.scenario != live.scenario) {
               changed = true;
             }
           }
-        } catch (_) {
-        }
+        } catch (_) {}
       }
       if (changed) notifyListeners();
     } finally {
@@ -508,7 +576,8 @@ class AppController extends ChangeNotifier {
         (r) => r.name == roleStr,
         orElse: () => UserRole.self,
       );
-      final userData = await _apiClient!.get('/users/me') as Map<String, dynamic>;
+      final userData =
+          await _apiClient!.get('/users/me') as Map<String, dynamic>;
       _user = UserProfile.fromJson(userData);
 
       _authenticated = true;
@@ -539,7 +608,8 @@ class AppController extends ChangeNotifier {
     if (mappedRole == null) return false;
 
     const userId = 'u1';
-    _user = (await _userRepository.getProfile(userId)).copyWith(role: mappedRole);
+    _user =
+        (await _userRepository.getProfile(userId)).copyWith(role: mappedRole);
     await _sessionRepository.saveSession(userId);
     await LocalStore.setString('user_role', mappedRole.name);
     _authenticated = true;
@@ -561,14 +631,17 @@ class AppController extends ChangeNotifier {
     }
 
     try {
-      final data = await _apiClient!.post('/auth/register', {
-        'email': email.trim(),
-        'password': password,
-        'role': role.name.toUpperCase(),
-        'full_name': fullName.trim(),
-        if (phone != null) 'phone': phone,
-        if (birthDate != null) 'birth_date': birthDate,
-      }, auth: false);
+      final data = await _apiClient!.post(
+          '/auth/register',
+          {
+            'email': email.trim(),
+            'password': password,
+            'role': role.name.toUpperCase(),
+            'full_name': fullName.trim(),
+            if (phone != null) 'phone': phone,
+            if (birthDate != null) 'birth_date': birthDate,
+          },
+          auth: false);
 
       _authToken = data['access_token'] as String;
       _apiClient!.setToken(_authToken!);
@@ -576,7 +649,8 @@ class AppController extends ChangeNotifier {
       await LocalStore.setString('session_user_id', data['user_id'] as String);
       await LocalStore.setString('user_role', role.name);
 
-      final userData = await _apiClient!.get('/users/me') as Map<String, dynamic>;
+      final userData =
+          await _apiClient!.get('/users/me') as Map<String, dynamic>;
       _user = UserProfile.fromJson(userData);
 
       _authenticated = true;
@@ -640,13 +714,16 @@ class AppController extends ChangeNotifier {
   Future<void> saveSettings(AppSettings s) async {
     final previousBatteryMode = _settings.batteryMode;
     _settings = await _settingsRepository.saveSettings(s);
-    _deviceState = _deviceState.copyWith(mode: s.batteryMode, lastSync: DateTime.now());
+    _deviceState =
+        _deviceState.copyWith(mode: s.batteryMode, lastSync: DateTime.now());
     await _deviceRepository.saveState(_deviceState);
 
     if (role == UserRole.self && s.batteryMode != previousBatteryMode) {
       _startLiveDataPolling();
     }
-    if (role != UserRole.self && s.batteryMode != previousBatteryMode && isBackendMode) {
+    if (role != UserRole.self &&
+        s.batteryMode != previousBatteryMode &&
+        isBackendMode) {
       _startMonitoredLivePolling();
     }
 
@@ -699,7 +776,8 @@ class AppController extends ChangeNotifier {
   Future<void> refreshNotifications() async {
     if (isBackendMode) {
       try {
-        final List<dynamic> data = await _apiClient!.get('/notifications') as List<dynamic>;
+        final List<dynamic> data =
+            await _apiClient!.get('/notifications') as List<dynamic>;
         _notifications = data
             .map((e) => _notifFromApiJson(e as Map<String, dynamic>))
             .toList();
@@ -752,7 +830,8 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> raiseAlertFromAnomaly(AnomalyEvent anomaly) async {
-    final recommendations = _recommendationService.forSeverity(anomaly.severity);
+    final recommendations =
+        _recommendationService.forSeverity(anomaly.severity);
     final alert = AlertEvent(
       id: 'al_${DateTime.now().millisecondsSinceEpoch}',
       title: '${anomaly.metric} alert',
@@ -761,7 +840,8 @@ class AppController extends ChangeNotifier {
       status: AlertLifecycleStatus.raised,
       createdAt: DateTime.now(),
       countdownTotalSec: anomaly.severity == AlertSeverity.critical ? 30 : 20,
-      countdownRemainingSec: anomaly.severity == AlertSeverity.critical ? 30 : 20,
+      countdownRemainingSec:
+          anomaly.severity == AlertSeverity.critical ? 30 : 20,
       recommendations: recommendations,
       relatedAnomalyId: anomaly.id,
     );
@@ -803,7 +883,8 @@ class AppController extends ChangeNotifier {
 
     if (isBackendMode) {
       try {
-        await _apiClient!.put('/alerts/${_activeAlert!.id}/respond', {'action': 'OKAY'});
+        await _apiClient!
+            .put('/alerts/${_activeAlert!.id}/respond', {'action': 'OKAY'});
       } catch (_) {}
     }
 
@@ -832,7 +913,8 @@ class AppController extends ChangeNotifier {
 
     if (isBackendMode) {
       try {
-        await _apiClient!.put('/alerts/${_activeAlert!.id}/respond', {'action': 'EMERGENCY'});
+        await _apiClient!.put(
+            '/alerts/${_activeAlert!.id}/respond', {'action': 'EMERGENCY'});
       } catch (_) {}
     }
 
@@ -929,8 +1011,11 @@ class AppController extends ChangeNotifier {
   Future<void> loadLinkCodes() async {
     if (isBackendMode) {
       try {
-        final List<dynamic> data = await _apiClient!.get('/link-codes/mine') as List<dynamic>;
-        _linkCodes = data.map((e) => LinkCode.fromJson(e as Map<String, dynamic>)).toList();
+        final List<dynamic> data =
+            await _apiClient!.get('/link-codes/mine') as List<dynamic>;
+        _linkCodes = data
+            .map((e) => LinkCode.fromJson(e as Map<String, dynamic>))
+            .toList();
         notifyListeners();
       } catch (_) {}
     }
@@ -962,8 +1047,11 @@ class AppController extends ChangeNotifier {
   Future<void> loadRelations() async {
     if (isBackendMode) {
       try {
-        final List<dynamic> data = await _apiClient!.get('/link-codes/relations') as List<dynamic>;
-        _relations = data.map((e) => UserRelation.fromJson(e as Map<String, dynamic>)).toList();
+        final List<dynamic> data =
+            await _apiClient!.get('/link-codes/relations') as List<dynamic>;
+        _relations = data
+            .map((e) => UserRelation.fromJson(e as Map<String, dynamic>))
+            .toList();
         notifyListeners();
       } catch (_) {}
     }
@@ -990,50 +1078,72 @@ class AppController extends ChangeNotifier {
     try {
       if (isBackendMode) {
         try {
-          final List<dynamic> relData = await _apiClient!.get('/link-codes/relations') as List<dynamic>;
-          _relations = relData.map((e) => UserRelation.fromJson(e as Map<String, dynamic>)).toList();
-
-          final users = <UserProfile>[];
-          for (final rel in _relations) {
-            try {
-              final userData = await _apiClient!.get('/users/${rel.selfUserId}') as Map<String, dynamic>;
-              users.add(UserProfile.fromJson(userData));
-            } catch (_) {}
-          }
-          _monitoredUsers = users;
+          // Primary path: use the role-aware /patients/accessible endpoint.
+          final List<Map<String, dynamic>> patientsData =
+              await _apiClient!.getAccessiblePatients();
+          _monitoredUsers =
+              patientsData.map((e) => UserProfile.fromJson(e)).toList();
+          // Also refresh relations for backward compatibility.
+          try {
+            final List<dynamic> relData =
+                await _apiClient!.get('/link-codes/relations') as List<dynamic>;
+            _relations = relData
+                .map((e) => UserRelation.fromJson(e as Map<String, dynamic>))
+                .toList();
+          } catch (_) {}
         } catch (e) {
-          debugPrint('[AppController] loadMonitoredUsers failed: $e');
+          debugPrint('[AppController] loadMonitoredUsers via /patients/accessible failed: $e — falling back to relations');
+          // Fallback: use /link-codes/relations + /users/{id} per relation.
+          try {
+            final List<dynamic> relData =
+                await _apiClient!.get('/link-codes/relations') as List<dynamic>;
+            _relations = relData
+                .map((e) => UserRelation.fromJson(e as Map<String, dynamic>))
+                .toList();
+
+            final users = <UserProfile>[];
+            for (final rel in _relations) {
+              try {
+                final userData = await _apiClient!.get('/users/${rel.selfUserId}')
+                    as Map<String, dynamic>;
+                users.add(UserProfile.fromJson(userData));
+              } catch (_) {}
+            }
+            _monitoredUsers = users;
+          } catch (e2) {
+            debugPrint('[AppController] loadMonitoredUsers fallback failed: $e2');
+          }
         }
       } else {
         _monitoredUsers = const [
-        UserProfile(
-          id: 'demo_self_1',
-          fullName: 'Ali Yilmaz',
-          email: 'ali@demo.com',
-          phone: '+90 555 100 0001',
-          birthDate: '1965-03-15',
-          deviceId: 'WH-DEMO-01',
-          role: UserRole.self,
-        ),
-        UserProfile(
-          id: 'demo_self_2',
-          fullName: 'Fatma Demir',
-          email: 'fatma@demo.com',
-          phone: '+90 555 100 0002',
-          birthDate: '1970-08-21',
-          deviceId: 'WH-DEMO-02',
-          role: UserRole.self,
-        ),
-        UserProfile(
-          id: 'demo_self_3',
-          fullName: 'Mehmet Kaya',
-          email: 'mehmet@demo.com',
-          phone: '+90 555 100 0003',
-          birthDate: '1958-01-03',
-          deviceId: 'WH-DEMO-03',
-          role: UserRole.self,
-        ),
-      ];
+          UserProfile(
+            id: 'demo_self_1',
+            fullName: 'Ali Yilmaz',
+            email: 'ali@demo.com',
+            phone: '+90 555 100 0001',
+            birthDate: '1965-03-15',
+            deviceId: 'WH-DEMO-01',
+            role: UserRole.self,
+          ),
+          UserProfile(
+            id: 'demo_self_2',
+            fullName: 'Fatma Demir',
+            email: 'fatma@demo.com',
+            phone: '+90 555 100 0002',
+            birthDate: '1970-08-21',
+            deviceId: 'WH-DEMO-02',
+            role: UserRole.self,
+          ),
+          UserProfile(
+            id: 'demo_self_3',
+            fullName: 'Mehmet Kaya',
+            email: 'mehmet@demo.com',
+            phone: '+90 555 100 0003',
+            birthDate: '1958-01-03',
+            deviceId: 'WH-DEMO-03',
+            role: UserRole.self,
+          ),
+        ];
       }
       notifyListeners();
     } finally {
@@ -1041,24 +1151,36 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<LiveStatus?> getLiveStatusForUser(String userId, {bool notify = true}) async {
+  Future<LiveStatus?> getLiveStatusForUser(String userId,
+      {bool notify = true}) async {
     if (isBackendMode) {
       try {
-        final data = await _apiClient!.get('/live/$userId') as Map<String, dynamic>;
-        final live = LiveStatus.fromJson(data);
-        _monitoredLiveStatuses[userId] = live;
-        if (notify) notifyListeners();
-        return live;
+        // Try the new /patients/{userId}/live endpoint first; fall back to /live/{userId}.
+        Map<String, dynamic>? data;
+        try {
+          data = await _apiClient!.getPatientLive(userId);
+        } catch (_) {
+          final raw = await _apiClient!.get('/live/$userId');
+          if (raw is Map<String, dynamic>) data = raw;
+        }
+        if (data != null) {
+          final live = LiveStatus.fromJson(data);
+          _monitoredLiveStatuses[userId] = live;
+          if (notify) notifyListeners();
+          return live;
+        }
       } catch (_) {
         return _monitoredLiveStatuses[userId];
       }
+      return _monitoredLiveStatuses[userId];
     }
     final now = DateTime.now();
     final seed = userId.codeUnits.fold<int>(0, (sum, ch) => sum + ch);
     final profile = seed % 3;
     final wave = math.sin((now.millisecondsSinceEpoch / 1000.0) + seed / 10.0);
 
-    double clamp(double v, double min, double max) => v < min ? min : (v > max ? max : v);
+    double clamp(double v, double min, double max) =>
+        v < min ? min : (v > max ? max : v);
 
     double heartRate;
     double spo2;
@@ -1104,9 +1226,11 @@ class AppController extends ChangeNotifier {
   Future<List<AlertEvent>> getAlertsForUser(String userId) async {
     if (isBackendMode) {
       try {
-        final List<dynamic> data =
-            await _apiClient!.get('/alerts/$userId/for-linked') as List<dynamic>;
-        return data.map((e) => _alertFromApiJson(e as Map<String, dynamic>)).toList();
+        final List<dynamic> data = await _apiClient!
+            .get('/alerts/$userId/for-linked') as List<dynamic>;
+        return data
+            .map((e) => _alertFromApiJson(e as Map<String, dynamic>))
+            .toList();
       } catch (_) {
         return const [];
       }
@@ -1136,7 +1260,10 @@ class AppController extends ChangeNotifier {
         createdAt: now.subtract(const Duration(days: 3)),
         countdownTotalSec: 30,
         countdownRemainingSec: 0,
-        recommendations: ['Acil risk tespit edildi.', 'Bulunduğunuz yerde kalın.'],
+        recommendations: [
+          'Acil risk tespit edildi.',
+          'Bulunduğunuz yerde kalın.'
+        ],
         relatedAnomalyId: null,
       ),
     ];
@@ -1145,8 +1272,11 @@ class AppController extends ChangeNotifier {
   Future<List<HistoryItem>> getHistoryForUser(String userId) async {
     if (isBackendMode) {
       try {
-        final List<dynamic> data = await _apiClient!.get('/history/$userId') as List<dynamic>;
-        return data.map((e) => _historyFromApiJson(e as Map<String, dynamic>)).toList();
+        final List<dynamic> data =
+            await _apiClient!.get('/history/$userId') as List<dynamic>;
+        return data
+            .map((e) => _historyFromApiJson(e as Map<String, dynamic>))
+            .toList();
       } catch (_) {
         return const [];
       }
@@ -1157,7 +1287,8 @@ class AppController extends ChangeNotifier {
         id: 'demo_h1',
         type: HistoryItemType.alert,
         title: 'Kritik SpO2 Alarmı',
-        subtitle: 'Oksijen doygunluğu %88\'e düştü. Acil kişiler bilgilendirildi.',
+        subtitle:
+            'Oksijen doygunluğu %88\'e düştü. Acil kişiler bilgilendirildi.',
         timestamp: now.subtract(const Duration(days: 3)),
         severity: AlertSeverity.critical,
       ),
@@ -1181,13 +1312,16 @@ class AppController extends ChangeNotifier {
   }
 
   Future<List<ClinicalNote>> getClinicalNotes(String patientId) async {
-    if (_clinicalNotes.containsKey(patientId)) return _clinicalNotes[patientId]!;
+    if (_clinicalNotes.containsKey(patientId))
+      return _clinicalNotes[patientId]!;
 
     if (isBackendMode) {
       try {
-        final List<dynamic> data =
-            await _apiClient!.get('/clinical-notes/$patientId') as List<dynamic>;
-        final notes = data.map((e) => ClinicalNote.fromJson(e as Map<String, dynamic>)).toList();
+        final List<dynamic> data = await _apiClient!
+            .get('/clinical-notes/$patientId') as List<dynamic>;
+        final notes = data
+            .map((e) => ClinicalNote.fromJson(e as Map<String, dynamic>))
+            .toList();
         _clinicalNotes[patientId] = notes;
         return notes;
       } catch (_) {}
@@ -1209,7 +1343,10 @@ class AppController extends ChangeNotifier {
           if (recommendation != null) 'recommendation': recommendation,
         }) as Map<String, dynamic>;
         final created = ClinicalNote.fromJson(data);
-        _clinicalNotes[patientId] = [created, ...(_clinicalNotes[patientId] ?? [])];
+        _clinicalNotes[patientId] = [
+          created,
+          ...(_clinicalNotes[patientId] ?? [])
+        ];
         notifyListeners();
         return created;
       } catch (_) {}
@@ -1252,4 +1389,3 @@ class AppController extends ChangeNotifier {
     super.dispose();
   }
 }
-

@@ -1,0 +1,26 @@
+{
+  "walking": {
+    "precision": 0.999,
+    "recall": 0.9508,
+    "f1": 0.9743,
+    "support": 1098
+  },
+  "sitting": {
+    "precision": 0.5626,
+    "recall": 0.7615,
+    "f1": 0.6471,
+    "support": 478
+  },
+  "standing": {
+    "precision": 0.6819,
+    "recall": 0.5387,
+    "f1": 0.6019,
+    "support": 581
+  },
+  "lying": {
+    "precision": 0.8503,
+    "recall": 0.8591,
+    "f1": 0.8547,
+    "support": 575
+  }
+}

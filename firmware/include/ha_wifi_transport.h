@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include "ha_config.h"
+#include "ha_debug.h"
 
 class HaWifiTransport {
 public:
@@ -14,7 +15,7 @@ public:
     // Sensörü başlatır.
     bool begin() {
         if (strlen(WIFI_SSID) == 0) {
-            Serial.println("[WiFi] No SSID configured. Wi-Fi transport disabled.");
+            HA_SERIAL_PRINTLN("[WiFi] No SSID configured. Wi-Fi transport disabled.");
             _state = FAILED;
             return false;
         }
@@ -25,7 +26,7 @@ public:
         }
 
         _state = CONNECTING;
-        Serial.printf("[WiFi] Connecting to %s...\n", WIFI_SSID);
+        HA_SERIAL_PRINTF("[WiFi] Connecting to %s...\n", WIFI_SSID);
 
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -33,7 +34,7 @@ public:
         unsigned long start = millis();
         while (WiFi.status() != WL_CONNECTED) {
             if (millis() - start > WIFI_CONNECT_TIMEOUT_MS) {
-                Serial.println("[WiFi] Connection timeout.");
+                HA_SERIAL_PRINTLN("[WiFi] Connection timeout.");
                 _state = FAILED;
                 _lastConnectAttempt = millis();
                 return false;
@@ -43,7 +44,7 @@ public:
 
         _state = CONNECTED;
         _lastConnectAttempt = millis();
-        Serial.printf("[WiFi] Connected. IP: %s\n", WiFi.localIP().toString().c_str());
+        HA_SERIAL_PRINTF("[WiFi] Connected. IP: %s\n", WiFi.localIP().toString().c_str());
         return true;
     }
 
@@ -57,7 +58,7 @@ public:
         }
 
         HTTPClient http;
-        String url = String(WIFI_BACKEND_URL) + "/ingest/device-packet";
+        String url = String(WIFI_BACKEND_URL) + "/api/healthalert/sensor-sample";
         http.begin(url);
         http.addHeader("Content-Type", "application/json");
 
@@ -75,11 +76,15 @@ public:
         } else {
             _consecutiveFailures++;
             if (_consecutiveFailures % 10 == 1) {
-                Serial.printf("[WiFi] POST failed: HTTP %d (failures: %d)\n",
+                HA_SERIAL_PRINTF("[WiFi] POST failed: HTTP %d (failures: %d)\n",
                               httpCode, _consecutiveFailures);
             }
             return false;
         }
+    }
+
+    bool sendRawSample(const char* jsonBuf) {
+        return sendPacket(jsonBuf);
     }
 
     bool isConnected() const {
@@ -94,7 +99,7 @@ public:
         WiFi.disconnect(true);
         WiFi.mode(WIFI_OFF);
         _state = OFF;
-        Serial.println("[WiFi] Disconnected.");
+        HA_SERIAL_PRINTLN("[WiFi] Disconnected.");
     }
 
     void setAuthToken(const char* token) {

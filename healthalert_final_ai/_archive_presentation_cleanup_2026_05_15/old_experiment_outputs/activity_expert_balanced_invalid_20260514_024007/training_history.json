@@ -1,0 +1,14 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 0.74188,
+    "val_loss": 0.45273,
+    "val_macro_f1": 0.29632,
+    "val_weighted_f1": 0.88539,
+    "val_accuracy": 0.8988,
+    "n_pred_classes": 3,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "collapse: only 3 class(es) predicted",
+    "best_checkpoint_saved": false
+  }
+]

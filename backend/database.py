@@ -61,6 +61,26 @@ def _apply_schema_guards(sync_conn) -> None:
                     "Schema guard: added column personal_health_profiles.%s", col
                 )
 
+    rows = sync_conn.execute(text("PRAGMA table_info(model_window_logs)")).fetchall()
+    if rows:
+        existing_cols = {row[1] for row in rows}
+        guards = [
+            ("ml_base_score", "FLOAT"),
+            ("personalized_risk_score", "FLOAT"),
+            ("personal_adjustment", "FLOAT"),
+            ("quality_adjustment", "FLOAT"),
+            ("safety_adjustment", "FLOAT"),
+            ("ml_confidence", "FLOAT"),
+            ("fusion_mode", "VARCHAR(50)"),
+            ("model_version", "VARCHAR(100)"),
+        ]
+        for col, ddl in guards:
+            if col not in existing_cols:
+                sync_conn.execute(
+                    text(f"ALTER TABLE model_window_logs ADD COLUMN {col} {ddl}")
+                )
+                logger.info("Schema guard: added column model_window_logs.%s", col)
+
 
 # Tüm tabloları yoksa oluşturur; mevcut tablolara eksik kolonları ekler.
 async def init_db() -> None:

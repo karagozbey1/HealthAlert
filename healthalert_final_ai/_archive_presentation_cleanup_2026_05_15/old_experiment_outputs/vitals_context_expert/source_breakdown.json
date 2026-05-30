@@ -1,0 +1,24 @@
+{
+  "PPG-DaLiA": {
+    "n": 14032,
+    "accuracy": 1.0,
+    "macro_f1": 0.3333,
+    "class_dist": {
+      "active_like": 14032
+    },
+    "available_class_recall": {
+      "active_like": 1.0
+    }
+  },
+  "WESAD": {
+    "n": 8097,
+    "accuracy": 0.9999,
+    "macro_f1": 0.3333,
+    "class_dist": {
+      "rest_like": 8097
+    },
+    "available_class_recall": {
+      "rest_like": 0.9999
+    }
+  }
+}

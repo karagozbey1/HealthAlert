@@ -30,8 +30,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadData();
+      _startAutoRefresh();
     });
-    _startAutoRefresh();
   }
 
   /// Kaynakları serbest bırakır.
@@ -43,9 +43,10 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
   void _startAutoRefresh() {
     _autoRefreshTimer?.cancel();
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+    _autoRefreshTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       _loadData(isRefresh: true);
+      _startAutoRefresh(); // reschedule with recalculated interval
     });
   }
 
@@ -67,14 +68,17 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         try {
           final live = await app.getLiveStatusForUser(user.id);
           _liveData[user.id] = live;
-        } catch (_) {
-        }
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint('[DoctorDashboard] _loadData error: $e');
     } finally {
       _loadInProgress = false;
-      if (mounted) setState(() { _loading = false; _refreshing = false; });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _refreshing = false;
+        });
     }
   }
 
@@ -91,7 +95,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     final alertCount = statuses.where((s) => s.isAlert).length;
     final avgRisk = statuses.isEmpty
         ? 0.0
-        : statuses.map((s) => s.riskScore).reduce((a, b) => a + b) / statuses.length;
+        : statuses.map((s) => s.riskScore).reduce((a, b) => a + b) /
+            statuses.length;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 100),
@@ -100,16 +105,33 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         children: [
           Text('Dr. $name', style: AppTheme.darkTheme.textTheme.displayMedium),
           const SizedBox(height: 4),
-          Text(
-            '${patients.length} hasta izleniyor',
-            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(color: Colors.white54),
+          Row(
+            children: [
+              Text(
+                '${patients.length} hasta izleniyor',
+                style: AppTheme.darkTheme.textTheme.bodyMedium
+                    ?.copyWith(color: Colors.white54),
+              ),
+              const SizedBox(width: 10),
+              if (_refreshing)
+                const SizedBox(
+                  width: 10,
+                  height: 10,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 1.5, color: Colors.amberAccent),
+                )
+              else
+                const Icon(Icons.autorenew, size: 12, color: Colors.white24),
+            ],
           ),
           const SizedBox(height: 14),
           GlassCard(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                Expanded(child: _summaryMetric('Alarm', '$alertCount', AppTheme.warning)),
+                Expanded(
+                    child: _summaryMetric(
+                        'Alarm', '$alertCount', AppTheme.warning)),
                 Expanded(
                   child: _summaryMetric(
                     'Ortalama Risk',
@@ -128,9 +150,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
           if (_loading)
-            const Center(child: Padding(
+            const Center(
+                child: Padding(
               padding: EdgeInsets.all(48),
               child: CircularProgressIndicator(color: Colors.amberAccent),
             ))
@@ -139,21 +161,21 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           else ...[
             ...patients.map((p) => _patientCard(p)),
           ],
-
           const SizedBox(height: 16),
           if (_refreshing)
-            const LinearProgressIndicator(color: Colors.amberAccent, backgroundColor: Colors.transparent)
+            const LinearProgressIndicator(
+                color: Colors.amberAccent, backgroundColor: Colors.transparent)
           else
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _loadData(isRefresh: true),
-                icon: const Icon(Icons.refresh, color: Colors.amberAccent),
-                label: const Text('Yenile', style: TextStyle(color: Colors.amberAccent)),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.amberAccent.withOpacity(0.4)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.autorenew, color: Colors.white24, size: 13),
+                  const SizedBox(width: 6),
+                  const Text('Otomatik güncelleniyor · 3 sn',
+                      style: TextStyle(color: Colors.white24, fontSize: 11)),
+                ],
               ),
             ),
         ],
@@ -165,11 +187,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+        Text(label,
+            style: const TextStyle(color: Colors.white38, fontSize: 10)),
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15),
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ],
     );
@@ -209,7 +233,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amberAccent,
               foregroundColor: Colors.black87,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],
@@ -225,7 +250,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => PatientDetailScreen(patient: patient)),
+        MaterialPageRoute(
+            builder: (_) => PatientDetailScreen(patient: patient)),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
@@ -234,7 +260,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           borderRadius: BorderRadius.circular(16),
           color: AppTheme.surface.withOpacity(0.5),
           border: Border.all(
-            color: hasAlert ? Colors.redAccent.withOpacity(0.5) : Colors.white10,
+            color:
+                hasAlert ? Colors.redAccent.withOpacity(0.5) : Colors.white10,
           ),
         ),
         child: Column(
@@ -245,7 +272,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   radius: 22,
                   backgroundColor: Colors.amberAccent.withOpacity(0.15),
                   child: Text(
-                    patient.fullName.isNotEmpty ? patient.fullName[0].toUpperCase() : '?',
+                    patient.fullName.isNotEmpty
+                        ? patient.fullName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
                         color: Colors.amberAccent,
                         fontWeight: FontWeight.bold,
@@ -263,17 +292,20 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                               fontWeight: FontWeight.bold,
                               fontSize: 15)),
                       Text(patient.email,
-                          style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 12)),
                     ],
                   ),
                 ),
                 if (hasAlert)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.redAccent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+                      border:
+                          Border.all(color: Colors.redAccent.withOpacity(0.4)),
                     ),
                     child: const Text('ALARM',
                         style: TextStyle(
@@ -292,8 +324,10 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _metric('HR', live.heartRate.toStringAsFixed(0), 'bpm', AppTheme.secondary),
-                  _metric('SpO₂', live.spo2.toStringAsFixed(1), '%', AppTheme.primary),
+                  _metric('HR', live.heartRate.toStringAsFixed(0), 'bpm',
+                      AppTheme.secondary),
+                  _metric('SpO₂', live.spo2.toStringAsFixed(1), '%',
+                      AppTheme.primary),
                   _metric(
                     'Risk',
                     '${(live.riskScore * 100).toStringAsFixed(0)}%',
@@ -302,6 +336,27 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 6),
+              Builder(builder: (_) {
+                final diff = DateTime.now().difference(live.timestamp);
+                final isStale = diff.inSeconds > 60;
+                final label = diff.inSeconds < 60
+                    ? 'Son güncelleme: ${diff.inSeconds}s önce'
+                    : diff.inMinutes < 60
+                        ? 'Son güncelleme: ${diff.inMinutes} dk önce'
+                        : 'Veri gecikti (${diff.inHours}sa)';
+                return Row(children: [
+                  Icon(
+                      isStale ? Icons.warning_amber_rounded : Icons.access_time,
+                      size: 11,
+                      color: isStale ? AppTheme.warning : Colors.white24),
+                  const SizedBox(width: 4),
+                  Text(label,
+                      style: TextStyle(
+                          color: isStale ? AppTheme.warning : Colors.white30,
+                          fontSize: 10)),
+                ]);
+              }),
             ],
           ],
         ),
@@ -312,7 +367,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   Widget _metric(String label, String value, String unit, Color color) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+        Text(label,
+            style: const TextStyle(color: Colors.white38, fontSize: 10)),
         const SizedBox(height: 2),
         RichText(
           text: TextSpan(
@@ -324,7 +380,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               if (unit.isNotEmpty)
                 TextSpan(
                     text: ' $unit',
-                    style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                    style:
+                        const TextStyle(color: Colors.white38, fontSize: 10)),
             ],
           ),
         ),

@@ -1,0 +1,13 @@
+﻿{
+    "final_decision":  "REJECT_VITALS_CONTEXT_EXPERT",
+    "checkpoint_valid_training":  true,
+    "application_valid":  false,
+    "best_model_path":  "outputs/hybrid_redesign/vitals_context_expert/best_model.pt",
+    "risk_fusion_use":  "disabled",
+    "reason":  [
+                   "poor_signal support is zero",
+                   "abnormal_trend has no supervised examples",
+                   "source/domain confounding risk",
+                   "checkpoint must not be connected to RiskFusionEngine"
+               ]
+}

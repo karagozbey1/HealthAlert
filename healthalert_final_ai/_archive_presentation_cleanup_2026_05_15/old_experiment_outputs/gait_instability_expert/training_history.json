@@ -1,0 +1,112 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 0.57234,
+    "val_loss": 0.55105,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 2,
+    "train_loss": 0.28558,
+    "val_loss": 0.20791,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 3,
+    "train_loss": 0.09855,
+    "val_loss": 0.0567,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 4,
+    "train_loss": 0.03458,
+    "val_loss": 0.01979,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 5,
+    "train_loss": 0.01664,
+    "val_loss": 0.01057,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 6,
+    "train_loss": 0.01008,
+    "val_loss": 0.00698,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 7,
+    "train_loss": 0.00746,
+    "val_loss": 0.00512,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 8,
+    "train_loss": 0.00573,
+    "val_loss": 0.00399,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 9,
+    "train_loss": 0.00456,
+    "val_loss": 0.0032,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  },
+  {
+    "epoch": 10,
+    "train_loss": 0.0038,
+    "val_loss": 0.00266,
+    "val_accuracy": 1.0,
+    "val_macro_f1": 0.5,
+    "n_pred_classes": 1,
+    "checkpoint_valid": false,
+    "checkpoint_reason": "single-class collapse",
+    "best_checkpoint_saved": false
+  }
+]

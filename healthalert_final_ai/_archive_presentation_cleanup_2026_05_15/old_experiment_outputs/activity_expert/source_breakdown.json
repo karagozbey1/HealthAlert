@@ -1,0 +1,34 @@
+{
+  "SisFall": {
+    "n": 6962,
+    "macro_f1": 0.2362,
+    "class_dist": {
+      "normal": 944,
+      "instability": 6018
+    }
+  },
+  "UCI-HAR": {
+    "n": 1285,
+    "macro_f1": 0.7335,
+    "class_dist": {
+      "walking": 613,
+      "sitting": 218,
+      "standing": 222,
+      "lying": 232
+    }
+  },
+  "UMAFall": {
+    "n": 36492,
+    "macro_f1": 0.3328,
+    "class_dist": {
+      "normal": 36492
+    }
+  },
+  "UniMiB-SHAR": {
+    "n": 1167,
+    "macro_f1": 0.4998,
+    "class_dist": {
+      "normal": 1167
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "S01": {
+    "n": 956,
+    "recordings": [
+      "S01_R01",
+      "S01_R02"
+    ],
+    "accuracy": 0.4048,
+    "macro_f1": 0.3592,
+    "stable_support": 878,
+    "abnormal_support": 78,
+    "stable_recall": 0.3656,
+    "abnormal_recall": 0.8462,
+    "predicted_stable": 333,
+    "predicted_abnormal": 623
+  },
+  "S02": {
+    "n": 711,
+    "recordings": [
+      "S02_R01",
+      "S02_R02"
+    ],
+    "accuracy": 0.481,
+    "macro_f1": 0.4678,
+    "stable_support": 593,
+    "abnormal_support": 118,
+    "stable_recall": 0.3828,
+    "abnormal_recall": 0.9746,
+    "predicted_stable": 230,
+    "predicted_abnormal": 481
+  }
+}

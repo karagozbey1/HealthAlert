@@ -10,6 +10,11 @@ import '../models/live_status.dart';
 bool _firestoreAvailable = false;
 FirebaseFirestore? _firestore;
 
+/// Initialises Firestore connection.
+///
+/// Only requires [projectId] to be non-empty; no network ping is needed
+/// because [FirebaseFirestore.instance] succeeds once [Firebase.initializeApp]
+/// has been called.  Actual read/write failures are handled per-operation.
 Future<bool> initFirestoreSync({
   required String projectId,
 }) async {
@@ -19,14 +24,9 @@ Future<bool> initFirestoreSync({
   }
 
   try {
-    final instance = FirebaseFirestore.instance;
-    await instance.collection('healthcheck').doc('ping').get().timeout(
-      const Duration(seconds: 5),
-      onTimeout: () => throw TimeoutException('Firestore ping timeout'),
-    );
-    _firestore = instance;
+    _firestore = FirebaseFirestore.instance;
     _firestoreAvailable = true;
-    debugPrint('[FirestoreSync] Firestore connected (project: $projectId)');
+    debugPrint('[FirestoreSync] Firestore ready (project: $projectId)');
     return true;
   } catch (e) {
     debugPrint('[FirestoreSync] Firestore init failed: $e – sync disabled');
@@ -103,21 +103,180 @@ class FirestoreSyncService extends ChangeNotifier {
     if (!_firestoreAvailable || _firestore == null) return;
 
     try {
-      await _writeToFirestore('live_status', status.userId, {
-        'id': status.id,
-        'user_id': status.userId,
-        'heart_rate': status.heartRate,
-        'spo2': status.spo2,
-        'motion_score': status.motionScore,
-        'risk_score': status.riskScore,
-        'scenario': status.scenario,
-        'timestamp': status.timestamp.toIso8601String(),
-      });
+      await _writeToFirestore('live_status', status.userId, _buildLiveStatusMap(
+        patientId: status.userId,
+        status: status,
+      ));
     } catch (e) {
       debugPrint('[FirestoreSync] Live status sync failed: $e');
       _lastError = e.toString();
       notifyListeners();
     }
+  }
+
+  /// Writes a patient's live status to Firestore [live_status/{patientId}].
+  /// Called from patient phone when BLE data arrives.
+  Future<void> writeLiveStatusForPatient(
+    String patientId,
+    LiveStatus status, {
+    String? patientName,
+  }) async {
+    if (!_firestoreAvailable || _firestore == null) return;
+    try {
+      await _writeToFirestore(
+        'live_status',
+        patientId,
+        _buildLiveStatusMap(
+          patientId: patientId,
+          status: status,
+          patientName: patientName,
+        ),
+      );
+    } catch (e) {
+      debugPrint('[FirestoreSync] writeLiveStatusForPatient failed: $e');
+      _lastError = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Returns a real-time stream for [live_status/{patientId}].
+  /// Used by doctor/relative screens to receive updates without polling.
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getLiveStatusStream(String patientId) {
+    if (!_firestoreAvailable || _firestore == null) {
+      return const Stream.empty();
+    }
+    return _firestore!
+        .collection('live_status')
+        .doc(patientId)
+        .snapshots();
+  }
+
+  /// Converts a Firestore [live_status] document map to a [LiveStatus].
+  static LiveStatus liveStatusFromFirestoreMap(
+      Map<String, dynamic> data, String patientId) {
+    DateTime parseTs(dynamic v) {
+      if (v == null) return DateTime.now();
+      if (v is Timestamp) return v.toDate();
+      if (v is String) {
+        try { return DateTime.parse(v); } catch (_) {}
+      }
+      return DateTime.now();
+    }
+
+    return LiveStatus(
+      id: data['id'] as String? ?? '',
+      userId: data['patient_id'] as String? ?? data['user_id'] as String? ?? patientId,
+      heartRate: (data['heart_rate'] as num?)?.toDouble() ?? 0,
+      spo2: (data['spo2'] as num?)?.toDouble() ?? 0,
+      motionScore: (data['movement_percent'] as num?)?.toDouble() ??
+          (data['motion_score'] as num?)?.toDouble() ?? 0.1,
+      riskScore: (data['risk_score'] as num?)?.toDouble() ?? 0.05,
+      scenario: data['scenario'] as String? ?? 'normal',
+      timestamp: parseTs(data['updated_at'] ?? data['timestamp']),
+      signalQuality: (data['signal_quality'] as num?)?.toDouble(),
+      fingerPresent: data['finger_detected'] as bool?,
+      heartRateValid: data['hr_valid'] as bool?,
+      spo2Valid: data['spo2_valid'] as bool?,
+      source: data['source'] as String?,
+    );
+  }
+
+  /// Writes an alert document to Firestore [alerts/{alertId}].
+  Future<void> writeAlert(String alertId, Map<String, dynamic> alertData) async {
+    if (!_firestoreAvailable || _firestore == null) return;
+    try {
+      await _writeToFirestore('alerts', alertId, {
+        ...alertData,
+        'created_at': alertData['created_at'] ?? DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('[FirestoreSync] writeAlert failed: $e');
+    }
+  }
+
+  /// Returns a real-time stream of alerts for a patient.
+  Stream<QuerySnapshot<Map<String, dynamic>>> getPatientAlertsStream(String patientId) {
+    if (!_firestoreAvailable || _firestore == null) {
+      return const Stream.empty();
+    }
+    return _firestore!
+        .collection('alerts')
+        .where('patient_id', isEqualTo: patientId)
+        .orderBy('created_at', descending: true)
+        .limit(50)
+        .snapshots();
+  }
+
+  /// Writes a history record to [history/{patientId}/records/{recordId}].
+  Future<void> writeHistoryRecord(
+      String patientId, String recordId, Map<String, dynamic> data) async {
+    if (!_firestoreAvailable || _firestore == null) return;
+    try {
+      await _firestore!
+          .collection('history')
+          .doc(patientId)
+          .collection('records')
+          .doc(recordId)
+          .set({
+        ...data,
+        'patient_id': patientId,
+        'record_id': recordId,
+        'timestamp': data['timestamp'] ?? DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('[FirestoreSync] writeHistoryRecord failed: $e');
+    }
+  }
+
+  /// Builds the canonical [live_status/{patientId}] document map.
+  static Map<String, dynamic> _buildLiveStatusMap({
+    required String patientId,
+    required LiveStatus status,
+    String? patientName,
+  }) {
+    final riskScore = status.finalRiskScore ?? status.riskScore;
+    String riskLevel;
+    if (riskScore >= 0.7) {
+      riskLevel = 'critical';
+    } else if (riskScore >= 0.5) {
+      riskLevel = 'warning';
+    } else if (riskScore >= 0.3) {
+      riskLevel = 'watch';
+    } else {
+      riskLevel = 'normal';
+    }
+
+    final now = DateTime.now();
+    final ageSec = now.difference(status.timestamp).inSeconds;
+
+    return {
+      'id': status.id,
+      'patient_id': patientId,
+      if (patientName != null) 'patient_name': patientName,
+      'heart_rate': status.heartRate,
+      'hr_valid': status.heartRateValid ?? true,
+      'spo2': status.spo2,
+      'spo2_valid': status.spo2Valid ?? true,
+      'movement_percent': status.motionScore,
+      'movement_label': status.motionScore < 0.2
+          ? 'Hareketsiz'
+          : status.motionScore < 0.5
+              ? 'Az Hareketli'
+              : 'Hareketli',
+      'risk_score': riskScore,
+      'risk_level': riskLevel,
+      'source': status.source ?? 'ble',
+      'signal_quality': status.signalQuality ?? 1.0,
+      'finger_detected': status.fingerPresent ?? true,
+      'measurement_state': 3, // PPG_STABLE default
+      'motion_artifact': false,
+      'scenario': status.scenario,
+      'timestamp': status.timestamp.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+      'last_seen_seconds': ageSec,
+      'is_stale': ageSec > 60,
+      'active_alert_count': 0,
+    };
   }
 
   Future<void> flush() async {

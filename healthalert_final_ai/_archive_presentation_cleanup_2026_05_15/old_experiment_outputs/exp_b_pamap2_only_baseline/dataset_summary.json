@@ -1,0 +1,80 @@
+{
+  "usable_sources": [
+    "PAMAP2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "split_info": {
+    "seed": 42,
+    "all_splits_have_all_labels": true,
+    "missing_label_count": 0,
+    "split_label_coverage": {
+      "train": [
+        "lying",
+        "sitting",
+        "standing",
+        "walking"
+      ],
+      "val": [
+        "lying",
+        "sitting",
+        "standing",
+        "walking"
+      ],
+      "test": [
+        "lying",
+        "sitting",
+        "standing",
+        "walking"
+      ]
+    }
+  },
+  "train": {
+    "n_windows": 2522,
+    "label_counts": {
+      "lying": 586,
+      "sitting": 574,
+      "standing": 583,
+      "walking": 779
+    },
+    "source_counts": {
+      "PAMAP2": 2522
+    },
+    "n_unique_subjects": 5
+  },
+  "val": {
+    "n_windows": 476,
+    "label_counts": {
+      "lying": 115,
+      "sitting": 114,
+      "standing": 120,
+      "walking": 127
+    },
+    "source_counts": {
+      "PAMAP2": 476
+    },
+    "n_unique_subjects": 1
+  },
+  "test": {
+    "n_windows": 978,
+    "label_counts": {
+      "lying": 249,
+      "sitting": 226,
+      "standing": 233,
+      "walking": 270
+    },
+    "source_counts": {
+      "PAMAP2": 978
+    },
+    "n_unique_subjects": 2
+  },
+  "source_record_audit": {
+    "pamap2": {
+      "status": "ok",
+      "n_records": 32,
+      "errors": [],
+      "warnings": [
+        "subject109.dat: no target ADL rows after activity filter"
+      ]
+    }
+  }
+}

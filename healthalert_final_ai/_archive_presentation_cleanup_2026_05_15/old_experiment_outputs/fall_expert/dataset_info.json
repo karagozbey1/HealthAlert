@@ -1,0 +1,21 @@
+{
+  "allowed_datasets": [
+    "umafall",
+    "upfall",
+    "weda_fall",
+    "unimib_shar",
+    "hifd",
+    "bits2_geriatric_fall_hr",
+    "mobiact",
+    "fallalld_sensor_only"
+  ],
+  "label_policy": "binary (normal=0, fall=1); near_fall excluded from training",
+  "n_train": 106068,
+  "n_val": 23439,
+  "n_test": 56276,
+  "n_near_fall_excluded_train": 620,
+  "n_near_fall_holdout_test": 0,
+  "window_length": 200,
+  "in_channels": 6,
+  "smoke_run": false
+}

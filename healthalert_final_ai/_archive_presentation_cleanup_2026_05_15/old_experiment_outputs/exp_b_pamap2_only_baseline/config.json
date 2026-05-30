@@ -1,0 +1,11 @@
+{
+  "id": "exp_b_pamap2_only_baseline",
+  "strategy": "PAMAP2 only baseline",
+  "sources": [
+    "pamap2"
+  ],
+  "pamap2_sensor_variant": "chest",
+  "normalization": "global_train_zscore",
+  "sampler": "shuffle",
+  "clip_after_norm": null
+}

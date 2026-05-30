@@ -1,0 +1,12 @@
+{
+  "id": "exp_h_mixed_sensor_ankle",
+  "strategy": "Mixed sensor variant ankle",
+  "sources": [
+    "uci_har",
+    "pamap2"
+  ],
+  "pamap2_sensor_variant": "ankle",
+  "normalization": "global_train_zscore",
+  "sampler": "shuffle",
+  "clip_after_norm": null
+}

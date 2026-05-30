@@ -58,7 +58,11 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
     } catch (e) {
       debugPrint('[RelativeHistory] _loadHistory error: $e');
     } finally {
-      if (mounted) setState(() { _loading = false; _refreshing = false; });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _refreshing = false;
+        });
     }
   }
 
@@ -68,6 +72,17 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
     final app = AppScope.of(context);
     final users = app.monitoredUsers;
 
+    // Reactively auto-select first user if the AppController now has users
+    // but our local state hasn't caught up yet (e.g. fast navigation).
+    if (_selectedUser == null && users.isNotEmpty && !_loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _selectedUser == null) {
+          setState(() => _selectedUser = users.first);
+          _loadHistory();
+        }
+      });
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 100),
       child: Column(
@@ -75,51 +90,30 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
         children: [
           Text('Geçmiş', style: AppTheme.darkTheme.textTheme.displaySmall),
           const SizedBox(height: 16),
-
-          if (users.length > 1) ...[
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: users.map((u) {
-                  final selected = u.id == _selectedUser?.id;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedUser = u);
-                      _loadHistory();
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? Colors.greenAccent.withOpacity(0.2)
-                            : AppTheme.surface.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: selected
-                              ? Colors.greenAccent.withOpacity(0.6)
-                              : Colors.white12,
-                        ),
-                      ),
-                      child: Text(
-                        u.fullName.split(' ').first,
-                        style: TextStyle(
-                          color: selected ? Colors.greenAccent : Colors.white54,
-                          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
+          if (users.isNotEmpty) ...[
+            _buildPatientCards(users),
             const SizedBox(height: 16),
           ],
-
           if (_loading)
-            const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
+            const Center(
+                child: CircularProgressIndicator(color: Colors.greenAccent))
+          else if (users.isEmpty)
+            GlassCard(
+              padding: const EdgeInsets.all(32),
+              child: const Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.group_off_outlined,
+                        size: 40, color: Colors.white24),
+                    SizedBox(height: 12),
+                    Text(
+                      'Henüz bağlı hasta yok',
+                      style: TextStyle(color: Colors.white38),
+                    ),
+                  ],
+                ),
+              ),
+            )
           else if (_history.isEmpty)
             GlassCard(
               padding: const EdgeInsets.all(32),
@@ -129,12 +123,16 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
                     const Icon(Icons.history_toggle_off_outlined,
                         size: 40, color: Colors.white24),
                     const SizedBox(height: 12),
-                    Text(
-                      _selectedUser != null
-                          ? '${_selectedUser!.fullName} için geçmiş yok'
-                          : 'Hasta seçilmedi',
-                      style: const TextStyle(color: Colors.white38),
-                    ),
+                    const Text('Henüz geçmiş kaydı yok',
+                        style: TextStyle(color: Colors.white38)),
+                    if (_selectedUser != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _selectedUser!.fullName,
+                        style: const TextStyle(
+                            color: Colors.white24, fontSize: 12),
+                      ),
+                    ],
                     if (app.isBackendMode && _selectedUser != null) ...[
                       const SizedBox(height: 8),
                       const Text(
@@ -150,6 +148,82 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
           else
             ..._history.map((item) => _historyTile(item)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPatientCards(List<UserProfile> users) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: users.map((u) {
+          final selected = u.id == _selectedUser?.id;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedUser = u;
+                _history = [];
+              });
+              _loadHistory();
+            },
+            child: Container(
+              width: 240,
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Colors.greenAccent.withOpacity(0.16)
+                    : AppTheme.surface.withOpacity(0.38),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected
+                      ? Colors.greenAccent.withOpacity(0.55)
+                      : Colors.white12,
+                ),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.greenAccent.withOpacity(0.14),
+                    child: Text(
+                      u.fullName.isNotEmpty ? u.fullName[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                          color: Colors.greenAccent,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          u.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          selected ? 'Geçmiş açık' : 'Geçmişi gör',
+                          style: TextStyle(
+                              color: selected
+                                  ? Colors.greenAccent
+                                  : Colors.white38,
+                              fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -171,13 +245,17 @@ class _RelativeHistoryScreenState extends State<RelativeHistoryScreen> {
               children: [
                 Text(item.title,
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13)),
                 if (item.subtitle.isNotEmpty)
                   Text(item.subtitle,
-                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 11)),
                 const SizedBox(height: 4),
                 Text(_formatDate(item.timestamp),
-                    style: const TextStyle(color: Colors.white30, fontSize: 10)),
+                    style:
+                        const TextStyle(color: Colors.white30, fontSize: 10)),
               ],
             ),
           ),

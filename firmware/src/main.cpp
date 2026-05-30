@@ -1,9 +1,8 @@
-
-
 #include <Arduino.h>
 #include <Wire.h>
 
 #include "ha_config.h"
+#include "ha_debug.h"
 #include "ha_types.h"
 #include "ha_i2c_scan.h"
 #include "ha_acquisition.h"
@@ -21,23 +20,26 @@ static unsigned long lastRawSampleTime = 0;
 static bool useMock = true;
 
 static void printBanner() {
-    Serial.println();
-    Serial.println("╔══════════════════════════════════════╗");
-    Serial.println("║   HealthAlert ESP32 Firmware         ║");
-    Serial.printf( "║   Version: %-25s ║\n", FW_VERSION);
-    Serial.printf( "║   Device:  %-25s ║\n", HA_DEVICE_ID);
-    Serial.println("╚══════════════════════════════════════╝");
-    Serial.println();
+    HA_SERIAL_PRINTLN();
+    HA_SERIAL_PRINTLN("========================================");
+    HA_SERIAL_PRINTLN("   HealthAlert ESP32 Firmware");
+    HA_SERIAL_PRINTF("   Version: %s\n", FW_VERSION);
+    HA_SERIAL_PRINTF("   Device:  %s\n", HA_DEVICE_ID);
+    HA_SERIAL_PRINTLN("========================================");
+    HA_SERIAL_PRINTLN();
 }
 
-// ESP32 başlangıç yapılandırmasını yapar.
 void setup() {
-    Serial.begin(SERIAL_BAUD);
+    HA_SERIAL_BEGIN(SERIAL_BAUD);
     delay(500);
     printBanner();
 
-    Serial.printf("[BOOT] I2C init – SDA=%d, SCL=%d, freq=%lu Hz\n",
-                  I2C_SDA_PIN, I2C_SCL_PIN, I2C_FREQUENCY);
+    HA_SERIAL_PRINTF(
+        "[BOOT] I2C init - SDA=%d, SCL=%d, freq=%lu Hz\n",
+        I2C_SDA_PIN,
+        I2C_SCL_PIN,
+        I2C_FREQUENCY
+    );
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     Wire.setClock(I2C_FREQUENCY);
 
@@ -45,14 +47,14 @@ void setup() {
 
 #if FORCE_MOCK_MODE
     useMock = true;
-    Serial.println("[BOOT] FORCE_MOCK_MODE=1 → using mock sensors.");
+    HA_SERIAL_PRINTLN("[BOOT] FORCE_MOCK_MODE=1 -> using mock sensors.");
 #else
     if (scan.mpu6050_found || scan.max30102_found) {
         useMock = false;
-        Serial.println("[BOOT] Hardware detected → using REAL sensors.");
+        HA_SERIAL_PRINTLN("[BOOT] Hardware detected -> using REAL sensors.");
     } else {
         useMock = true;
-        Serial.println("[BOOT] No hardware found → falling back to MOCK mode.");
+        HA_SERIAL_PRINTLN("[BOOT] No hardware found -> falling back to MOCK mode.");
     }
 #endif
 
@@ -61,7 +63,7 @@ void setup() {
     if (!useMock) {
         bool ok = acq.initRealSensors();
         if (!ok) {
-            Serial.println("[BOOT] All sensor inits failed → switching to MOCK.");
+            HA_SERIAL_PRINTLN("[BOOT] All sensor inits failed -> switching to MOCK.");
             acq.setMockMode(true);
             useMock = true;
         }
@@ -69,19 +71,18 @@ void setup() {
 
     serialCmd.begin(&acq.getMock(), &acq.getStatus());
 
-    Serial.printf("[BOOT] Sensor mode: %s\n", useMock ? "MOCK" : "REAL");
+    HA_SERIAL_PRINTF("[BOOT] Sensor mode: %s\n", useMock ? "MOCK" : "REAL");
 
-    Serial.println("[BOOT] Initializing transport layer...");
+    HA_SERIAL_PRINTLN("[BOOT] Initializing transport layer...");
     transport.begin();
 
-    Serial.println("[BOOT] Ready. Type 'help' for commands.");
-    Serial.println();
+    HA_SERIAL_PRINTLN("[BOOT] Ready. Type 'help' for commands.");
+    HA_SERIAL_PRINTLN();
 
     lastPacketTime = millis();
     lastRawSampleTime = millis();
 }
 
-// Ana döngü: paket topla, JSON'a çevir, gönder.
 void loop() {
     serialCmd.poll();
 
@@ -103,7 +104,7 @@ void loop() {
             i2c_scan();
             acq.reinitSensors();
         } else {
-            Serial.println("[LOOP] In mock mode – no hardware to restart.");
+            HA_SERIAL_PRINTLN("[LOOP] In mock mode - no hardware to restart.");
         }
     }
 
@@ -120,9 +121,14 @@ void loop() {
     if (now - lastPacketTime >= SUMMARY_PACKET_INTERVAL_MS) {
         lastPacketTime = now;
 
+        transport.refresh();
         DevicePacket pkt = acq.collect();
-        PacketFormatter::toJsonLine(pkt, jsonBuf, sizeof(jsonBuf));
-
+        if (transport.getActiveTransport() == TransportOrchestrator::BLE ||
+            transport.getActiveTransport() == TransportOrchestrator::SERIAL_ONLY) {
+            PacketFormatter::toBleSummaryJson(pkt, jsonBuf, sizeof(jsonBuf));
+        } else {
+            PacketFormatter::toJsonLine(pkt, jsonBuf, sizeof(jsonBuf));
+        }
         transport.sendPacket(jsonBuf);
     }
 
@@ -136,7 +142,7 @@ void loop() {
         lastRawSampleTime = now;
         RawSensorSample raw = acq.collectRawSample(rawRateHz);
         PacketFormatter::rawToJsonLine(raw, rawJsonBuf, sizeof(rawJsonBuf));
-        transport.getBle().sendRawSample(rawJsonBuf);
+        transport.sendRawSample(rawJsonBuf);
     }
 #endif
 }

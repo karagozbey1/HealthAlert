@@ -1,0 +1,4 @@
+﻿Activity Expert Balanced v1 rejected.
+Reason: macro_f1 and ADL recall worsened vs v0.
+Archived at: 
+C:\project\HealthAlert\healthalert_final_ai\outputs\hybrid_redesign\activity_expert_balanced_rejected_20260514_204514

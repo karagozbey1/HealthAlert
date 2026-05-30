@@ -17,6 +17,7 @@ from services.ml_evidence_fusion_service import ml_evidence_fusion_service
 from services.ml_inference_service import ml_inference_service
 from services.model_window_adapter_service import model_window_adapter_service
 from services.learning_data_service import learning_data_service
+from services.risk_fusion_service import risk_fusion_service
 
 router = APIRouter(prefix="/ingest", tags=["model-window-ingestion"])
 
@@ -39,6 +40,7 @@ async def ingest_model_window(
     fusion_result: dict | None = None
     final_risk_score: float | None = None
     reason = validation["reason"]
+    training_allowed = payload.mode == "real" and payload.source != "presentation_safe"
 
     if user_id:
         model_input = model_window_adapter_service.to_model_input(payload)
@@ -69,14 +71,34 @@ async def ingest_model_window(
         )
 
         current = await repos.live_status.get_by_user(user_id)
-        personalized_risk_score = float(current["risk_score"]) if current else 0.0
-        fusion_result = ml_evidence_fusion_service.apply_ml_evidence_adjustment(
-            personalized_risk_score,
-            ml_evidence_result,
-            model_ready=model_ready,
-            sample_rate_warning=validation["sample_rate_warning"],
+        baseline_result = {
+            "global_risk_score": float(current["risk_score"]) if current else 0.0,
+            "final_risk_score": float(current["risk_score"]) if current else 0.0,
+            "personal_deviation_score": 0.0,
+        }
+        personalization_result = {
+            "final_personalized_risk": float(current["risk_score"]) if current else 0.0,
+            "baseline_deviation_score": 0.0,
+            "trend_adjustment": 0.0,
+            "feedback_adjustment": 0.0,
+        }
+        fusion_result = risk_fusion_service.compute_final_risk_with_personalization(
+            ml_live_result,
+            baseline_result,
+            personalization_result,
+            {
+                "quality_confidence": quality.get("avg_signal_quality", 1.0),
+                "safety_override": False,
+            },
         )
         final_risk_score = float(fusion_result["final_risk_score"])
+
+        active_model_version = None
+        if repos.learning is not None:
+            active_model_version = await repos.learning.get_active_model_version()
+        if active_model_version and ml_live_result is not None:
+            ml_live_result["model_version"] = active_model_version.get("version")
+            fusion_result["model_version"] = active_model_version.get("version")
 
         latest = payload.latest_vitals or {}
         heart_rate = float(
@@ -102,22 +124,23 @@ async def ingest_model_window(
             },
         )
 
-        await adaptive_personalization_service.update_profile_from_ml_window(
-            repos=repos,
-            user_id=user_id,
-            ml_evidence_result=ml_evidence_result,
-            fusion_result=fusion_result,
-            window_quality=quality,
-        )
+        if training_allowed:
+            await adaptive_personalization_service.update_profile_from_ml_window(
+                repos=repos,
+                user_id=user_id,
+                ml_evidence_result=ml_evidence_result,
+                fusion_result=fusion_result,
+                window_quality=quality,
+            )
 
-        await learning_data_service.capture_model_window_export(
-            user_id=user_id,
-            device_id=payload.device_id,
-            payload=payload.model_dump(),
-            quality_summary=quality,
-            ml_result=ml_live_result,
-            ml_evidence_result=ml_evidence_result,
-        )
+            await learning_data_service.capture_model_window_export(
+                user_id=user_id,
+                device_id=payload.device_id,
+                payload=payload.model_dump(),
+                quality_summary=quality,
+                ml_result=ml_live_result,
+                ml_evidence_result=ml_evidence_result,
+            )
 
     # Store compact metadata log only; raw samples are not persisted.
     try:
@@ -138,9 +161,23 @@ async def ingest_model_window(
                     if ml_evidence_result
                     else None
                 ),
-                ml_adjustment=(
-                    fusion_result.get("ml_adjustment") if fusion_result else None
+                ml_adjustment=(fusion_result.get("personal_adjustment") if fusion_result else None),
+                ml_base_score=(fusion_result.get("ml_base_score") if fusion_result else None),
+                personalized_risk_score=(
+                    fusion_result.get("personalized_risk_score") if fusion_result else None
                 ),
+                personal_adjustment=(
+                    fusion_result.get("personal_adjustment") if fusion_result else None
+                ),
+                quality_adjustment=(
+                    fusion_result.get("quality_adjustment") if fusion_result else None
+                ),
+                safety_adjustment=(
+                    fusion_result.get("safety_adjustment") if fusion_result else None
+                ),
+                ml_confidence=(fusion_result.get("ml_confidence") if fusion_result else None),
+                fusion_mode=(fusion_result.get("fusion_mode") if fusion_result else None),
+                model_version=(fusion_result.get("model_version") if fusion_result else None),
                 created_at=datetime.utcnow(),
             )
         )

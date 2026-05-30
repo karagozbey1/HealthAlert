@@ -1,0 +1,17 @@
+{
+  "synthetic": {
+    "n": 400,
+    "accuracy": 0.45,
+    "macro_f1": 0.2946,
+    "class_dist": {
+      "rest_like": 173,
+      "active_like": 184,
+      "poor_signal": 43
+    },
+    "available_class_recall": {
+      "rest_like": 0.2428,
+      "active_like": 0.75,
+      "poor_signal": 0.0
+    }
+  }
+}

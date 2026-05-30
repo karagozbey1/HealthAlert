@@ -31,7 +31,7 @@ def _utcnow() -> datetime:
 
 # Paket modunu ogrenme kaynagi etiketine cevirir.
 def _source_from_packet(packet_mode: str) -> str:
-    if packet_mode == "mock":
+    if packet_mode in {"mock", "demo", "presentation_safe"}:
         return "demo"
     return "live"
 
@@ -51,6 +51,12 @@ def should_capture_window(
     baseline_ready: bool,
 ) -> bool:
     if not settings.LEARNING_LOOP_ENABLED:
+        return False
+
+    if (
+        _source_from_packet(packet_mode) == "demo"
+        and not settings.LEARNING_ALLOW_DEMO_AS_TRAINING
+    ):
         return False
 
     if risk_level == "critical" and settings.LEARNING_CAPTURE_CRITICAL_ALWAYS:

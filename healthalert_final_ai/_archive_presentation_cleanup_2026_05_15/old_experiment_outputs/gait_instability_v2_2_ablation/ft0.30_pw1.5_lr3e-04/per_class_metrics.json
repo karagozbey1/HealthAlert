@@ -1,0 +1,14 @@
+{
+  "stable_gait": {
+    "precision": 0.9828,
+    "recall": 0.8396,
+    "f1": 0.9056,
+    "support": 1496
+  },
+  "abnormal_or_freezing_movement": {
+    "precision": 0.383,
+    "recall": 0.8713,
+    "f1": 0.5321,
+    "support": 171
+  }
+}

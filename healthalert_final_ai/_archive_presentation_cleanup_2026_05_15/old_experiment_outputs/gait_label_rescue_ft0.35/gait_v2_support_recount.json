@@ -1,0 +1,122 @@
+{
+  "splits": {
+    "train": {
+      "stable_movement_count": 5723,
+      "abnormal_or_freezing_movement_count": 535,
+      "unknown_excluded_count": 4202,
+      "total_windows_before_exclusion": 10460,
+      "total_windows_after_exclusion": 6258,
+      "abnormal_percentage": 8.5491,
+      "source_distribution": {
+        "DAPHNET_FOG": 6258
+      },
+      "subject_distribution": {
+        "S03": 1013,
+        "S04": 1039,
+        "S06": 1005,
+        "S07": 809,
+        "S08": 393,
+        "S09": 880,
+        "S10": 1119
+      },
+      "recording_distribution": {
+        "S03_R01": 714,
+        "S03_R02": 132,
+        "S03_R03": 167,
+        "S04_R01": 1039,
+        "S06_R01": 846,
+        "S06_R02": 159,
+        "S07_R01": 582,
+        "S07_R02": 227,
+        "S08_R01": 393,
+        "S09_R01": 880,
+        "S10_R01": 1119
+      },
+      "abnormal_by_subject": {
+        "S03": 164,
+        "S06": 71,
+        "S07": 45,
+        "S08": 109,
+        "S09": 146
+      },
+      "abnormal_by_recording": {
+        "S03_R01": 143,
+        "S03_R02": 21,
+        "S06_R01": 71,
+        "S07_R01": 35,
+        "S07_R02": 10,
+        "S08_R01": 109,
+        "S09_R01": 146
+      }
+    },
+    "val": {
+      "stable_movement_count": 778,
+      "abnormal_or_freezing_movement_count": 279,
+      "unknown_excluded_count": 586,
+      "total_windows_before_exclusion": 1643,
+      "total_windows_after_exclusion": 1057,
+      "abnormal_percentage": 26.3955,
+      "source_distribution": {
+        "DAPHNET_FOG": 1057
+      },
+      "subject_distribution": {
+        "S05": 1057
+      },
+      "recording_distribution": {
+        "S05_R01": 538,
+        "S05_R02": 519
+      },
+      "abnormal_by_subject": {
+        "S05": 279
+      },
+      "abnormal_by_recording": {
+        "S05_R01": 159,
+        "S05_R02": 120
+      }
+    },
+    "test": {
+      "stable_movement_count": 1508,
+      "abnormal_or_freezing_movement_count": 159,
+      "unknown_excluded_count": 1188,
+      "total_windows_before_exclusion": 2855,
+      "total_windows_after_exclusion": 1667,
+      "abnormal_percentage": 9.5381,
+      "source_distribution": {
+        "DAPHNET_FOG": 1667
+      },
+      "subject_distribution": {
+        "S01": 956,
+        "S02": 711
+      },
+      "recording_distribution": {
+        "S01_R01": 729,
+        "S01_R02": 227,
+        "S02_R01": 202,
+        "S02_R02": 509
+      },
+      "abnormal_by_subject": {
+        "S01": 58,
+        "S02": 101
+      },
+      "abnormal_by_recording": {
+        "S01_R01": 42,
+        "S01_R02": 16,
+        "S02_R01": 32,
+        "S02_R02": 69
+      }
+    }
+  },
+  "split_overlap": {
+    "train_val_window_overlap": 0,
+    "train_test_window_overlap": 0,
+    "val_test_window_overlap": 0
+  },
+  "subject_aware_split_preserved": true,
+  "abnormal_support_all_splits": {
+    "train": 535,
+    "val": 279,
+    "test": 159
+  },
+  "output_dataset_dir": "C:\\project\\HealthAlert\\healthalert_final_ai\\outputs\\windowed_dataset\\gait_instability_v2_ft0.35",
+  "abnormal_fraction_threshold": 0.35
+}

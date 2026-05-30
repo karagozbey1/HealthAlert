@@ -1,0 +1,188 @@
+{
+  "decision": "READY_FOR_ACTIVITY_V2_DATASET_BUILD",
+  "target_labels": [
+    "walking",
+    "sitting",
+    "standing",
+    "lying"
+  ],
+  "datasets": [
+    {
+      "dataset": "uci_har",
+      "display_name": "UCI-HAR",
+      "status": "ok",
+      "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\uci_har",
+      "raw_path_exists": true,
+      "n_records": 10299,
+      "n_unique_subjects": 30,
+      "supports_subject_split": true,
+      "top_primary_labels": {
+        "walking": 4672,
+        "lying": 1944,
+        "standing": 1906,
+        "sitting": 1777
+      },
+      "top_activity_codes": {},
+      "pure_label_support": {
+        "standing": 1906,
+        "sitting": 1777,
+        "lying": 1944,
+        "walking": 4672
+      },
+      "pure_label_missing": [],
+      "feasible_for_pure_adl_now": true,
+      "errors": [],
+      "notes": [
+        "Provides all four target labels with preserved subject IDs."
+      ]
+    },
+    {
+      "dataset": "mobiact",
+      "display_name": "MobiAct",
+      "status": "partial",
+      "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\mobiact",
+      "raw_path_exists": true,
+      "n_records": 0,
+      "n_unique_subjects": 0,
+      "supports_subject_split": false,
+      "top_primary_labels": {},
+      "top_activity_codes": {},
+      "pure_label_support": {},
+      "pure_label_missing": [
+        "walking",
+        "sitting",
+        "standing",
+        "lying"
+      ],
+      "feasible_for_pure_adl_now": false,
+      "errors": [
+        "No CSV files found under C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\mobiact"
+      ],
+      "notes": [
+        "Could provide pure ADL via activity_code metadata, but current raw data is missing in repo."
+      ]
+    },
+    {
+      "dataset": "pamap2",
+      "display_name": "PAMAP2",
+      "status": "ok",
+      "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\pamap2",
+      "raw_path_exists": true,
+      "n_records": 32,
+      "n_unique_subjects": 8,
+      "supports_subject_split": true,
+      "top_primary_labels": {
+        "lying": 8,
+        "sitting": 8,
+        "standing": 8,
+        "walking": 8
+      },
+      "top_activity_codes": {},
+      "pure_label_support": {
+        "lying": 8,
+        "sitting": 8,
+        "standing": 8,
+        "walking": 8
+      },
+      "pure_label_missing": [],
+      "feasible_for_pure_adl_now": true,
+      "errors": [],
+      "notes": [
+        "Parser recovers lying/sitting/standing/walking segments from Protocol files."
+      ]
+    },
+    {
+      "dataset": "unimib_shar",
+      "display_name": "UniMiB-SHAR",
+      "status": "ok",
+      "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\unimib_shar",
+      "raw_path_exists": true,
+      "n_records": 11771,
+      "n_unique_subjects": 11771,
+      "supports_subject_split": true,
+      "top_primary_labels": {
+        "normal": 7726,
+        "fall": 4045
+      },
+      "top_activity_codes": {},
+      "pure_label_support": {},
+      "pure_label_missing": [
+        "walking",
+        "sitting",
+        "standing",
+        "lying"
+      ],
+      "feasible_for_pure_adl_now": false,
+      "errors": [],
+      "notes": [
+        "ADL windows are collapsed to normal; subclasses are not preserved."
+      ]
+    },
+    {
+      "dataset": "umafall",
+      "display_name": "UMAFall",
+      "status": "ok",
+      "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\umafall",
+      "raw_path_exists": true,
+      "n_records": 1492,
+      "n_unique_subjects": 19,
+      "supports_subject_split": true,
+      "top_primary_labels": {
+        "normal": 1076,
+        "fall": 416
+      },
+      "top_activity_codes": {},
+      "pure_label_support": {},
+      "pure_label_missing": [
+        "walking",
+        "sitting",
+        "standing",
+        "lying"
+      ],
+      "feasible_for_pure_adl_now": false,
+      "errors": [],
+      "notes": [
+        "ADL is exposed only as normal; sitting/standing/lying subclasses are absent."
+      ]
+    },
+    {
+      "dataset": "sisfall",
+      "display_name": "SisFall",
+      "status": "ok",
+      "raw_path": "C:\\project\\HealthAlert\\healthalert_final_ai\\data\\raw\\sisfall",
+      "raw_path_exists": true,
+      "n_records": 10318,
+      "n_unique_subjects": 469,
+      "supports_subject_split": true,
+      "top_primary_labels": {
+        "instability": 8580,
+        "normal": 1738
+      },
+      "top_activity_codes": {},
+      "pure_label_support": {},
+      "pure_label_missing": [
+        "walking",
+        "sitting",
+        "standing",
+        "lying"
+      ],
+      "feasible_for_pure_adl_now": false,
+      "errors": [],
+      "notes": [
+        "Current repo copy is instability/normal oriented, not clean ADL context."
+      ]
+    }
+  ],
+  "key_findings": [
+    "Current activity_context export is contaminated by generic normal/instability sources and is not suitable for pure ADL training.",
+    "Usable pure ADL sources available now: PAMAP2, UCI-HAR.",
+    "UCI-HAR preserves walking/sitting/standing/lying labels end-to-end and remains the active training source in the current repo snapshot.",
+    "MobiAct loader is integrated for pure ADL, but the raw folder is empty in this repo snapshot.",
+    "PAMAP2 raw path exists and is integrated into the pure ADL builder."
+  ],
+  "pamap2": {
+    "present_in_config": true,
+    "raw_path_exists": true,
+    "feasibility_note": "PAMAP2 raw path exists and is integrated into the pure ADL builder."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "total": 56276,
+  "predicted_fall": 11733,
+  "predicted_normal": 44543,
+  "pct_fall": 20.85,
+  "pct_normal": 79.15,
+  "prob_mean": 0.27665,
+  "prob_std": 0.27468,
+  "prob_p25": 0.0487,
+  "prob_p50": 0.18929,
+  "prob_p75": 0.38416
+}

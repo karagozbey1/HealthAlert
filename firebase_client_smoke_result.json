@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-05-28T15:59:16.750613+00:00",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "all_pass": true,
+  "results": {
+    "rules_isDemoWindow_2026_06_30_active": "PASS",
+    "live_status_write": "PASS",
+    "live_status_read": "PASS",
+    "live_status_field_hr": "PASS",
+    "alerts_write": "PASS",
+    "alerts_read": "PASS",
+    "alerts_field_severity": "PASS",
+    "history_write": "PASS",
+    "history_read": "PASS",
+    "history_field_hr": "PASS",
+    "listener_update_visible": "PASS",
+    "cleanup": "PASS"
+  }
+}

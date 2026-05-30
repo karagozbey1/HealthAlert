@@ -1,7 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'core/models/enums.dart';
 import 'core/state/app_bootstrap.dart';
+import 'firebase_options.dart';
 import 'core/state/app_controller.dart';
 import 'core/state/app_scope.dart';
 import 'ui/theme/app_theme.dart';
@@ -15,6 +17,13 @@ import 'ui/screens/doctor/doctor_home_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('[main] Firebase.initializeApp failed: $e');
+  }
   final controller = await buildAppController(demoMode: false);
   await controller.initialize();
   runApp(MyApp(controller: controller));

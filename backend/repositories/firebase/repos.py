@@ -1,4 +1,5 @@
-don't block the async event loop.
+# Firestore repository methods use the sync client via executors so they
+# don't block the async event loop.
 # Firestore repository siniflari senkron istemciyi async akisa uyarlayarak kullanir.
 # Koleksiyon adlari SQLAlchemy tarafindaki tablo yapisiyla esitlenmistir.
 from __future__ import annotations

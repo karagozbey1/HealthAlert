@@ -44,7 +44,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
 
   void _startAutoRefresh() {
     _autoRefreshTimer?.cancel();
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted) return;
       _load(isRefresh: true);
     });
@@ -75,7 +75,11 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
       debugPrint('[DoctorOverview] _load error: $e');
     } finally {
       _loadInProgress = false;
-      if (mounted) setState(() { _loading = false; _refreshing = false; });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _refreshing = false;
+        });
     }
   }
 
@@ -92,10 +96,9 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     };
 
     final int criticalCount = statuses.values
-      .where((s) => s.scenario == 'critical' || s.riskScore >= 0.8)
-      .length;
-    final int warningCount =
-        statuses.values.where((s) => s.isAlert).length;
+        .where((s) => s.scenario == 'critical' || s.riskScore >= 0.8)
+        .length;
+    final int warningCount = statuses.values.where((s) => s.isAlert).length;
     final unread = app.unreadNotifications;
 
     final recentAlerts = app.monitoredAlerts.values
@@ -123,7 +126,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
             ),
           ),
           const SizedBox(height: 20),
-
           if (_loading)
             const Center(
                 child: Padding(
@@ -139,18 +141,17 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
                 _statBox('$criticalCount', 'Kritik', Icons.dangerous_outlined,
                     AppTheme.critical),
                 const SizedBox(width: 12),
-                _statBox('$warningCount', 'Uyarı',
-                    Icons.warning_amber_rounded, AppTheme.warning),
+                _statBox('$warningCount', 'Uyarı', Icons.warning_amber_rounded,
+                    AppTheme.warning),
                 const SizedBox(width: 12),
-                _statBox('$unread', 'Bildirim',
-                    Icons.notifications_outlined, AppTheme.primary),
+                _statBox('$unread', 'Bildirim', Icons.notifications_outlined,
+                    AppTheme.primary),
               ],
             ),
             const SizedBox(height: 20),
-
             if (criticalCount > 0 || warningCount > 0) ...[
-              _sectionHeader('Dikkat Gerektiren Hastalar',
-                  Icons.priority_high_outlined),
+              _sectionHeader(
+                  'Dikkat Gerektiren Hastalar', Icons.priority_high_outlined),
               const SizedBox(height: 10),
               ...patients.where((p) {
                 final s = statuses[p.id];
@@ -162,8 +163,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                PatientDetailScreen(patient: p))),
+                            builder: (_) => PatientDetailScreen(patient: p))),
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(14),
@@ -221,7 +221,6 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
               ),
               const SizedBox(height: 12),
             ],
-
             if (recentAlerts.isNotEmpty) ...[
               _sectionHeader(
                   'Aktif Alarmlar', Icons.notifications_active_outlined),
@@ -233,8 +232,8 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
                     decoration: BoxDecoration(
                       color: AppTheme.warning.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppTheme.warning.withOpacity(0.3)),
+                      border:
+                          Border.all(color: AppTheme.warning.withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
@@ -251,10 +250,11 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
                   )),
               const SizedBox(height: 12),
             ],
-
             if (patients.isEmpty)
               _buildEmpty()
-            else if (criticalCount == 0 && warningCount == 0 && recentAlerts.isEmpty)
+            else if (criticalCount == 0 &&
+                warningCount == 0 &&
+                recentAlerts.isEmpty)
               GlassCard(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -281,9 +281,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
                   ],
                 ),
               ),
-
             const SizedBox(height: 20),
-
             _sectionHeader('Hızlı Erişim', Icons.flash_on_outlined),
             const SizedBox(height: 10),
             Row(
@@ -310,34 +308,20 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
                 })),
               ],
             ),
-
-            const SizedBox(height: 12),
-            if (_refreshing)
-              const LinearProgressIndicator(color: Colors.amberAccent, backgroundColor: Colors.transparent)
-            else
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => _load(isRefresh: true),
-                  icon: const Icon(Icons.refresh, color: Colors.amberAccent),
-                  label: const Text('Yenile',
-                      style: TextStyle(color: Colors.amberAccent)),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                        color: Colors.amberAccent.withOpacity(0.4)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
+            if (_refreshing) ...[
+              const SizedBox(height: 12),
+              const LinearProgressIndicator(
+                color: Colors.amberAccent,
+                backgroundColor: Colors.transparent,
               ),
+            ],
           ],
         ],
       ),
     );
   }
 
-  Widget _statBox(
-      String value, String label, IconData icon, Color color) {
+  Widget _statBox(String value, String label, IconData icon, Color color) {
     return Expanded(
       child: GlassCard(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -348,13 +332,10 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
             const SizedBox(height: 6),
             Text(value,
                 style: TextStyle(
-                    color: color,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold)),
+                    color: color, fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
             Text(label,
-                style:
-                    const TextStyle(color: Colors.white38, fontSize: 10)),
+                style: const TextStyle(color: Colors.white38, fontSize: 10)),
           ],
         ),
       ),
@@ -384,9 +365,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
             const SizedBox(height: 8),
             Text(label,
                 style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13)),
+                    color: color, fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
       ),

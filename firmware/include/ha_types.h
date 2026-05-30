@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 
+/// Sensör okuma sonucunu firmware içinde taşır.
 struct ImuSample {
     float accel_x;
     float accel_y;
@@ -15,6 +16,7 @@ struct ImuSample {
 };
 
 // Measurement state: 0=no_finger, 1=warming_up, 2=stabilizing, 3=stable, 4=unstable, 5=motion_artifact
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 enum PpgState : uint8_t {
     PPG_NO_FINGER      = 0,
     PPG_WARMING_UP     = 1,
@@ -24,6 +26,7 @@ enum PpgState : uint8_t {
     PPG_MOTION_ARTIFACT = 5,
 };
 
+/// Sensör okuma sonucunu firmware içinde taşır.
 struct PpgSample {
     uint32_t red_value;
     uint32_t ir_value;
@@ -44,6 +47,7 @@ struct PpgSample {
     bool     motion_artifact;   // True when motion gate invalidated the reading
 };
 
+/// Sensör okuma sonucunu firmware içinde taşır.
 struct SensorStatus {
     bool imu_present;
     bool ppg_present;
@@ -53,6 +57,7 @@ struct SensorStatus {
     uint8_t last_error;
 };
 
+/// Firmware ile mobil uygulama arasında taşınan telemetri verisini temsil eder.
 struct DevicePacket {
     const char* device_id;
     unsigned long timestamp_ms;
@@ -89,6 +94,7 @@ struct DevicePacket {
     uint8_t  measurement_state; // PpgState enum value
 };
 
+/// Sensör okuma sonucunu firmware içinde taşır.
 struct RawSensorSample {
     const char* device_id;
     unsigned long timestamp_ms;

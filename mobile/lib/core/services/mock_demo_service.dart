@@ -1,7 +1,9 @@
 import '../models/anomaly_event.dart';
 import '../models/enums.dart';
 
+/// Demo modunda kullanılacak örnek canlı veri ve alarm akışını üretir.
 class MockDemoService {
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   List<AnomalyEvent> initialAnomalies() {
     final now = DateTime.now();
     return [

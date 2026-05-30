@@ -61,6 +61,7 @@ from repositories.base import (
 
 # User ORM nesnesini API dostu bir dict yapisina cevirir.
 def _user_to_dict(u: User) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": u.id, "email": u.email, "password_hash": u.password_hash,
         "role": u.role, "full_name": u.full_name, "phone": u.phone,
@@ -70,6 +71,7 @@ def _user_to_dict(u: User) -> Dict[str, Any]:
 
 # LinkCode ORM nesnesini tasinabilir bir dict yapisina cevirir.
 def _code_to_dict(c: LinkCode) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": c.id, "code": c.code, "owner_id": c.owner_id,
         "code_type": c.code_type, "is_active": c.is_active,
@@ -79,6 +81,7 @@ def _code_to_dict(c: LinkCode) -> Dict[str, Any]:
 
 
 def _rel_to_dict(r: UserRelation) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": r.id, "self_user_id": r.self_user_id,
         "linked_user_id": r.linked_user_id, "relation_type": r.relation_type,
@@ -88,6 +91,7 @@ def _rel_to_dict(r: UserRelation) -> Dict[str, Any]:
 
 
 def _live_to_dict(ls: LiveStatus) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": ls.id, "user_id": ls.user_id, "heart_rate": ls.heart_rate,
         "spo2": ls.spo2, "motion_score": ls.motion_score,
@@ -108,6 +112,7 @@ def _live_to_dict(ls: LiveStatus) -> Dict[str, Any]:
 
 
 def _anomaly_to_dict(a: AnomalyEvent) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": a.id, "user_id": a.user_id, "metric": a.metric,
         "value": a.value, "unit": a.unit, "severity": a.severity,
@@ -116,6 +121,7 @@ def _anomaly_to_dict(a: AnomalyEvent) -> Dict[str, Any]:
 
 
 def _alert_to_dict(a: AlertEvent) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": a.id, "user_id": a.user_id, "title": a.title,
         "description": a.description, "severity": a.severity,
@@ -129,6 +135,7 @@ def _alert_to_dict(a: AlertEvent) -> Dict[str, Any]:
 
 
 def _post_event_to_dict(s: PostEventSession) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": s.id, "user_id": s.user_id, "alert_id": s.alert_id,
         "started_at": s.started_at, "ended_at": s.ended_at,
@@ -137,6 +144,7 @@ def _post_event_to_dict(s: PostEventSession) -> Dict[str, Any]:
 
 
 def _history_to_dict(h: HistoryItem) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": h.id, "user_id": h.user_id, "item_type": h.item_type,
         "title": h.title, "subtitle": h.subtitle, "timestamp": h.timestamp,
@@ -145,6 +153,7 @@ def _history_to_dict(h: HistoryItem) -> Dict[str, Any]:
 
 
 def _notif_to_dict(n: NotificationItem) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": n.id, "recipient_id": n.recipient_id, "sender_id": n.sender_id,
         "title": n.title, "body": n.body, "notification_type": n.notification_type,
@@ -154,6 +163,7 @@ def _notif_to_dict(n: NotificationItem) -> Dict[str, Any]:
 
 
 def _note_to_dict(n: ClinicalNote) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": n.id, "doctor_id": n.doctor_id, "patient_id": n.patient_id,
         "note": n.note, "recommendation": n.recommendation,
@@ -162,6 +172,7 @@ def _note_to_dict(n: ClinicalNote) -> Dict[str, Any]:
 
 
 def _settings_to_dict(s: AppSettings) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "user_id": s.user_id,
         "notifications_enabled": s.notifications_enabled,
@@ -173,6 +184,7 @@ def _settings_to_dict(s: AppSettings) -> Dict[str, Any]:
 
 
 def _sim_to_dict(s: SimulationState) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "user_id": s.user_id,
         "scenario_index": s.scenario_index,
@@ -186,20 +198,25 @@ def _sim_to_dict(s: SimulationState) -> Dict[str, Any]:
 # ===================================================================
 
 class SqliteUserRepo(AbstractUserRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(User).where(User.id == user_id))
         u = r.scalar_one_or_none()
         return _user_to_dict(u) if u else None
 
     async def get_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(User).where(User.email == email))
         u = r.scalar_one_or_none()
         return _user_to_dict(u) if u else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         u = User(**data)
         self.db.add(u)
         await self.db.flush()
@@ -207,6 +224,7 @@ class SqliteUserRepo(AbstractUserRepo):
         return _user_to_dict(u)
 
     async def update(self, user_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(User).where(User.id == user_id))
         u = r.scalar_one_or_none()
         if u is None:
@@ -219,6 +237,7 @@ class SqliteUserRepo(AbstractUserRepo):
         return _user_to_dict(u)
 
     async def list_by_role(self, role: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(User).where(User.role == role))
         return [_user_to_dict(u) for u in r.scalars().all()]
 
@@ -228,20 +247,25 @@ class SqliteUserRepo(AbstractUserRepo):
 # ===================================================================
 
 class SqliteLinkCodeRepo(AbstractLinkCodeRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_id(self, code_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(LinkCode).where(LinkCode.id == code_id))
         c = r.scalar_one_or_none()
         return _code_to_dict(c) if c else None
 
     async def get_by_code(self, code: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(LinkCode).where(LinkCode.code == code))
         c = r.scalar_one_or_none()
         return _code_to_dict(c) if c else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         c = LinkCode(**data)
         self.db.add(c)
         await self.db.flush()
@@ -249,6 +273,7 @@ class SqliteLinkCodeRepo(AbstractLinkCodeRepo):
         return _code_to_dict(c)
 
     async def update(self, code_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(LinkCode).where(LinkCode.id == code_id))
         c = r.scalar_one_or_none()
         if c is None:
@@ -261,6 +286,7 @@ class SqliteLinkCodeRepo(AbstractLinkCodeRepo):
         return _code_to_dict(c)
 
     async def list_by_owner(self, owner_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(LinkCode).where(LinkCode.owner_id == owner_id)
             .order_by(LinkCode.created_at.desc())
@@ -273,15 +299,19 @@ class SqliteLinkCodeRepo(AbstractLinkCodeRepo):
 # ===================================================================
 
 class SqliteRelationRepo(AbstractRelationRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_id(self, relation_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(UserRelation).where(UserRelation.id == relation_id))
         rel = r.scalar_one_or_none()
         return _rel_to_dict(rel) if rel else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         rel = UserRelation(**data)
         self.db.add(rel)
         await self.db.flush()
@@ -289,6 +319,7 @@ class SqliteRelationRepo(AbstractRelationRepo):
         return _rel_to_dict(rel)
 
     async def update(self, relation_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(UserRelation).where(UserRelation.id == relation_id))
         rel = r.scalar_one_or_none()
         if rel is None:
@@ -301,6 +332,7 @@ class SqliteRelationRepo(AbstractRelationRepo):
         return _rel_to_dict(rel)
 
     async def find_active_by_self_user(self, self_user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(UserRelation).where(
                 UserRelation.self_user_id == self_user_id,
@@ -310,6 +342,7 @@ class SqliteRelationRepo(AbstractRelationRepo):
         return [_rel_to_dict(rel) for rel in r.scalars().all()]
 
     async def find_active_by_linked_user(self, linked_user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(UserRelation).where(
                 UserRelation.linked_user_id == linked_user_id,
@@ -319,6 +352,7 @@ class SqliteRelationRepo(AbstractRelationRepo):
         return [_rel_to_dict(rel) for rel in r.scalars().all()]
 
     async def find_active_link(self, self_user_id: str, linked_user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(UserRelation).where(
                 UserRelation.self_user_id == self_user_id,
@@ -335,10 +369,13 @@ class SqliteRelationRepo(AbstractRelationRepo):
 # ===================================================================
 
 class SqliteLiveStatusRepo(AbstractLiveStatusRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(LiveStatus).where(LiveStatus.user_id == user_id))
         ls = r.scalar_one_or_none()
         if ls is None:
@@ -402,6 +439,7 @@ class SqliteLiveStatusRepo(AbstractLiveStatusRepo):
         return live
 
     async def upsert(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(LiveStatus).where(LiveStatus.user_id == user_id))
         ls = r.scalar_one_or_none()
         if ls is None:
@@ -420,10 +458,13 @@ class SqliteLiveStatusRepo(AbstractLiveStatusRepo):
 # ===================================================================
 
 class SqliteAnomalyRepo(AbstractAnomalyRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         a = AnomalyEvent(**data)
         self.db.add(a)
         await self.db.flush()
@@ -431,6 +472,7 @@ class SqliteAnomalyRepo(AbstractAnomalyRepo):
         return _anomaly_to_dict(a)
 
     async def list_by_user(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AnomalyEvent)
             .where(AnomalyEvent.user_id == user_id)
@@ -445,15 +487,19 @@ class SqliteAnomalyRepo(AbstractAnomalyRepo):
 # ===================================================================
 
 class SqliteAlertRepo(AbstractAlertRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_id(self, alert_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(AlertEvent).where(AlertEvent.id == alert_id))
         a = r.scalar_one_or_none()
         return _alert_to_dict(a) if a else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         recommendations = data.pop("recommendations", [])
         a = AlertEvent(**data)
         if recommendations:
@@ -464,6 +510,7 @@ class SqliteAlertRepo(AbstractAlertRepo):
         return _alert_to_dict(a)
 
     async def update(self, alert_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(AlertEvent).where(AlertEvent.id == alert_id))
         a = r.scalar_one_or_none()
         if a is None:
@@ -479,6 +526,7 @@ class SqliteAlertRepo(AbstractAlertRepo):
         return _alert_to_dict(a)
 
     async def list_by_user(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AlertEvent)
             .where(AlertEvent.user_id == user_id)
@@ -488,6 +536,7 @@ class SqliteAlertRepo(AbstractAlertRepo):
         return [_alert_to_dict(a) for a in r.scalars().all()]
 
     async def get_active_by_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AlertEvent)
             .where(
@@ -500,6 +549,7 @@ class SqliteAlertRepo(AbstractAlertRepo):
         return _alert_to_dict(a) if a else None
 
     async def get_countdown_alerts(self, user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AlertEvent).where(
                 AlertEvent.user_id == user_id,
@@ -514,15 +564,19 @@ class SqliteAlertRepo(AbstractAlertRepo):
 # ===================================================================
 
 class SqlitePostEventRepo(AbstractPostEventRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_id(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(PostEventSession).where(PostEventSession.id == session_id))
         s = r.scalar_one_or_none()
         return _post_event_to_dict(s) if s else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         s = PostEventSession(**data)
         self.db.add(s)
         await self.db.flush()
@@ -530,6 +584,7 @@ class SqlitePostEventRepo(AbstractPostEventRepo):
         return _post_event_to_dict(s)
 
     async def update(self, session_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(PostEventSession).where(PostEventSession.id == session_id))
         s = r.scalar_one_or_none()
         if s is None:
@@ -547,10 +602,13 @@ class SqlitePostEventRepo(AbstractPostEventRepo):
 # ===================================================================
 
 class SqliteHistoryRepo(AbstractHistoryRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         h = HistoryItem(**data)
         self.db.add(h)
         await self.db.flush()
@@ -558,6 +616,7 @@ class SqliteHistoryRepo(AbstractHistoryRepo):
         return _history_to_dict(h)
 
     async def list_by_user(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(HistoryItem)
             .where(HistoryItem.user_id == user_id)
@@ -572,10 +631,13 @@ class SqliteHistoryRepo(AbstractHistoryRepo):
 # ===================================================================
 
 class SqliteNotificationRepo(AbstractNotificationRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         n = NotificationItem(**data)
         self.db.add(n)
         await self.db.flush()
@@ -583,6 +645,7 @@ class SqliteNotificationRepo(AbstractNotificationRepo):
         return _notif_to_dict(n)
 
     async def list_by_recipient(self, recipient_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(NotificationItem)
             .where(NotificationItem.recipient_id == recipient_id)
@@ -592,6 +655,7 @@ class SqliteNotificationRepo(AbstractNotificationRepo):
         return [_notif_to_dict(n) for n in r.scalars().all()]
 
     async def mark_read(self, notif_id: str, recipient_id: str) -> bool:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(NotificationItem).where(
                 NotificationItem.id == notif_id,
@@ -607,6 +671,7 @@ class SqliteNotificationRepo(AbstractNotificationRepo):
         return True
 
     async def mark_all_read(self, recipient_id: str) -> int:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         result = await self.db.execute(
             update(NotificationItem)
             .where(
@@ -624,10 +689,13 @@ class SqliteNotificationRepo(AbstractNotificationRepo):
 # ===================================================================
 
 class SqliteClinicalNoteRepo(AbstractClinicalNoteRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         n = ClinicalNote(**data)
         self.db.add(n)
         await self.db.flush()
@@ -635,11 +703,13 @@ class SqliteClinicalNoteRepo(AbstractClinicalNoteRepo):
         return _note_to_dict(n)
 
     async def get_by_id(self, note_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(ClinicalNote).where(ClinicalNote.id == note_id))
         n = r.scalar_one_or_none()
         return _note_to_dict(n) if n else None
 
     async def update(self, note_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(ClinicalNote).where(ClinicalNote.id == note_id))
         n = r.scalar_one_or_none()
         if n is None:
@@ -652,6 +722,7 @@ class SqliteClinicalNoteRepo(AbstractClinicalNoteRepo):
         return _note_to_dict(n)
 
     async def delete(self, note_id: str) -> bool:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(ClinicalNote).where(ClinicalNote.id == note_id))
         n = r.scalar_one_or_none()
         if n is None:
@@ -661,6 +732,7 @@ class SqliteClinicalNoteRepo(AbstractClinicalNoteRepo):
         return True
 
     async def list_by_patient(self, patient_id: str, doctor_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         q = select(ClinicalNote).where(ClinicalNote.patient_id == patient_id)
         if doctor_id:
             q = q.where(ClinicalNote.doctor_id == doctor_id)
@@ -674,10 +746,13 @@ class SqliteClinicalNoteRepo(AbstractClinicalNoteRepo):
 # ===================================================================
 
 class SqliteSettingsRepo(AbstractSettingsRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(AppSettings).where(AppSettings.user_id == user_id))
         s = r.scalar_one_or_none()
         if s is None:
@@ -688,6 +763,7 @@ class SqliteSettingsRepo(AbstractSettingsRepo):
         return _settings_to_dict(s)
 
     async def update(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(AppSettings).where(AppSettings.user_id == user_id))
         s = r.scalar_one_or_none()
         if s is None:
@@ -707,10 +783,13 @@ class SqliteSettingsRepo(AbstractSettingsRepo):
 # ===================================================================
 
 class SqliteSimulationStateRepo(AbstractSimulationStateRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(SimulationState).where(SimulationState.user_id == user_id))
         s = r.scalar_one_or_none()
         if s is None:
@@ -721,6 +800,7 @@ class SqliteSimulationStateRepo(AbstractSimulationStateRepo):
         return _sim_to_dict(s)
 
     async def update(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(select(SimulationState).where(SimulationState.user_id == user_id))
         s = r.scalar_one_or_none()
         if s is None:
@@ -739,10 +819,13 @@ class SqliteSimulationStateRepo(AbstractSimulationStateRepo):
 # ===================================================================
 
 class SqliteDeviceRepo(AbstractDeviceRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def register_device(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         reg = DeviceRegistration(**data)
         self.db.add(reg)
         await self.db.flush()
@@ -754,6 +837,7 @@ class SqliteDeviceRepo(AbstractDeviceRepo):
         }
 
     async def get_registration(self, device_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(DeviceRegistration).where(
                 DeviceRegistration.device_id == device_id,
@@ -770,6 +854,7 @@ class SqliteDeviceRepo(AbstractDeviceRepo):
         }
 
     async def update_registration(self, device_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(DeviceRegistration).where(DeviceRegistration.device_id == device_id)
         )
@@ -788,6 +873,7 @@ class SqliteDeviceRepo(AbstractDeviceRepo):
         }
 
     async def log_packet(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         log = DevicePacketLog(**data)
         self.db.add(log)
         await self.db.flush()
@@ -800,6 +886,7 @@ class SqliteDeviceRepo(AbstractDeviceRepo):
 # ===================================================================
 
 def _baseline_to_dict(b: UserBaseline) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": b.id,
         "user_id": b.user_id,
@@ -819,10 +906,13 @@ def _baseline_to_dict(b: UserBaseline) -> Dict[str, Any]:
 
 
 class SqliteBaselineRepo(AbstractBaselineRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_by_user_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(UserBaseline).where(UserBaseline.user_id == user_id)
         )
@@ -830,6 +920,7 @@ class SqliteBaselineRepo(AbstractBaselineRepo):
         return _baseline_to_dict(b) if b else None
 
     async def create_for_user(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         b = UserBaseline(id=str(uuid4()), user_id=user_id)
         self.db.add(b)
         await self.db.flush()
@@ -837,12 +928,14 @@ class SqliteBaselineRepo(AbstractBaselineRepo):
         return _baseline_to_dict(b)
 
     async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         existing = await self.get_by_user_id(user_id)
         if existing is not None:
             return existing
         return await self.create_for_user(user_id)
 
     async def update_values(self, user_id: str, values: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(UserBaseline).where(UserBaseline.user_id == user_id)
         )
@@ -863,6 +956,7 @@ class SqliteBaselineRepo(AbstractBaselineRepo):
 # ===================================================================
 
 def _capture_session_to_dict(s: LearningCaptureSession) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": s.id, "user_id": s.user_id, "device_id": s.device_id,
         "started_at": s.started_at, "ended_at": s.ended_at,
@@ -879,7 +973,9 @@ def _capture_session_to_dict(s: LearningCaptureSession) -> Dict[str, Any]:
 
 
 def _learning_window_to_dict(w: LearningWindow) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     def _parse_json(val):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         if val is None:
             return None
         if isinstance(val, dict):
@@ -911,6 +1007,7 @@ def _learning_window_to_dict(w: LearningWindow) -> Dict[str, Any]:
 
 
 def _feedback_to_dict(f: UserFeedbackEvent) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": f.id, "user_id": f.user_id,
         "related_window_id": f.related_window_id,
@@ -922,7 +1019,9 @@ def _feedback_to_dict(f: UserFeedbackEvent) -> Dict[str, Any]:
 
 
 def _model_version_to_dict(m: ModelVersionRegistry) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     def _parse_json(val):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         if val is None:
             return None
         if isinstance(val, dict):
@@ -943,10 +1042,13 @@ def _model_version_to_dict(m: ModelVersionRegistry) -> Dict[str, Any]:
 
 
 class SqliteLearningRepo(AbstractLearningRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def create_session(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         s = LearningCaptureSession(**data)
         self.db.add(s)
         await self.db.flush()
@@ -954,6 +1056,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return _capture_session_to_dict(s)
 
     async def close_session(self, session_id: str, ended_at) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(LearningCaptureSession).where(LearningCaptureSession.id == session_id)
         )
@@ -969,6 +1072,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
 
     async def create_window(self, data: Dict[str, Any]) -> Dict[str, Any]:
         # Serialize JSON fields
+        """İlgili veriyi repository katmanında okur veya yazar."""
         for field in ("ml_shadow_summary", "retrieval_shadow_summary"):
             if isinstance(data.get(field), dict):
                 data[field] = json.dumps(data[field])
@@ -985,6 +1089,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         source: Optional[str] = None,
         limit: int = 100,
     ) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         q = select(LearningWindow).order_by(LearningWindow.created_at.desc())
         if user_id:
             q = q.where(LearningWindow.user_id == user_id)
@@ -997,6 +1102,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return [_learning_window_to_dict(w) for w in r.scalars().all()]
 
     async def get_window(self, window_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(LearningWindow).where(LearningWindow.id == window_id)
         )
@@ -1006,6 +1112,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
     async def mark_window_candidate(
         self, window_id: str, status: str
     ) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(LearningWindow).where(LearningWindow.id == window_id)
         )
@@ -1023,6 +1130,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
     async def update_window_feedback(
         self, window_id: str, feedback_label: str
     ) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(LearningWindow).where(LearningWindow.id == window_id)
         )
@@ -1039,6 +1147,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return _learning_window_to_dict(w)
 
     async def create_feedback(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         f = UserFeedbackEvent(**data)
         self.db.add(f)
         await self.db.flush()
@@ -1046,6 +1155,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return _feedback_to_dict(f)
 
     async def get_feedback_for_window(self, window_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(UserFeedbackEvent)
             .where(UserFeedbackEvent.related_window_id == window_id)
@@ -1054,6 +1164,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return [_feedback_to_dict(f) for f in r.scalars().all()]
 
     async def create_model_version(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         if isinstance(data.get("metrics_json"), dict):
             data["metrics_json"] = json.dumps(data["metrics_json"])
         m = ModelVersionRegistry(**data)
@@ -1063,12 +1174,14 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return _model_version_to_dict(m)
 
     async def list_model_versions(self) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(ModelVersionRegistry).order_by(ModelVersionRegistry.created_at.desc())
         )
         return [_model_version_to_dict(m) for m in r.scalars().all()]
 
     async def get_active_model_version(self) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(ModelVersionRegistry)
             .where(ModelVersionRegistry.status == "active")
@@ -1084,6 +1197,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         min_quality_confidence: float = 0.0,
         limit: int = 1000,
     ) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         q = (
             select(LearningWindow)
             .where(
@@ -1102,6 +1216,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
         return [_learning_window_to_dict(w) for w in r.scalars().all()]
 
     async def mark_windows_exported(self, window_ids: List[str]) -> int:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         if not window_ids:
             return 0
         now = datetime.utcnow()
@@ -1119,6 +1234,7 @@ class SqliteLearningRepo(AbstractLearningRepo):
 # ---------------------------------------------------------------------------
 
 def _profile_to_dict(p: PersonalHealthProfile) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     import json as _json
     return {
         "id": p.id,
@@ -1157,6 +1273,7 @@ def _profile_to_dict(p: PersonalHealthProfile) -> Dict[str, Any]:
 
 
 def _risk_memory_to_dict(m: PersonalRiskMemory) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     import json as _json
     return {
         "id": m.id,
@@ -1170,6 +1287,7 @@ def _risk_memory_to_dict(m: PersonalRiskMemory) -> Dict[str, Any]:
 
 
 def _trend_to_dict(t: PersonalTrendSnapshot) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": t.id,
         "user_id": t.user_id,
@@ -1185,10 +1303,13 @@ def _trend_to_dict(t: PersonalTrendSnapshot) -> Dict[str, Any]:
 
 
 class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_or_create_profile(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(PersonalHealthProfile).where(PersonalHealthProfile.user_id == user_id)
         )
@@ -1201,6 +1322,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
         return _profile_to_dict(p)
 
     async def update_profile(self, user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         import json as _json
         r = await self.db.execute(
             select(PersonalHealthProfile).where(PersonalHealthProfile.user_id == user_id)
@@ -1220,6 +1342,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
         return _profile_to_dict(p)
 
     async def add_risk_memory(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         import json as _json
         raw = dict(data)
         if isinstance(raw.get("context_json"), dict):
@@ -1231,6 +1354,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
         return _risk_memory_to_dict(m)
 
     async def list_risk_memory(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(PersonalRiskMemory)
             .where(PersonalRiskMemory.user_id == user_id)
@@ -1240,6 +1364,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
         return [_risk_memory_to_dict(m) for m in r.scalars().all()]
 
     async def create_trend_snapshot(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         t = PersonalTrendSnapshot(**data)
         self.db.add(t)
         await self.db.flush()
@@ -1247,6 +1372,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
         return _trend_to_dict(t)
 
     async def get_latest_trend_snapshot(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(PersonalTrendSnapshot)
             .where(PersonalTrendSnapshot.user_id == user_id)
@@ -1257,6 +1383,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
         return _trend_to_dict(t) if t else None
 
     async def summarize_personalization(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         profile = await self.get_or_create_profile(user_id)
         latest_trend = await self.get_latest_trend_snapshot(user_id)
         total_fb = profile["total_feedback_count"]
@@ -1285,6 +1412,7 @@ class SqlitePersonalizationRepo(AbstractPersonalizationRepo):
 # ---------------------------------------------------------------------------
 
 def _state_to_dict(s: AssistantState) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     import json as _json
     d = {
         "id": s.id, "user_id": s.user_id,
@@ -1311,6 +1439,7 @@ def _state_to_dict(s: AssistantState) -> Dict[str, Any]:
 
 
 def _action_to_dict(a: AssistantAction) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     import json as _json
     d = {
         "id": a.id, "user_id": a.user_id, "state_id": a.state_id,
@@ -1334,6 +1463,7 @@ def _action_to_dict(a: AssistantAction) -> Dict[str, Any]:
 
 
 def _ack_to_dict(a: AssistantAcknowledgement) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return {
         "id": a.id, "user_id": a.user_id, "state_id": a.state_id,
         "action_id": a.action_id, "response": a.response,
@@ -1343,10 +1473,13 @@ def _ack_to_dict(a: AssistantAcknowledgement) -> Dict[str, Any]:
 
 
 class SqliteAssistantRepo(AbstractAssistantRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     def __init__(self, db: AsyncSession) -> None:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.db = db
 
     async def get_or_create_state(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AssistantState).where(AssistantState.user_id == user_id)
         )
@@ -1363,6 +1496,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return _state_to_dict(s)
 
     async def update_state(self, user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         import json as _json
         r = await self.db.execute(
             select(AssistantState).where(AssistantState.user_id == user_id)
@@ -1381,6 +1515,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return _state_to_dict(s)
 
     async def create_action(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         import json as _json
         raw = dict(data)
         if isinstance(raw.get("ack_options"), dict):
@@ -1394,6 +1529,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return _action_to_dict(a)
 
     async def list_active_actions(self, user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AssistantAction)
             .where(
@@ -1405,6 +1541,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return [_action_to_dict(a) for a in r.scalars().all()]
 
     async def complete_action(self, action_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AssistantAction).where(AssistantAction.id == action_id)
         )
@@ -1417,6 +1554,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return None
 
     async def create_ack(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         raw = dict(data)
         a = AssistantAcknowledgement(**raw)
         self.db.add(a)
@@ -1425,6 +1563,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return _ack_to_dict(a)
 
     async def get_due_ack_timeouts(self, now: datetime) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AssistantState)
             .where(
@@ -1435,6 +1574,7 @@ class SqliteAssistantRepo(AbstractAssistantRepo):
         return [_state_to_dict(s) for s in r.scalars().all()]
 
     async def list_assistant_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         r = await self.db.execute(
             select(AssistantAction)
             .where(AssistantAction.user_id == user_id)

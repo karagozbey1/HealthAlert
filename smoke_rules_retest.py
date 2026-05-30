@@ -34,7 +34,7 @@ results = {}
 
 # ─── Service account token for Admin-like REST (not bypassing rules, but authenticated) ─
 def get_sa_id_token():
-    """Get OAuth2 access token from service account for Firebase Admin REST calls."""
+    """İstenen veriyi ilgili kaynaktan okuyup çağırana döndürür."""
     credentials = google.oauth2.service_account.Credentials.from_service_account_file(
         SA_PATH,
         scopes=["https://www.googleapis.com/auth/cloud-platform",
@@ -45,25 +45,26 @@ def get_sa_id_token():
 
 # ─── REST Helpers ─────────────────────────────────────────────────────────────
 def fs_patch_unauth(collection, doc_id, fields: dict):
-    """Unauthenticated PATCH (simulate Flutter client with no Firebase Auth)."""
+    """Smoke kontrolünde kullanılan ilgili Firebase yardımcı işlemini yürütür."""
     url = f"{FS_BASE}/{collection}/{doc_id}?key={ANDROID_API_KEY}"
     body = {"fields": {k: _field(v) for k, v in fields.items()}}
     r = requests.patch(url, json=body, timeout=15)
     return r
 
 def fs_get_unauth(collection, doc_id):
-    """Unauthenticated GET (simulate Flutter client)."""
+    """İstenen veriyi ilgili kaynaktan okuyup çağırana döndürür."""
     url = f"{FS_BASE}/{collection}/{doc_id}?key={ANDROID_API_KEY}"
     r = requests.get(url, timeout=15)
     return r
 
 def fs_delete_admin(collection, doc_id, token):
-    """DELETE with Admin OAuth2 token for cleanup."""
+    """Smoke kontrolünde kullanılan ilgili Firebase yardımcı işlemini yürütür."""
     url = f"{FS_BASE}/{collection}/{doc_id}"
     r = requests.delete(url, headers={"Authorization": f"Bearer {token}"}, timeout=15)
     return r
 
 def _field(val):
+    """Smoke script değerini Firestore REST field formatına dönüştürür."""
     if isinstance(val, str):
         return {"stringValue": val}
     if isinstance(val, bool):
@@ -73,6 +74,7 @@ def _field(val):
     return {"stringValue": str(val)}
 
 def check(name, condition, detail=""):
+    """Smoke kontrol sonucunu okunabilir PASS veya FAIL satırı olarak yazdırır."""
     status = PASS if condition else FAIL
     results[name] = condition
     print(f"  {status}  {name}" + (f"  ({detail})" if detail else ""))

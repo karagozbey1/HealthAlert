@@ -10,11 +10,15 @@ import '../models/live_status.dart';
 bool _firestoreAvailable = false;
 FirebaseFirestore? _firestore;
 
-/// Initialises Firestore connection.
-///
-/// Only requires [projectId] to be non-empty; no network ping is needed
-/// because [FirebaseFirestore.instance] succeeds once [Firebase.initializeApp]
-/// has been called.  Actual read/write failures are handled per-operation.
+const double _criticalRiskThreshold = 0.7;
+const double _warningRiskThreshold = 0.5;
+const double _watchRiskThreshold = 0.3;
+const double _stillMovementThreshold = 0.2;
+const double _lightMovementThreshold = 0.5;
+const int _stablePpgMeasurementState = 3;
+const int _staleStatusSeconds = 60;
+
+/// Firestore istemcisini proje ayarına göre başlatıp kullanılabilirlik bilgisini günceller.
 Future<bool> initFirestoreSync({
   required String projectId,
 }) async {
@@ -36,6 +40,7 @@ Future<bool> initFirestoreSync({
   }
 }
 
+/// BLE ve canlı durum verilerini Firestore belgeleriyle senkronize eder.
 class FirestoreSyncService extends ChangeNotifier {
   FirestoreSyncService({
     required this.userId,
@@ -63,10 +68,12 @@ class FirestoreSyncService extends ChangeNotifier {
   DateTime? get lastSyncTime => _lastSyncTime;
   String? get lastError => _lastError;
 
+  /// Servisin periyodik veri akışını başlatır.
   void start() {
     if (!_firestoreAvailable) {
       debugPrint('[FirestoreSync] Firestore not available – sync disabled');
-      debugPrint('[FirestoreSync] Data will be sent to backend via HTTP instead');
+      debugPrint(
+          '[FirestoreSync] Data will be sent to backend via HTTP instead');
       return;
     }
 
@@ -76,14 +83,17 @@ class FirestoreSyncService extends ChangeNotifier {
       (_) => flush(),
     );
 
-    debugPrint('[FirestoreSync] Sync started (batch=$batchSize, interval=${flushIntervalSeconds}s)');
+    debugPrint(
+        '[FirestoreSync] Sync started (batch=$batchSize, interval=${flushIntervalSeconds}s)');
   }
 
+  /// Servisin çalışan periyodik veri akışını durdurur.
   void stop() {
     _flushTimer?.cancel();
     _flushTimer = null;
   }
 
+  /// BLE telemetri paketini Firestore yazım kuyruğuna ekler.
   void addPacket(BlePacket packet) {
     final data = {
       ...packet.toJson(),
@@ -99,14 +109,18 @@ class FirestoreSyncService extends ChangeNotifier {
     }
   }
 
+  /// Hastanın canlı durumunu Firestore live_status belgesine yazar.
   Future<void> syncLiveStatus(LiveStatus status) async {
     if (!_firestoreAvailable || _firestore == null) return;
 
     try {
-      await _writeToFirestore('live_status', status.userId, _buildLiveStatusMap(
-        patientId: status.userId,
-        status: status,
-      ));
+      await _writeToFirestore(
+          'live_status',
+          status.userId,
+          _buildLiveStatusMap(
+            patientId: status.userId,
+            status: status,
+          ));
     } catch (e) {
       debugPrint('[FirestoreSync] Live status sync failed: $e');
       _lastError = e.toString();
@@ -114,8 +128,7 @@ class FirestoreSyncService extends ChangeNotifier {
     }
   }
 
-  /// Writes a patient's live status to Firestore [live_status/{patientId}].
-  /// Called from patient phone when BLE data arrives.
+  /// Hasta telefonundan gelen canlı ölçümü Firestore hasta belgesine kaydeder.
   Future<void> writeLiveStatusForPatient(
     String patientId,
     LiveStatus status, {
@@ -141,35 +154,40 @@ class FirestoreSyncService extends ChangeNotifier {
 
   /// Returns a real-time stream for [live_status/{patientId}].
   /// Used by doctor/relative screens to receive updates without polling.
-  Stream<DocumentSnapshot<Map<String, dynamic>>> getLiveStatusStream(String patientId) {
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getLiveStatusStream(
+      String patientId) {
     if (!_firestoreAvailable || _firestore == null) {
       return const Stream.empty();
     }
-    return _firestore!
-        .collection('live_status')
-        .doc(patientId)
-        .snapshots();
+    return _firestore!.collection('live_status').doc(patientId).snapshots();
   }
 
-  /// Converts a Firestore [live_status] document map to a [LiveStatus].
+  /// Firestore live_status belgesini mobil canlı durum modeline dönüştürür.
   static LiveStatus liveStatusFromFirestoreMap(
       Map<String, dynamic> data, String patientId) {
     DateTime parseTs(dynamic v) {
       if (v == null) return DateTime.now();
       if (v is Timestamp) return v.toDate();
       if (v is String) {
-        try { return DateTime.parse(v); } catch (_) {}
+        try {
+          return DateTime.parse(v);
+        } catch (error) {
+          debugPrint('[FirestoreSync] Timestamp parse failed: $error');
+        }
       }
       return DateTime.now();
     }
 
     return LiveStatus(
       id: data['id'] as String? ?? '',
-      userId: data['patient_id'] as String? ?? data['user_id'] as String? ?? patientId,
+      userId: data['patient_id'] as String? ??
+          data['user_id'] as String? ??
+          patientId,
       heartRate: (data['heart_rate'] as num?)?.toDouble() ?? 0,
       spo2: (data['spo2'] as num?)?.toDouble() ?? 0,
       motionScore: (data['movement_percent'] as num?)?.toDouble() ??
-          (data['motion_score'] as num?)?.toDouble() ?? 0.1,
+          (data['motion_score'] as num?)?.toDouble() ??
+          0.1,
       riskScore: (data['risk_score'] as num?)?.toDouble() ?? 0.05,
       scenario: data['scenario'] as String? ?? 'normal',
       timestamp: parseTs(data['updated_at'] ?? data['timestamp']),
@@ -181,13 +199,15 @@ class FirestoreSyncService extends ChangeNotifier {
     );
   }
 
-  /// Writes an alert document to Firestore [alerts/{alertId}].
-  Future<void> writeAlert(String alertId, Map<String, dynamic> alertData) async {
+  /// Alarm kaydını Firestore alerts koleksiyonuna yazar.
+  Future<void> writeAlert(
+      String alertId, Map<String, dynamic> alertData) async {
     if (!_firestoreAvailable || _firestore == null) return;
     try {
       await _writeToFirestore('alerts', alertId, {
         ...alertData,
-        'created_at': alertData['created_at'] ?? DateTime.now().toIso8601String(),
+        'created_at':
+            alertData['created_at'] ?? DateTime.now().toIso8601String(),
       });
     } catch (e) {
       debugPrint('[FirestoreSync] writeAlert failed: $e');
@@ -195,7 +215,8 @@ class FirestoreSyncService extends ChangeNotifier {
   }
 
   /// Returns a real-time stream of alerts for a patient.
-  Stream<QuerySnapshot<Map<String, dynamic>>> getPatientAlertsStream(String patientId) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getPatientAlertsStream(
+      String patientId) {
     if (!_firestoreAvailable || _firestore == null) {
       return const Stream.empty();
     }
@@ -207,7 +228,7 @@ class FirestoreSyncService extends ChangeNotifier {
         .snapshots();
   }
 
-  /// Writes a history record to [history/{patientId}/records/{recordId}].
+  /// Hasta geçmiş kaydını Firestore alt koleksiyonuna yazar.
   Future<void> writeHistoryRecord(
       String patientId, String recordId, Map<String, dynamic> data) async {
     if (!_firestoreAvailable || _firestore == null) return;
@@ -228,7 +249,7 @@ class FirestoreSyncService extends ChangeNotifier {
     }
   }
 
-  /// Builds the canonical [live_status/{patientId}] document map.
+  /// Canlı hasta durumunu Firestore live_status payload formatına dönüştürür.
   static Map<String, dynamic> _buildLiveStatusMap({
     required String patientId,
     required LiveStatus status,
@@ -236,11 +257,11 @@ class FirestoreSyncService extends ChangeNotifier {
   }) {
     final riskScore = status.finalRiskScore ?? status.riskScore;
     String riskLevel;
-    if (riskScore >= 0.7) {
+    if (riskScore >= _criticalRiskThreshold) {
       riskLevel = 'critical';
-    } else if (riskScore >= 0.5) {
+    } else if (riskScore >= _warningRiskThreshold) {
       riskLevel = 'warning';
-    } else if (riskScore >= 0.3) {
+    } else if (riskScore >= _watchRiskThreshold) {
       riskLevel = 'watch';
     } else {
       riskLevel = 'normal';
@@ -258,27 +279,35 @@ class FirestoreSyncService extends ChangeNotifier {
       'spo2': status.spo2,
       'spo2_valid': status.spo2Valid ?? true,
       'movement_percent': status.motionScore,
-      'movement_label': status.motionScore < 0.2
-          ? 'Hareketsiz'
-          : status.motionScore < 0.5
-              ? 'Az Hareketli'
-              : 'Hareketli',
+      'movement_label': _movementLabelForScore(status.motionScore),
       'risk_score': riskScore,
       'risk_level': riskLevel,
       'source': status.source ?? 'ble',
       'signal_quality': status.signalQuality ?? 1.0,
       'finger_detected': status.fingerPresent ?? true,
-      'measurement_state': 3, // PPG_STABLE default
+      'measurement_state': _stablePpgMeasurementState,
       'motion_artifact': false,
       'scenario': status.scenario,
       'timestamp': status.timestamp.toIso8601String(),
       'updated_at': now.toIso8601String(),
       'last_seen_seconds': ageSec,
-      'is_stale': ageSec > 60,
+      'is_stale': ageSec > _staleStatusSeconds,
       'active_alert_count': 0,
     };
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
+  static String _movementLabelForScore(double motionScore) {
+    if (motionScore < _stillMovementThreshold) {
+      return 'Hareketsiz';
+    }
+    if (motionScore < _lightMovementThreshold) {
+      return 'Az Hareketli';
+    }
+    return 'Hareketli';
+  }
+
+  /// Bekleyen telemetri paketlerini Firestore'a toplu olarak yazar.
   Future<void> flush() async {
     if (_buffer.isEmpty || _syncing) return;
     if (!_firestoreAvailable || _firestore == null) {
@@ -316,13 +345,14 @@ class FirestoreSyncService extends ChangeNotifier {
     }
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     stop();
     super.dispose();
   }
 
+  /// Verilen koleksiyon ve belge kimliğiyle Firestore yazma işlemini yapar.
   Future<void> _writeToFirestore(
     String collection,
     String docId,
@@ -339,6 +369,7 @@ class FirestoreSyncService extends ChangeNotifier {
   }
 }
 
+/// Ham sensör paketini Firestore telemetry_packets koleksiyonuna yazar.
 Future<void> writeSensorDataToFirestore({
   required String userId,
   required Map<String, dynamic> packetData,
@@ -346,8 +377,7 @@ Future<void> writeSensorDataToFirestore({
   if (!_firestoreAvailable || _firestore == null) return;
 
   try {
-    final docId =
-        '${packetData['device_id']}_${packetData['packet_seq']}';
+    final docId = '${packetData['device_id']}_${packetData['packet_seq']}';
     await _firestore!.collection('telemetry_packets').doc(docId).set({
       ...packetData,
       'user_id': userId,

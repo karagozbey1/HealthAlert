@@ -13,18 +13,22 @@ import 'settings/cloud_sync_screen.dart';
 import 'settings/device_connection_screen.dart';
 import 'settings/work_mode_settings_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _backgroundMonitoring = true;
   bool _initialized = false;
 
+  /// Inherited bağımlılıklar değiştiğinde ekran ayarlarını günceller.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -35,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _initialized = true;
   }
 
+  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _persist() async {
     final app = AppScope.of(context);
     final current = app.settings;
@@ -46,6 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -240,6 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionTitle(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -250,6 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _settingsCard(List<Widget> children) {
     return GlassCard(
       padding: EdgeInsets.zero,
@@ -257,6 +265,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _accountTile({
     required String name,
     required String email,
@@ -298,6 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _settingsTile({
     required IconData icon,
     required Color iconColor,
@@ -320,6 +330,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _rolePill(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -339,6 +350,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _roleLabel(UserRole? role) {
     switch (role) {
       case UserRole.doctor:
@@ -352,9 +364,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class _PrivacySecurityScreen extends StatelessWidget {
   const _PrivacySecurityScreen();
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -400,6 +414,7 @@ class _PrivacySecurityScreen extends StatelessWidget {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _PrivacyRow extends StatelessWidget {
   const _PrivacyRow({
     required this.icon,
@@ -411,6 +426,7 @@ class _PrivacyRow extends StatelessWidget {
   final String title;
   final String text;
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Row(

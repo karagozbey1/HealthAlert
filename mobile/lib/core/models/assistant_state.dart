@@ -1,5 +1,6 @@
 // Asistan durumunu ve eylemlerini mobil tarafta taşıyan veri modelleridir.
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class AssistantState {
   final String id;
   final String userId;
@@ -60,6 +61,7 @@ class AssistantState {
   bool get isCritical => currentMode == 'critical';
 }
 
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class AssistantAction {
   final String id;
   final String userId;

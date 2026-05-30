@@ -24,6 +24,7 @@ async def notify_linked_users(
     *,
     repos=None,
 ) -> None:
+    """notification servisindeki HealthAlert iş kuralını uygular."""
     if repos is not None:
         relations = await repos.relations.find_active_by_self_user(self_user_id)
         for rel in relations:
@@ -91,6 +92,7 @@ async def notify_single(
     *,
     repos=None,
 ) -> None:
+    """notification servisindeki HealthAlert iş kuralını uygular."""
     if repos is not None:
         await repos.notifications.create({
             "id": str(uuid4()),

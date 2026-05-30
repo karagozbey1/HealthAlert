@@ -4,13 +4,17 @@ import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class BatteryOptimizationScreen extends StatefulWidget {
   const BatteryOptimizationScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
-  State<BatteryOptimizationScreen> createState() => _BatteryOptimizationScreenState();
+  State<BatteryOptimizationScreen> createState() =>
+      _BatteryOptimizationScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
   String _selectedMode = "Dengeli";
   bool _dimBrightness = false;
@@ -18,6 +22,7 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
   String _uploadInterval = "5 Dakika";
   bool _loaded = false;
 
+  /// Inherited bağımlılıklar değiştiğinde ekran ayarlarını günceller.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -30,6 +35,7 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
     _loaded = true;
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _modeToLabel(BatteryMode mode) {
     switch (mode) {
       case BatteryMode.performance:
@@ -41,6 +47,7 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
     }
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   BatteryMode _labelToMode(String label) {
     switch (label) {
       case 'Performans':
@@ -52,6 +59,7 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
     }
   }
 
+  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _save() async {
     final app = AppScope.of(context);
     final current = app.settings;
@@ -66,7 +74,7 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
     );
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,7 +91,8 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
             Center(
               child: Column(
                 children: [
-                  const Icon(Icons.battery_saver, size: 80, color: AppTheme.success),
+                  const Icon(Icons.battery_saver,
+                      size: 80, color: AppTheme.success),
                   const SizedBox(height: 16),
                   Text(
                     "Tahmini Süre: 22s 15dk",
@@ -92,36 +101,39 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
                   const SizedBox(height: 8),
                   Text(
                     "Şarj Durumu: %92",
-                    style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                    style: AppTheme.darkTheme.textTheme.bodyMedium
+                        ?.copyWith(color: Colors.grey),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
-
             Text(
               "GÜÇ PROFİLLERİ",
-              style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2),
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2),
             ),
             const SizedBox(height: 16),
-            
             GlassCard(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                   _buildModeRadio("Yüksek Performans", "En sık ölçüm, maksimum doğruluk.", "Performans"),
-                   const Divider(color: Colors.white10),
-                   _buildModeRadio("Dengeli (Önerilen)", "Standart kullanım için optimize edilmiş.", "Dengeli"),
-                   const Divider(color: Colors.white10),
-                   _buildModeRadio("Güç Tasarrufu", "Daha az ölçüm, maksimum pil ömrü.", "Tasarruf"),
+                  _buildModeRadio("Yüksek Performans",
+                      "En sık ölçüm, maksimum doğruluk.", "Performans"),
+                  const Divider(color: Colors.white10),
+                  _buildModeRadio("Dengeli (Önerilen)",
+                      "Standart kullanım için optimize edilmiş.", "Dengeli"),
+                  const Divider(color: Colors.white10),
+                  _buildModeRadio("Güç Tasarrufu",
+                      "Daha az ölçüm, maksimum pil ömrü.", "Tasarruf"),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-
             Text(
               "GENEL AYARLAR",
-              style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2),
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2),
             ),
             const SizedBox(height: 16),
             GlassCard(
@@ -129,8 +141,11 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
                 children: [
                   SwitchListTile(
                     activeColor: AppTheme.primary,
-                    title: const Text("Ekran Parlaklığını Azalt", style: TextStyle(color: Colors.white)),
-                    subtitle: const Text("Uygulama açıkken pil tasarrufu sağlar.", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    title: const Text("Ekran Parlaklığını Azalt",
+                        style: TextStyle(color: Colors.white)),
+                    subtitle: const Text(
+                        "Uygulama açıkken pil tasarrufu sağlar.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     value: _dimBrightness,
                     onChanged: (val) async {
                       setState(() => _dimBrightness = val);
@@ -140,8 +155,11 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
                   const Divider(color: Colors.white10),
                   SwitchListTile(
                     activeColor: AppTheme.primary,
-                    title: const Text("Arka Planda Çalış", style: TextStyle(color: Colors.white)),
-                    subtitle: const Text("Uygulama kapalıyken bile izlemeye devam et.", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    title: const Text("Arka Planda Çalış",
+                        style: TextStyle(color: Colors.white)),
+                    subtitle: const Text(
+                        "Uygulama kapalıyken bile izlemeye devam et.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     value: _backgroundMode,
                     onChanged: (val) async {
                       setState(() => _backgroundMode = val);
@@ -149,15 +167,17 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
                     },
                   ),
                   const Divider(color: Colors.white10),
-                   ListTile(
-                    title: const Text("Veri Gönderim Sıklığı", style: TextStyle(color: Colors.white)),
+                  ListTile(
+                    title: const Text("Veri Gönderim Sıklığı",
+                        style: TextStyle(color: Colors.white)),
                     trailing: DropdownButton<String>(
                       value: _uploadInterval,
                       dropdownColor: AppTheme.surface,
                       style: const TextStyle(color: Colors.white),
                       underline: const SizedBox(),
                       items: ["1 Dakika", "5 Dakika", "15 Dakika", "Saatlik"]
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) {
@@ -197,11 +217,19 @@ class _BatteryOptimizationScreenState extends State<BatteryOptimizationScreen> {
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildModeRadio(String title, String subtitle, String value) {
     final bool isSelected = _selectedMode == value;
+    final titleColor = isSelected ? AppTheme.primary : Colors.white;
+    final titleWeight = isSelected ? FontWeight.bold : FontWeight.normal;
+
     return RadioListTile<String>(
-      title: Text(title, style: TextStyle(color: isSelected ? AppTheme.primary : Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+      title: Text(
+        title,
+        style: TextStyle(color: titleColor, fontWeight: titleWeight),
+      ),
+      subtitle: Text(subtitle,
+          style: const TextStyle(color: Colors.grey, fontSize: 12)),
       value: value,
       groupValue: _selectedMode,
       activeColor: AppTheme.primary,

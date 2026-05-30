@@ -85,6 +85,7 @@ _firestore_watcher_task: asyncio.Task | None = None
 # Uygulama baslangicinda DB, seed ve arka plan gorevlerini hazirlar.
 @app.on_event("startup")
 async def startup() -> None:
+    """Backend açılırken veritabanı, Firebase ve arka plan servislerini hazırlar."""
     log_startup_config()
 
     for w in validate_settings():
@@ -128,6 +129,7 @@ async def startup() -> None:
 # Uygulama kapanirken arka plan gorevlerini durdurur.
 @app.on_event("shutdown")
 async def shutdown() -> None:
+    """Backend kapanırken arka plan servislerini güvenli şekilde durdurur."""
     if _sim_task:
         _sim_task.cancel()
         logger.info("Simulation engine stopped.")
@@ -138,11 +140,13 @@ async def shutdown() -> None:
 # Temel servis saglik bilgisini dondurur.
 @app.get("/health")
 async def health_check():
+    """Backend servisinin çalışır durumda olduğunu döndürür."""
     return {"status": "ok", "service": "HealthAlert API", "version": "2.0.0"}
 
 # Bagimlilik ve fallback durumlarini birlikte raporlar.
 @app.get("/readiness")
 async def readiness_check():
+    """Backend bağımlılıklarının hazır olup olmadığını raporlar."""
     from firebase_client import get_firebase_status
     from services.push_service import get_push_status
 
@@ -200,6 +204,7 @@ async def readiness_check():
 # Bulut baglantisinin temel okuma-yazma sagligini sinar.
 @app.get("/cloud/smoke")
 async def cloud_smoke_test():
+    """Bulut bağlantısı için temel Firebase smoke sonucunu döndürür."""
     from firebase_client import firebase_smoke_test, get_firebase_status
 
     status_info = get_firebase_status()
@@ -219,6 +224,7 @@ async def cloud_smoke_test():
 # Push altyapisinin etkin durumunu ornek istekle dogrular.
 @app.get("/push/smoke")
 async def push_notification_smoke_test():
+    """Push bildirim ayarları için temel smoke sonucunu döndürür."""
     from database import AsyncSessionLocal
     from services.push_service import push_smoke_test, get_push_status
 

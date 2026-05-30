@@ -1,3 +1,4 @@
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class EmergencyContact {
   const EmergencyContact({
     required this.id,

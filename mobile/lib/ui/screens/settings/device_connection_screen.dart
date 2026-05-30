@@ -8,29 +8,35 @@ import '../../../ui/widgets/glass_card.dart';
 
 const _kConnectionPrefKey = 'connection_mode';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DeviceConnectionScreen extends StatefulWidget {
   const DeviceConnectionScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<DeviceConnectionScreen> createState() => _DeviceConnectionScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
   String _selected = 'auto';
   bool _saving = false;
 
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
     _loadPreference();
   }
 
+  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadPreference() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString(_kConnectionPrefKey) ?? 'auto';
     if (mounted) setState(() => _selected = saved);
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _applySelection(String mode) async {
     if (_saving) return;
     setState(() {
@@ -50,6 +56,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     }
   }
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -189,6 +196,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _ModeOption extends StatelessWidget {
   const _ModeOption({
     required this.value,
@@ -208,6 +216,7 @@ class _ModeOption extends StatelessWidget {
   final VoidCallback onTap;
   final bool recommended;
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final isSelected = value == selected;

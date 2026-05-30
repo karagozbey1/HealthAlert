@@ -4,14 +4,18 @@ import '../../../core/state/app_scope.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/widgets/glass_card.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class WorkModeSettingsScreen extends StatefulWidget {
   const WorkModeSettingsScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<WorkModeSettingsScreen> createState() => _WorkModeSettingsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _WorkModeSettingsScreenState extends State<WorkModeSettingsScreen> {
+  /// Seçili çalışma moduna göre uygun değeri belirler.
   Future<void> _switchMode({required bool live}) async {
     final app = AppScope.of(context);
     if (live) {
@@ -36,6 +40,7 @@ class _WorkModeSettingsScreenState extends State<WorkModeSettingsScreen> {
     );
   }
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -103,6 +108,7 @@ class _WorkModeSettingsScreenState extends State<WorkModeSettingsScreen> {
     );
   }
 
+  /// Seçili çalışma moduna göre uygun değeri belirler.
   Widget _modeOption({
     required bool selected,
     required IconData icon,

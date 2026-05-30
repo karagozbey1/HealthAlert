@@ -28,6 +28,7 @@ async def ingest_model_window(
     db: AsyncSession = Depends(get_db),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Model penceresi endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     reg = await repos.devices.get_registration(payload.device_id)
     user_id = reg["user_id"] if reg else None
 

@@ -1,3 +1,4 @@
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class ClinicalNote {
   const ClinicalNote({
     required this.id,
@@ -17,6 +18,7 @@ class ClinicalNote {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static ClinicalNote fromJson(Map<String, dynamic> json) => ClinicalNote(
         id: json['id'] as String,
         doctorId: json['doctor_id'] as String,
@@ -27,6 +29,7 @@ class ClinicalNote {
         updatedAt: DateTime.parse(json['updated_at'] as String),
       );
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'id': id,
         'doctor_id': doctorId,

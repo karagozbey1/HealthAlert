@@ -28,6 +28,7 @@ def is_reliable_for_baseline(
     spo2: float,
     global_risk_score: float,
 ) -> bool:
+    """baseline servisindeki HealthAlert iş kuralını uygular."""
     if not settings.BASELINE_ENABLED:
         return False
 
@@ -84,6 +85,7 @@ async def update_user_baseline(
     motion_score: float,
     global_risk_score: float,
 ) -> Dict[str, Any]:
+    """baseline servisindeki iş kuralı güncellemesini uygular."""
     baseline = await repos.baselines.get_or_create(user_id)
 
     reliable = is_reliable_for_baseline(
@@ -153,11 +155,13 @@ async def update_user_baseline(
 
 # Tek adimlik EMA ortalama guncellemesi yapar.
 def _ema(old: float, new: float, alpha: float) -> float:
+    """baseline servisindeki HealthAlert iş kuralını uygular."""
     return alpha * new + (1.0 - alpha) * old
 
 
 # EMA varyansini onceki ortalamaya gore gunceller.
 def _ema_var(old_var: float, new_val: float, old_mean: float, alpha: float) -> float:
+    """baseline servisindeki HealthAlert iş kuralını uygular."""
     diff = new_val - old_mean
     return (1.0 - alpha) * (old_var + alpha * diff * diff)
 
@@ -175,6 +179,7 @@ def compute_personal_deviation(
     hr_valid: bool,
     spo2_valid: bool,
 ) -> Dict[str, Any]:
+    """baseline servisinde risk veya skor değerini hesaplar."""
     hr_z = 0.0
     if hr_valid:
         hr_z = abs(hr - baseline["hr_mean"]) / max(baseline["hr_std"], 5.0)
@@ -217,6 +222,7 @@ def compute_quality_confidence(
     spo2: float,
     spo2_valid_flag: bool,
 ) -> Dict[str, Any]:
+    """baseline servisinde risk veya skor değerini hesaplar."""
     score = signal_quality
 
     if not finger_detected:
@@ -264,6 +270,7 @@ def apply_baseline_adjustment(
     baseline_ready: bool,
     alert_sensitivity: str = "normal",
 ) -> Dict[str, Any]:
+    """baseline servisindeki iş kuralı güncellemesini uygular."""
     confidence = quality_info["quality_confidence"]
     safety_override = quality_info.get("safety_override", False)
 

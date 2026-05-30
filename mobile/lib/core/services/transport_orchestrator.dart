@@ -8,8 +8,10 @@ import 'api_client.dart';
 import 'local_risk_calculator.dart';
 import '../models/live_status.dart';
 
+/// Mobil uygulamanın aktif telemetri taşıma kanalını tanımlar.
 enum TransportType { none, ble, wifi }
 
+/// BLE ve Wi-Fi kaynaklarını seçilen moda göre birlikte yönetir.
 class TransportOrchestrator extends ChangeNotifier {
   TransportOrchestrator({
     required this.bleService,
@@ -76,6 +78,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// Servisin periyodik veri akışını başlatır.
   void start() {
     debugPrint(
         '[Transport] Starting transport orchestrator (mode: $transportMode)...');
@@ -117,6 +120,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// Servisin çalışan periyodik veri akışını durdurur.
   void stop() {
     _bleSub?.cancel();
     _bleSub = null;
@@ -138,6 +142,7 @@ class TransportOrchestrator extends ChangeNotifier {
     _motionScoreEma = 0.0;
   }
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   void forceTransport(TransportType type) {
     _autoFallbackEnabled = false;
     switch (type) {
@@ -154,12 +159,13 @@ class TransportOrchestrator extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   void enableAutoFallback() {
     _autoFallbackEnabled = true;
     notifyListeners();
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     stop();
@@ -168,6 +174,7 @@ class TransportOrchestrator extends ChangeNotifier {
     super.dispose();
   }
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   void _setTransport(TransportType type) {
     if (_activeTransport != type) {
       _activeTransport = type;
@@ -176,6 +183,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// İlgili timer, listener veya bağlantı akışını başlatır.
   void _startBle() {
     debugPrint('[Transport] Starting BLE scan...');
     bleService.startScan();
@@ -191,6 +199,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// İlgili timer, listener veya bağlantı akışını başlatır.
   void _startWifiFallback() {
     if (apiClient == null || userId.isEmpty) {
       debugPrint(
@@ -222,6 +231,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   Future<void> _pollViaWifi() async {
     if (apiClient == null || userId.isEmpty) return;
 
@@ -247,6 +257,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   void _onBleStateChanged() {
     final bleState = bleService.state;
 
@@ -266,6 +277,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   void _onBlePacket(BlePacket packet) {
     _blePackets++;
     _lastDataTime = DateTime.now();
@@ -281,8 +293,7 @@ class TransportOrchestrator extends ChangeNotifier {
     }
   }
 
-  /// Enriches a raw BLE LiveStatus with smoothed BPM, SpO2 retention,
-  /// and locally-computed risk score.
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   LiveStatus _enrichStatus(LiveStatus raw, BlePacket packet) {
     // --- Motion score EMA (alpha=0.20, smooths 1-packet spikes) ---
     const double motionAlpha = 0.20;

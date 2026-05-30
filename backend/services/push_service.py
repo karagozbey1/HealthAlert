@@ -30,6 +30,7 @@ _push_stats: Dict[str, Any] = {
 
 # Push altyapisinin mevcut durumunu ve temel sayaçlarini ozetler.
 def get_push_status() -> Dict[str, Any]:
+    """push servisinde gereken veriyi okuyup çağırana döndürür."""
     fcm_key_set = bool(settings.FCM_SERVER_KEY)
     push_mode = settings.NOTIFICATION_MODE == "push"
     return {
@@ -52,6 +53,7 @@ async def _send_fcm_message(
     body: str,
     data: Optional[dict] = None,
 ) -> Dict[str, Any]:
+    """push servisindeki HealthAlert iş kuralını uygular."""
     if not settings.FCM_SERVER_KEY:
         return {"ok": False, "token_invalid": False, "detail": "No FCM_SERVER_KEY configured."}
 
@@ -119,6 +121,7 @@ async def _send_fcm_message(
 
 # Gecersiz hale gelen token kaydini veritabanindan temizler.
 async def _cleanup_invalid_token(db: AsyncSession, token: str, user_id: str) -> None:
+    """push servisindeki HealthAlert iş kuralını uygular."""
     try:
         await db.execute(
             delete(DeviceToken).where(
@@ -142,6 +145,7 @@ async def push_to_user(
     body: str,
     data: Optional[dict] = None,
 ) -> int:
+    """push servisindeki HealthAlert iş kuralını uygular."""
     if settings.NOTIFICATION_MODE != "push":
         return 0
 
@@ -187,6 +191,7 @@ async def push_to_user(
 
 # FCM anahtari ve erisilebilirligi icin temel smoke kontrolunu calistirir.
 async def push_smoke_test(db: AsyncSession) -> Dict[str, Any]:
+    """push servisindeki HealthAlert iş kuralını uygular."""
     checks = {
         "notification_mode_is_push": settings.NOTIFICATION_MODE == "push",
         "fcm_key_configured": bool(settings.FCM_SERVER_KEY),

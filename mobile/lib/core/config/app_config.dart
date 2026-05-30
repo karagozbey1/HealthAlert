@@ -15,6 +15,7 @@ const _kTransportMode = String.fromEnvironment(
   defaultValue: 'auto',
 );
 
+/// Mobil uygulamanın backend ve demo çalışma ayarlarını tutar.
 class AppConfig {
   const AppConfig({
     required this.environment,

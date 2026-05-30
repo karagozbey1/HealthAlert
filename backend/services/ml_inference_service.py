@@ -29,6 +29,7 @@ _AI_ROOT = os.path.join(_PROJECT_ROOT, "healthalert_final_ai")
 
 # Model dosyasi yolunu proje yapisina gore mutlak yola cozer.
 def _resolve_model_path(path: str) -> str:
+    """ml inference servisindeki HealthAlert iş kuralını uygular."""
     if os.path.isabs(path):
         return path
     candidate = os.path.join(_PROJECT_ROOT, path)
@@ -47,7 +48,9 @@ def _resolve_model_path(path: str) -> str:
 # Model yuklemesini tembel yapan ve kullanici bazli EMA durumunu ayiran servistir.
 class MLInferenceService:
         # Yukleme, kullanilabilirlik ve EMA durum depolarini baslatir.
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     def __init__(self) -> None:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         self._lock = threading.Lock()
         self._loaded: bool = False
         self._available: bool = False
@@ -64,10 +67,12 @@ class MLInferenceService:
 
     # Modelin yuklenip inference icin hazir olup olmadigini bildirir.
     def is_available(self) -> bool:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         return self._available
 
     # Modeli gerekirse bir kez yuklemeyi dener ve sonucu dondurur.
     def load_once(self) -> bool:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         with self._lock:
             if self._loaded:
                 return self._available
@@ -76,6 +81,7 @@ class MLInferenceService:
 
     # Kilit altinda gercek model yukleme adimlarini calistirir.
     def _do_load(self) -> bool:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         if not settings.ML_INFERENCE_ENABLED:
             logger.info(
                 "ML inference disabled (ML_INFERENCE_ENABLED=False). "
@@ -139,6 +145,7 @@ class MLInferenceService:
 
         # Modelin bekledigi vitals boyutunu ayardan veya modelden cikarir.
     def _detect_vitals_dim(self) -> int:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         cfg_dim = settings.ML_VITALS_DIM
         if cfg_dim and cfg_dim > 0:
             logger.info("vitals_dim from config: %d", cfg_dim)
@@ -181,6 +188,7 @@ class MLInferenceService:
         window_status: Optional[Dict[str, Any]] = None,
     ) -> dict:
         # ── Part 3.1: Sample-rate alignment gate ────────────────────────────
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         if window_status is not None:
             sample_rate_warning = window_status.get("sample_rate_warning", False)
             if (
@@ -322,6 +330,7 @@ class MLInferenceService:
 
         # WindowSample listesini predictorun bekledigi numpy girdilerine cevirir.
     def build_predictor_inputs(self, window: list) -> Dict[str, Any]:
+        """ml inference servisinde kullanılacak kayıt veya bağlamı hazırlar."""
         import numpy as np
 
         T = len(window)
@@ -363,6 +372,7 @@ class MLInferenceService:
         model_ready: bool = True,
         sample_rate_warning: bool = False,
     ) -> Dict[str, Any]:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         raw_output = raw_output or {}
         return {
             "fall_probability": float(raw_output.get("fall_probability", 0.0) or 0.0),
@@ -382,6 +392,7 @@ class MLInferenceService:
 
     # Hazir 50Hz model penceresi icin dogrudan inference calistirir.
     def predict_model_window(self, model_input: Dict[str, Any]) -> dict:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         if not self._loaded:
             self.load_once()
 
@@ -476,6 +487,7 @@ class MLInferenceService:
 
     # Kullaniciya ait EMA durumunu temizleyerek yeni bir baslangic saglar.
     def reset_user_state(self, user_id: str) -> None:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         with self._lock:
             self._ema_states_by_user.pop(user_id, None)
         if self._predictor is not None:
@@ -486,6 +498,7 @@ class MLInferenceService:
 
     # Servis kullanilamaz durumdayken donulecek standart sonucu uretir.
     def _unavailable_result(self) -> dict:
+        """ml inference servisindeki HealthAlert iş kuralını uygular."""
         return {
             "ml_available": False,
             "ml_skipped": False,

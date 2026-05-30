@@ -10,10 +10,13 @@
 #include "ha_config.h"
 #include "ha_debug.h"
 
+/// BLE bağlantısı ve telemetri bildirimlerini yöneten firmware bileşenidir.
 class HaBle {
 public:
+    /// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
     enum State { OFF, ADVERTISING, CONNECTED, ERROR };
 
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     void begin() {
         if (_initialized) {
             HA_SERIAL_PRINTLN("[BLE] Already initialized, skipping.");
@@ -86,6 +89,7 @@ public:
         HA_SERIAL_PRINTLN("[BLE] GATT server started, advertising...");
     }
 
+    /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
     bool sendPacket(const char* jsonBuf) {
         if (!_initialized || _state != CONNECTED || !_clientConnected || !_summaryEnabled) {
             return false;
@@ -98,6 +102,7 @@ public:
         return true;
     }
 
+    /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
     bool sendRawSample(const char* jsonBuf) {
         if (!_initialized || _state != CONNECTED || !_clientConnected || !_modelStreamEnabled) {
             return false;
@@ -110,37 +115,49 @@ public:
         return true;
     }
 
+    /// BLE istemcisinin bağlı olup olmadığını döndürür.
     bool isClientConnected() const { return _clientConnected; }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     State getState() const { return _state; }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint32_t getPacketsSent() const { return _packetsSent; }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint32_t getRawPacketsSent() const { return _rawPacketsSent; }
 
+    /// Model penceresi ham örnek akışının açık olup olmadığını döndürür.
     bool isModelStreamEnabled() const { return _modelStreamEnabled; }
+    /// BLE özet telemetri bildirimlerinin açık olup olmadığını döndürür.
     bool isSummaryEnabled() const { return _summaryEnabled; }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint16_t getRawRateHz() const { return _rawRateHz; }
 
+    /// BLE kontrol komutundan gelen mock mod isteğini okuyup temizler.
     bool consumeRequestMockMode() {
         bool v = _requestMockMode;
         _requestMockMode = false;
         return v;
     }
+    /// BLE kontrol komutundan gelen gerçek sensör modu isteğini okuyup temizler.
     bool consumeRequestRealMode() {
         bool v = _requestRealMode;
         _requestRealMode = false;
         return v;
     }
 
+    /// BLE istemcisinin bağlantı zaman aşımına düşüp düşmediğini kontrol eder.
     bool isClientTimedOut() const {
         if (_clientConnected) return false;
         return (millis() - _lastClientActivity) > BLE_CLIENT_TIMEOUT_MS;
     }
 
+    /// BLE reklam yayınını yeniden başlatır.
     void restartAdvertising() {
         if (!_initialized) return;
         BLEDevice::startAdvertising();
         _state = ADVERTISING;
     }
 
+    /// BLE sunucu reklamını ve aktif bağlantıyı kapatır.
     void shutdown() {
         if (!_initialized) return;
         BLEDevice::deinit(false);
@@ -169,6 +186,7 @@ private:
     bool _requestMockMode = false;
     bool _requestRealMode = false;
 
+    /// BLE durum karakteristiğini güncel bağlantı ve mod bilgisiyle yeniler.
     void _updateStatusValue() {
         if (!_statusChar) return;
         char statusJson[256];
@@ -184,28 +202,39 @@ private:
         _statusChar->setValue(statusJson);
     }
 
+    /// Mobil uygulamadan gelen BLE kontrol komutunu işler.
     void _handleControlCommand(const String& commandRaw) {
         String cmd = commandRaw;
         cmd.trim();
         cmd.toLowerCase();
 
         if (cmd == "model_stream_on") _modelStreamEnabled = true;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "model_stream_off") _modelStreamEnabled = false;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "raw_rate_50") _rawRateHz = 50;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "raw_rate_25") _rawRateHz = 25;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "summary_on") _summaryEnabled = true;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "summary_off") _summaryEnabled = false;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "mock_mode") _requestMockMode = true;
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         else if (cmd == "real_mode") _requestRealMode = true;
 
         _updateStatusValue();
         HA_SERIAL_PRINTF("[BLE] Control command: %s\n", cmd.c_str());
     }
 
+    /// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
     class ServerCallbacks : public BLEServerCallbacks {
     public:
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         explicit ServerCallbacks(HaBle* parent) : _parent(parent) {}
 
+        /// BLE istemcisi bağlandığında bağlantı durumunu günceller.
         void onConnect(BLEServer* server) override {
             (void)server;
             _parent->_clientConnected = true;
@@ -215,6 +244,7 @@ private:
             HA_SERIAL_PRINTLN("[BLE] Client connected.");
         }
 
+        /// BLE istemcisi ayrıldığında bağlantı durumunu temizler.
         void onDisconnect(BLEServer* server) override {
             _parent->_clientConnected = false;
             _parent->_state = ADVERTISING;
@@ -228,10 +258,13 @@ private:
         HaBle* _parent;
     };
 
+    /// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
     class ControlCallbacks : public BLECharacteristicCallbacks {
     public:
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         explicit ControlCallbacks(HaBle* parent) : _parent(parent) {}
 
+        /// BLE kontrol karakteristiğine yazılan komutu okur.
         void onWrite(BLECharacteristic* characteristic) override {
             std::string value = characteristic->getValue();
             if (value.empty()) return;

@@ -13,6 +13,7 @@ export 'ble_payload_parser.dart' show BlePacket;
 const _kServiceUuid = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const _kTelemetryCharUuid = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 enum BleConnectionState {
   disconnected,
   scanning,
@@ -21,12 +22,14 @@ enum BleConnectionState {
   error,
 }
 
+/// Mobil cihazın BLE tarama, bağlantı ve telemetri akışını yönetir.
 class BleDeviceService extends ChangeNotifier {
   BleDeviceService({FlutterReactiveBle? reactiveBle})
       : _ble = reactiveBle ?? _createBle();
 
   final FlutterReactiveBle? _ble;
 
+  /// Bu servis dosyasındaki canlı izleme veya destek adımını yürütür.
   static FlutterReactiveBle? _createBle() {
     if (kIsWeb) return null;
     if (!Platform.isAndroid && !Platform.isIOS) {
@@ -56,10 +59,12 @@ class BleDeviceService extends ChangeNotifier {
   DateTime? get lastPacketTime => _lastPacketTime;
   Stream<BlePacket> get packetStream => _packetController.stream;
 
+  /// Yakındaki BLE cihazlarını bulmak için tarama akışını başlatır.
   void startScan() {
     unawaited(_startScan());
   }
 
+  /// BLE izinlerini kontrol edip platform taramasını çalıştırır.
   Future<void> _startScan() async {
     if (_ble == null) {
       debugPrint('[BLE] BLE scanning is unavailable on this platform.');
@@ -103,6 +108,7 @@ class BleDeviceService extends ChangeNotifier {
     });
   }
 
+  /// Devam eden BLE cihaz taramasını durdurur.
   void stopScan() {
     _scanSub?.cancel();
     _scanSub = null;
@@ -111,6 +117,7 @@ class BleDeviceService extends ChangeNotifier {
     }
   }
 
+  /// Seçilen BLE cihazına bağlanma akışını başlatır.
   void connectToDevice(String deviceId, String deviceName) {
     if (_ble == null) {
       debugPrint('[BLE] BLE connection is unavailable on this platform.');
@@ -163,6 +170,7 @@ class BleDeviceService extends ChangeNotifier {
     );
   }
 
+  /// Aktif BLE bağlantısını ve telemetri aboneliğini kapatır.
   void disconnect() {
     _telemetrySub?.cancel();
     _telemetrySub = null;
@@ -174,6 +182,7 @@ class BleDeviceService extends ChangeNotifier {
     _setState(BleConnectionState.disconnected);
   }
 
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _scanSub?.cancel();
@@ -183,6 +192,7 @@ class BleDeviceService extends ChangeNotifier {
     super.dispose();
   }
 
+  /// BLE bağlantı durumunu güncelleyip dinleyicileri bilgilendirir.
   void _setState(BleConnectionState newState) {
     if (_state != newState) {
       _state = newState;
@@ -190,6 +200,7 @@ class BleDeviceService extends ChangeNotifier {
     }
   }
 
+  /// BLE tarama ve bağlantı izinlerinin verilip verilmediğini kontrol eder.
   Future<bool> _ensureBlePermissions() async {
     if (kIsWeb) return false;
 
@@ -217,6 +228,7 @@ class BleDeviceService extends ChangeNotifier {
     return true;
   }
 
+  /// BLE cihaz bağlantısını kurup telemetri aboneliğini hazırlar.
   Future<void> _prepareConnection(String deviceId) async {
     if (_ble == null) return;
 
@@ -232,6 +244,7 @@ class BleDeviceService extends ChangeNotifier {
     _subscribeToTelemetry(deviceId);
   }
 
+  /// BLE telemetri karakteristiğine dinleyici bağlar.
   void _subscribeToTelemetry(String deviceId) {
     if (_ble == null) return;
 
@@ -251,6 +264,7 @@ class BleDeviceService extends ChangeNotifier {
     );
   }
 
+  /// BLE karakteristiğinden gelen ham byte verisini satırlara ayırır.
   void _onTelemetryData(List<int> data) {
     try {
       final chunk = utf8.decode(data, allowMalformed: true).trim();
@@ -267,6 +281,7 @@ class BleDeviceService extends ChangeNotifier {
     }
   }
 
+  /// BLE satırından JSON telemetri paketi üretmeye çalışır.
   BlePacket? _parsePacket(String chunk) {
     if (chunk.isEmpty) return null;
 
@@ -286,6 +301,7 @@ class BleDeviceService extends ChangeNotifier {
     return null;
   }
 
+  /// Ham metni JSON BLE paketine güvenli şekilde dönüştürür.
   BlePacket? _tryParseJson(String text) {
     try {
       final decoded = jsonDecode(text);
@@ -294,7 +310,8 @@ class BleDeviceService extends ChangeNotifier {
         decoded,
         fallbackPacketSeq: _packetsReceived + 1,
       );
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[BleDeviceService] Telemetry JSON parse failed: $error');
       return null;
     }
   }

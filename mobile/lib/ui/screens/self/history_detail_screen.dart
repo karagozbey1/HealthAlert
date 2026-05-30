@@ -7,26 +7,30 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/severity_badge.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HistoryDetailScreen extends StatefulWidget {
   const HistoryDetailScreen({super.key, required this.item});
 
   final HistoryItem item;
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<HistoryDetailScreen> createState() => _HistoryDetailScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   String? _recommendation;
   bool _loadingRec = false;
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchRecommendation());
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _fetchRecommendation() async {
     final app = AppScope.of(context);
     if (!app.isBackendMode) return;
@@ -46,12 +50,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
           _loadingRec = false;
         });
       }
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[HistoryDetail] Recommendation load failed: $error');
       if (mounted) setState(() => _loadingRec = false);
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +68,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Olay Detayı', style: TextStyle(color: Colors.white, fontSize: 16)),
+        title: const Text('Olay Detayı',
+            style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -82,11 +88,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: _severityColor(widget.item.severity).withOpacity(0.15),
+                            color: _severityColor(widget.item.severity)
+                                .withOpacity(0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(_typeIcon(widget.item.type),
-                              color: _severityColor(widget.item.severity), size: 28),
+                              color: _severityColor(widget.item.severity),
+                              size: 28),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -108,9 +116,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
-
               GlassCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -131,27 +137,31 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                     _buildDetailRow(
                       icon: Icons.info_outline,
                       label: 'Detaylar',
-                      value: widget.item.subtitle.isNotEmpty ? widget.item.subtitle : 'Ek detay bulunmuyor.',
-                      valueStyle:
-                          const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+                      value: widget.item.subtitle.isNotEmpty
+                          ? widget.item.subtitle
+                          : 'Ek detay bulunmuyor.',
+                      valueStyle: const TextStyle(
+                          color: Colors.white70, fontSize: 13, height: 1.5),
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
-
               if (_loadingRec)
                 const GlassCard(
                   padding: EdgeInsets.all(16),
                   child: Row(
                     children: [
                       SizedBox(
-                        width: 18, height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppTheme.primary),
                       ),
                       SizedBox(width: 12),
-                      Text('Öneri yükleniyor...', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                      Text('Öneri yükleniyor...',
+                          style:
+                              TextStyle(color: Colors.white54, fontSize: 13)),
                     ],
                   ),
                 )
@@ -163,7 +173,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.smart_toy, color: AppTheme.primary, size: 18),
+                          Icon(Icons.smart_toy,
+                              color: AppTheme.primary, size: 18),
                           const SizedBox(width: 8),
                           const Text(
                             'Asistan Önerisi',
@@ -178,19 +189,21 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       const Divider(color: Colors.white12, height: 20),
                       Text(
                         _recommendation!,
-                        style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13, height: 1.5),
                       ),
                       const SizedBox(height: 8),
                       const Text(
                         'Bu otomatik bir değerlendirmedir, tıbbi teşhis yerine geçmez.',
-                        style: TextStyle(color: Colors.white30, fontSize: 10, fontStyle: FontStyle.italic),
+                        style: TextStyle(
+                            color: Colors.white30,
+                            fontSize: 10,
+                            fontStyle: FontStyle.italic),
                       ),
                     ],
                   ),
                 ),
-
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -201,7 +214,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                     backgroundColor: AppTheme.surface,
                     foregroundColor: AppTheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -212,6 +226,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildDetailRow({
     required IconData icon,
     required String label,
@@ -228,10 +243,12 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style:
-                      const TextStyle(color: Colors.white38, fontSize: 11, letterSpacing: 0.5)),
+                  style: const TextStyle(
+                      color: Colors.white38, fontSize: 11, letterSpacing: 0.5)),
               const SizedBox(height: 4),
-              Text(value, style: valueStyle ?? const TextStyle(color: Colors.white, fontSize: 14)),
+              Text(value,
+                  style: valueStyle ??
+                      const TextStyle(color: Colors.white, fontSize: 14)),
             ],
           ),
         ),
@@ -239,6 +256,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     );
   }
 
+  /// Duruma göre ekranda kullanılacak rengi belirler.
   Color _severityColor(AlertSeverity s) {
     switch (s) {
       case AlertSeverity.critical:
@@ -252,6 +270,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     }
   }
 
+  /// Duruma göre ekranda kullanılacak ikonu belirler.
   IconData _typeIcon(HistoryItemType t) {
     switch (t) {
       case HistoryItemType.alert:
@@ -265,6 +284,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     }
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _typeLabel(HistoryItemType t) {
     switch (t) {
       case HistoryItemType.alert:
@@ -278,6 +298,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     }
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _formatDateTime(DateTime dt) {
     final local = dt.toLocal();
     final pad = (int n) => n.toString().padLeft(2, '0');

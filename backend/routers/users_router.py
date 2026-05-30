@@ -14,6 +14,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 # Giris yapan kullanicinin profilini dondurur.
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
+    """Yetkili kullanıcı için kullanıcı okuma isteğini işler."""
     return current_user
 
 # Giris yapan kullanicinin duzenlenebilir profil alanlarini gunceller.
@@ -24,6 +25,7 @@ async def update_me(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Kullanıcı güncelleme isteğini doğrulayıp uygular."""
     updates = {}
     if body.full_name is not None:
         updates["full_name"] = body.full_name.strip()
@@ -46,6 +48,7 @@ async def get_user_profile(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için kullanıcı okuma isteğini işler."""
     user = await repos.users.get_by_id(user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")

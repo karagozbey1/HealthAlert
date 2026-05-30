@@ -1,3 +1,4 @@
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class UserRelation {
   const UserRelation({
     required this.id,
@@ -17,6 +18,7 @@ class UserRelation {
   final String linkedUserName;
   final DateTime createdAt;
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static UserRelation fromJson(Map<String, dynamic> json) => UserRelation(
         id: json['id'] as String,
         selfUserId: json['self_user_id'] as String,

@@ -6,17 +6,21 @@ import '../login_screen.dart';
 import '../profile_screen.dart';
 import 'doctor_generate_code_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DoctorSettingsScreen extends StatefulWidget {
   const DoctorSettingsScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<DoctorSettingsScreen> createState() => _DoctorSettingsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
   bool _notif = true;
   bool _initialized = false;
 
+  /// Inherited bağımlılıklar değiştiğinde ekran ayarlarını günceller.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -25,12 +29,13 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
     _initialized = true;
   }
 
+  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _persist() async {
     final app = AppScope.of(context);
     await app.saveSettings(app.settings.copyWith(notificationsEnabled: _notif));
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -44,7 +49,6 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
           const SizedBox(height: 16),
           Text('Ayarlar', style: AppTheme.darkTheme.textTheme.displaySmall),
           const SizedBox(height: 24),
-
           GlassCard(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -53,9 +57,13 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                   radius: 28,
                   backgroundColor: Colors.amberAccent.withOpacity(0.15),
                   child: Text(
-                    user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : '?',
+                    user?.fullName.isNotEmpty == true
+                        ? user!.fullName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
-                        color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 22),
+                        color: Colors.amberAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -63,18 +71,23 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                        Text('Dr. ${user?.fullName ?? ''}',
+                      Text('Dr. ${user?.fullName ?? ''}',
                           style: const TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
                       Text(user?.email ?? '',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 12)),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: Colors.amberAccent.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amberAccent.withOpacity(0.3)),
+                          border: Border.all(
+                              color: Colors.amberAccent.withOpacity(0.3)),
                         ),
                         child: const Text('DOKTOR',
                             style: TextStyle(
@@ -86,7 +99,8 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: Colors.amberAccent, size: 20),
+                  icon: const Icon(Icons.edit_outlined,
+                      color: Colors.amberAccent, size: 20),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -100,9 +114,11 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
           GlassCard(
             padding: EdgeInsets.zero,
             child: ListTile(
-              leading: const Icon(Icons.person_outlined, color: Colors.amberAccent),
-                title: const Text('Hesabım', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Profil ve hesap detaylarını düzenle',
+              leading:
+                  const Icon(Icons.person_outlined, color: Colors.amberAccent),
+              title:
+                  const Text('Hesabım', style: TextStyle(color: Colors.white)),
+              subtitle: const Text('Profil ve hesap detaylarını düzenle',
                   style: TextStyle(color: Colors.white38, fontSize: 12)),
               trailing: const Icon(Icons.chevron_right, color: Colors.white30),
               onTap: () => Navigator.push(
@@ -112,14 +128,14 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
-            Text('BİLDİRİMLER',
-              style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2)),
+          Text('BİLDİRİMLER',
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2)),
           const SizedBox(height: 8),
           GlassCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: SwitchListTile(
-                title: const Text('Bildirimleri etkinleştir',
+              title: const Text('Bildirimleri etkinleştir',
                   style: TextStyle(color: Colors.white, fontSize: 14)),
               value: _notif,
               onChanged: (v) {
@@ -130,17 +146,17 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
-            Text('HASTA KODLARI',
-              style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2)),
+          Text('HASTA KODLARI',
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2)),
           const SizedBox(height: 8),
           GlassCard(
             padding: EdgeInsets.zero,
             child: ListTile(
               leading: const Icon(Icons.link, color: Colors.amberAccent),
-                title: const Text('Bağlantı kodu gir',
+              title: const Text('Bağlantı kodu gir',
                   style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Asıl kişinin paylaştığı kod ile bağlan',
+              subtitle: const Text('Asıl kişinin paylaştığı kod ile bağlan',
                   style: TextStyle(color: Colors.white38, fontSize: 12)),
               trailing: const Icon(Icons.chevron_right, color: Colors.white30),
               onTap: () => Navigator.push(
@@ -150,9 +166,9 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
           Text('ÇALIŞMA MODU',
-              style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2)),
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2)),
           const SizedBox(height: 8),
           GlassCard(
             padding: const EdgeInsets.all(14),
@@ -162,7 +178,9 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 Text(
                   app.isBackendMode ? 'Canlı Mod aktif' : 'Demo Mod aktif',
                   style: TextStyle(
-                    color: app.isBackendMode ? AppTheme.success : Colors.orangeAccent,
+                    color: app.isBackendMode
+                        ? AppTheme.success
+                        : Colors.orangeAccent,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -174,10 +192,13 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         onPressed: app.isBackendMode
                             ? null
                             : () async {
-                                final err = await app.switchToLive(url: app.backendUrl);
+                                final err =
+                                    await app.switchToLive(url: app.backendUrl);
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(err ?? 'Canlı moda geçildi.')),
+                                  SnackBar(
+                                      content:
+                                          Text(err ?? 'Canlı moda geçildi.')),
                                 );
                               },
                         child: const Text('Canlı Mod'),
@@ -191,7 +212,8 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                             : () {
                                 app.switchToDemo();
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Demo moda geçildi.')),
+                                  const SnackBar(
+                                      content: Text('Demo moda geçildi.')),
                                 );
                               },
                         child: const Text('Demo Mod'),
@@ -203,7 +225,6 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             ),
           ),
           const SizedBox(height: 32),
-
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -216,10 +237,12 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 );
               },
               icon: const Icon(Icons.logout, color: Colors.redAccent),
-              label: const Text('Çıkış yap', style: TextStyle(color: Colors.redAccent)),
+              label: const Text('Çıkış yap',
+                  style: TextStyle(color: Colors.redAccent)),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Colors.redAccent.withOpacity(0.4)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),

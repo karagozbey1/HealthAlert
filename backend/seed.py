@@ -55,6 +55,7 @@ DEMO_USERS = [
 
 # Demo kullanıcıları ve ilişkilerini oluşturur.
 async def seed_demo_data() -> None:
+    """seed dosyasındaki backend yardımcı işlemini yürütür."""
     async with AsyncSessionLocal() as db:
         created_users: dict[str, User] = {}
 

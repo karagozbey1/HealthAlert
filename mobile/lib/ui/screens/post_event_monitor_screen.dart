@@ -6,14 +6,18 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class PostEventMonitorScreen extends StatefulWidget {
   const PostEventMonitorScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<PostEventMonitorScreen> createState() => _PostEventMonitorScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _PostEventMonitorScreenState extends State<PostEventMonitorScreen> {
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _lifecycleLabel(AlertLifecycleStatus s) {
     switch (s) {
       case AlertLifecycleStatus.detected:
@@ -62,7 +66,7 @@ class _PostEventMonitorScreenState extends State<PostEventMonitorScreen> {
     ];
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -97,67 +101,68 @@ class _PostEventMonitorScreenState extends State<PostEventMonitorScreen> {
         ],
       ),
       body: SingleChildScrollView(
-         padding: const EdgeInsets.all(16),
-         child: Column(
-           children: [
-             Center(
-               child: CircularPercentIndicator(
-                 radius: 100.0,
-                 lineWidth: 12.0,
-                 percent: active.countdownTotalSec > 0
-                     ? (elapsed / active.countdownTotalSec).clamp(0.0, 1.0)
-                     : 0.0,
-                 center: Column(
-                   mainAxisAlignment: MainAxisAlignment.center,
-                   children: [
-                     Text(
-                       '${elapsed}s',
-                       style: AppTheme.darkTheme.textTheme.displayMedium,
-                     ),
-                     Text(
-                       _lifecycleLabel(active.status),
-                       style: AppTheme.darkTheme.textTheme.labelSmall,
-                     ),
-                   ],
-                 ),
-                 progressColor: AppTheme.critical,
-                 backgroundColor: AppTheme.surface,
-                 circularStrokeCap: CircularStrokeCap.round,
-                 animation: true,
-               ),
-             ),
-             const SizedBox(height: 32),
-             
-             Text(
-               "OLAY AKIŞI",
-               style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2),
-             ),
-             const SizedBox(height: 16),
-             
-             GlassCard(
-               padding: const EdgeInsets.all(24),
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: timeline.map((item) => _buildTimelineItem(item)).toList(),
-               ),
-             ),
-             const SizedBox(height: 32),
-             
-             GradientButton(
-               text: "DURUM NORMAL - KAPAT",
-               gradient: const LinearGradient(colors: [AppTheme.textSecondary, Colors.grey]),
-               onPressed: () async {
-                 await app.closePostEvent();
-                 if (!context.mounted) return;
-                 Navigator.pop(context);
-               },
-             ),
-           ],
-         ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Center(
+              child: CircularPercentIndicator(
+                radius: 100.0,
+                lineWidth: 12.0,
+                percent: active.countdownTotalSec > 0
+                    ? (elapsed / active.countdownTotalSec).clamp(0.0, 1.0)
+                    : 0.0,
+                center: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${elapsed}s',
+                      style: AppTheme.darkTheme.textTheme.displayMedium,
+                    ),
+                    Text(
+                      _lifecycleLabel(active.status),
+                      style: AppTheme.darkTheme.textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+                progressColor: AppTheme.critical,
+                backgroundColor: AppTheme.surface,
+                circularStrokeCap: CircularStrokeCap.round,
+                animation: true,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              "OLAY AKIŞI",
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2),
+            ),
+            const SizedBox(height: 16),
+            GlassCard(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children:
+                    timeline.map((item) => _buildTimelineItem(item)).toList(),
+              ),
+            ),
+            const SizedBox(height: 32),
+            GradientButton(
+              text: "DURUM NORMAL - KAPAT",
+              gradient: const LinearGradient(
+                  colors: [AppTheme.textSecondary, Colors.grey]),
+              onPressed: () async {
+                await app.closePostEvent();
+                if (!context.mounted) return;
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildTimelineItem(Map<String, dynamic> item) {
     final bool active = item['active'];
     return Padding(
@@ -168,13 +173,19 @@ class _PostEventMonitorScreenState extends State<PostEventMonitorScreen> {
           Column(
             children: [
               Container(
-                 width: 12,
-                 height: 12,
-                 decoration: BoxDecoration(
-                   color: active ? AppTheme.primary : Colors.grey,
-                   shape: BoxShape.circle,
-                   boxShadow: active ? [BoxShadow(color: AppTheme.primary.withOpacity(0.5), blurRadius: 10)] : [],
-                 ),
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: active ? AppTheme.primary : Colors.grey,
+                  shape: BoxShape.circle,
+                  boxShadow: active
+                      ? [
+                          BoxShadow(
+                              color: AppTheme.primary.withOpacity(0.5),
+                              blurRadius: 10)
+                        ]
+                      : [],
+                ),
               ),
               Container(
                 width: 2,
@@ -190,12 +201,15 @@ class _PostEventMonitorScreenState extends State<PostEventMonitorScreen> {
               children: [
                 Text(
                   item['time'],
-                  style: TextStyle(color: active ? AppTheme.primary : Colors.grey, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: active ? AppTheme.primary : Colors.grey,
+                      fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   item['status'],
-                  style: TextStyle(color: active ? Colors.white : Colors.white54),
+                  style:
+                      TextStyle(color: active ? Colors.white : Colors.white54),
                 ),
               ],
             ),

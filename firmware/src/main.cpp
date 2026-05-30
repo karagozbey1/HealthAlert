@@ -19,6 +19,7 @@ static unsigned long lastPacketTime = 0;
 static unsigned long lastRawSampleTime = 0;
 static bool useMock = true;
 
+/// Firmware durum bilgisini seri porta okunabilir biçimde yazar.
 static void printBanner() {
     HA_SERIAL_PRINTLN();
     HA_SERIAL_PRINTLN("========================================");
@@ -29,6 +30,7 @@ static void printBanner() {
     HA_SERIAL_PRINTLN();
 }
 
+/// ESP32 firmware yaşam döngüsünün ilgili ana adımını yürütür.
 void setup() {
     HA_SERIAL_BEGIN(SERIAL_BAUD);
     delay(500);
@@ -83,6 +85,7 @@ void setup() {
     lastRawSampleTime = millis();
 }
 
+/// ESP32 firmware yaşam döngüsünün ilgili ana adımını yürütür.
 void loop() {
     serialCmd.poll();
 

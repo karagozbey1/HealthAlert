@@ -9,9 +9,11 @@
 #include "ha_debug.h"
 #include "ha_types.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 class HaMax30102 {
 public:
     // Sensörü başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool begin() {
         for (int attempt = 0; attempt < SENSOR_INIT_RETRIES; attempt++) {
             if (_sensor.begin(Wire, I2C_SPEED_FAST, MAX30102_I2C_ADDR)) {
@@ -30,6 +32,7 @@ public:
         return false;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     PpgSample read() {
         PpgSample sample = {};
         sample.valid = true;
@@ -149,6 +152,7 @@ public:
         return sample;
     }
 
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool reinit() {
         _initialized        = false;
         _ok                 = false;
@@ -168,10 +172,13 @@ public:
         _spo2RingCount      = 0;
         _spo2RingIdx        = 0;
         memset(_spo2Ring, 0, sizeof(_spo2Ring));
+        /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
         return begin();
     }
 
+    /// Firmware durum bayrağını çağırana sade bool değer olarak döndürür.
     bool isOk() const { return _ok; }
+    /// Firmware durum bayrağını çağırana sade bool değer olarak döndürür.
     bool isInitialized() const { return _initialized; }
 
 private:
@@ -214,6 +221,7 @@ private:
     unsigned long _spo2StableStartMs = 0;
     bool          _spo2Confirmed    = false;
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void _configure() {
         _sensor.setup(
             MAX30102_LED_BRIGHTNESS,
@@ -226,6 +234,7 @@ private:
         _sensor.enableDIETEMPRDY();
     }
 
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     float _estimate_signal_quality() {
         if (_buf_count < 10) return 0.0f;
 
@@ -255,17 +264,20 @@ private:
     }
 
     // Chronological ring-buffer accessors (0 = oldest, n-1 = newest)
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     inline float _irAt(int chron) const {
         int n = min(_buf_count, PPG_BUF_SIZE);
         int oldest = (_buf_idx - n + PPG_BUF_SIZE) % PPG_BUF_SIZE;
         return (float)_ir_buffer[(oldest + chron) % PPG_BUF_SIZE];
     }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     inline float _redAt(int chron) const {
         int n = min(_buf_count, PPG_BUF_SIZE);
         int oldest = (_buf_idx - n + PPG_BUF_SIZE) % PPG_BUF_SIZE;
         return (float)_red_buffer[(oldest + chron) % PPG_BUF_SIZE];
     }
 
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     float _estimate_heart_rate() {
         int n = min(_buf_count, PPG_BUF_SIZE);
         if (n < PPG_BUF_MINIMUM) return 0.0f;
@@ -326,15 +338,7 @@ private:
         return (valid > 0) ? (bpm_sum / valid) : 0.0f;
     }
 
-    /// Time-gated BPM stabilisation.
-    ///
-    /// Strategy (at ~1 packet/second BLE rate):
-    ///  • No stable yet: require rawBpm to stay within BPM_JUMP_THRESH_BPM of
-    ///    _pendingBpm for BPM_STABLE_WINDOW_MS before setting _stableBpm.
-    ///  • Jump from stable (> BPM_JUMP_THRESH_BPM): require the new value to
-    ///    hold for BPM_JUMP_WINDOW_MS before replacing stable (no blend).
-    ///  • Small variation: slow EMA (α=0.15) keeps _stableBpm tracking gradual
-    ///    physiological changes without jumping.
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     void _processBpm(float rawBpm) {
         if (rawBpm < 40.0f || rawBpm > 200.0f) {
             // Out-of-range: reset pending but keep stable value.
@@ -401,11 +405,7 @@ private:
         }
     }
 
-    /// SpO2 estimation with tightened R-ratio gate.
-    ///
-    /// Only R in [SPO2_R_MIN, SPO2_R_MAX] is accepted; this maps directly to
-    /// SpO2 in [88%, 100%] via 110−25·R, so values < 88% are never produced.
-    /// Uses RMS AC components (more motion-resistant than peak-to-peak).
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     float _estimate_spo2() {
         int n = min(_buf_count, PPG_BUF_SIZE);
         if (n < PPG_BUF_MINIMUM) return 0.0f;
@@ -447,11 +447,7 @@ private:
         return spo2;
     }
 
-    /// SpO2 ring-buffer stabilisation.
-    ///
-    /// Adds each valid raw estimate to a circular buffer. Only confirms SpO2
-    /// when ≥ SPO2_RING_SIZE/2 samples are in the buffer, their spread is
-    /// ≤ SPO2_MAX_SPREAD_PCT, AND SPO2_STABLE_WINDOW_MS has elapsed.
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     void _processSpo2(float rawSpo2) {
         if (rawSpo2 < 88.0f || rawSpo2 > 100.0f) {
             // Invalid raw estimate — don't add to ring.
@@ -513,6 +509,7 @@ private:
         }
     }
 
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     void _estimate_ppg_features(float& pi, float& r, float& ir_range) {
         pi = 0.0f;
         r = 0.0f;

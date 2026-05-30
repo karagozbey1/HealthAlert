@@ -21,6 +21,7 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
 
 # Ham alert sozlugunu API semasina donusturur.
 def _dict_to_alert_response(d: dict) -> AlertResponse:
+    """Alarm endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     recs = d.get("recommendations", [])
     if isinstance(recs, str):
         import json
@@ -51,6 +52,7 @@ async def get_my_alerts(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için alarm okuma isteğini işler."""
     if current_user.role == "SELF":
         alerts = await repos.alerts.list_by_user(current_user.id)
         return [_dict_to_alert_response(a) for a in alerts]
@@ -76,6 +78,7 @@ async def get_active_alert(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için alarm okuma isteğini işler."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="SELF role required")
     alert = await repos.alerts.get_active_by_user(current_user.id)
@@ -89,6 +92,7 @@ async def get_alerts_for_linked(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için alarm okuma isteğini işler."""
     link = await repos.relations.find_active_link(user_id, current_user.id)
     if link is None:
         raise HTTPException(status_code=403, detail="Access denied")
@@ -104,6 +108,7 @@ async def respond_to_alert(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Alarm güncelleme isteğini doğrulayıp uygular."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="Only SELF users can respond to alerts")
 
@@ -172,6 +177,7 @@ async def start_post_event(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Alarm endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     alert = await repos.alerts.get_by_id(alert_id)
     if alert is None or alert["user_id"] != current_user.id:
         raise HTTPException(status_code=404, detail="Alert not found")
@@ -196,6 +202,7 @@ async def close_post_event(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Alarm silme veya kapatma isteğini doğrulayıp uygular."""
     session = await repos.post_events.get_by_id(session_id)
     if session is None or session["user_id"] != current_user.id:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -229,6 +236,7 @@ async def request_help(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Alarm endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="Only SELF users can request help")
 
@@ -298,6 +306,7 @@ async def acknowledge_alert(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Alarm endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if current_user.role not in ("DOCTOR", "RELATIVE"):
         raise HTTPException(status_code=403, detail="Only DOCTOR or RELATIVE can acknowledge alerts")
 
@@ -338,7 +347,7 @@ async def evaluate_live_status(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    """Evaluate current live status for the SELF user and create alerts if thresholds exceeded."""
+    """Alarm endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="SELF role required")
 

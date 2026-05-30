@@ -7,16 +7,20 @@ import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/empty_state_widget.dart';
 import 'self/history_detail_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _HistoryScreenState extends State<HistoryScreen> {
   String _filter = 'All';
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   bool _matchesFilter(HistoryItemType type) {
     switch (_filter) {
       case 'Alarm':
@@ -30,7 +34,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -58,47 +62,47 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             ),
-             const SizedBox(height: 16),
-             
-             SingleChildScrollView(
-               scrollDirection: Axis.horizontal,
-               padding: const EdgeInsets.only(left: 16, bottom: 16),
-               child: Row(
-                 children: [
-                   _buildFilterChip('All', 'Tumu'),
-                     _buildFilterChip('Alarm', 'Alarm'),
-                     _buildFilterChip('Anomali', 'Anomali'),
-                     _buildFilterChip('Durum', 'Durum'),
-                 ],
-               ),
-             ),
-             
-             Expanded(
-               child: items.isEmpty
-                   ? Center(
-                       child: EmptyStateWidget(
-                         icon: Icons.history_toggle_off_outlined,
-                         title: 'Geçmiş kaydı bulunmuyor',
-                         subtitle: app.isBackendMode
-                             ? 'Henüz canlı modda kayıtlı bir olay yok. '
-                               'Cihaz bağlantısı kurulup veri akışı başladığında '
-                               'olaylar burada görünecek.'
-                             : 'Demo modda henüz bir olay oluşmadı.',
-                       ),
-                     )
-                   : ListView(
-                       padding: const EdgeInsets.all(16),
-                       children: items
-                           .map((e) => _buildEventItem(context: context, item: e))
-                           .toList(),
-                     ),
-             ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: 16, bottom: 16),
+              child: Row(
+                children: [
+                  _buildFilterChip('All', 'Tumu'),
+                  _buildFilterChip('Alarm', 'Alarm'),
+                  _buildFilterChip('Anomali', 'Anomali'),
+                  _buildFilterChip('Durum', 'Durum'),
+                ],
+              ),
+            ),
+            Expanded(
+              child: items.isEmpty
+                  ? Center(
+                      child: EmptyStateWidget(
+                        icon: Icons.history_toggle_off_outlined,
+                        title: 'Geçmiş kaydı bulunmuyor',
+                        subtitle: app.isBackendMode
+                            ? 'Henüz canlı modda kayıtlı bir olay yok. '
+                                'Cihaz bağlantısı kurulup veri akışı başladığında '
+                                'olaylar burada görünecek.'
+                            : 'Demo modda henüz bir olay oluşmadı.',
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: items
+                          .map(
+                              (e) => _buildEventItem(context: context, item: e))
+                          .toList(),
+                    ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildFilterChip(String key, String label) {
     final isSelected = _filter == key;
     return Padding(
@@ -106,27 +110,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : AppTheme.surface.withOpacity(0.5),
+          color:
+              isSelected ? AppTheme.primary : AppTheme.surface.withOpacity(0.5),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppTheme.primary : Colors.white.withOpacity(0.1),
+            color:
+                isSelected ? AppTheme.primary : Colors.white.withOpacity(0.1),
           ),
         ),
         child: InkWell(
           onTap: () => setState(() => _filter = key),
           borderRadius: BorderRadius.circular(20),
-        child: Text(
-          label,
-          style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-            color: isSelected ? AppTheme.background : Colors.white,
-            fontWeight: FontWeight.bold,
+          child: Text(
+            label,
+            style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+              color: isSelected ? AppTheme.background : Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
         ),
       ),
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEventItem({
     required BuildContext context,
     required HistoryItem item,
@@ -138,76 +145,80 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final severity = item.severity.name.toUpperCase();
 
     return Padding(
-       padding: const EdgeInsets.only(bottom: 12),
-       child: GlassCard(
-         onTap: () => Navigator.push(
-           context,
-           MaterialPageRoute(builder: (_) => HistoryDetailScreen(item: item)),
-         ),
-         padding: const EdgeInsets.all(16),
-         child: Row(
-           children: [
-             Container(
-               padding: const EdgeInsets.all(12),
-               decoration: BoxDecoration(
-                 color: severityColor.withOpacity(0.2),
-                 shape: BoxShape.circle,
-               ),
-               child: Icon(icon, color: severityColor, size: 24),
-             ),
-             const SizedBox(width: 16),
-             Expanded(
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                       Expanded(
-                         child: Text(
-                           type,
-                           style: AppTheme.darkTheme.textTheme.titleMedium
-                               ?.copyWith(fontWeight: FontWeight.bold),
-                           overflow: TextOverflow.ellipsis,
-                         ),
-                       ),
-                       const SizedBox(width: 8),
-                       Container(
-                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                         decoration: BoxDecoration(
-                           color: severityColor.withOpacity(0.1),
-                           borderRadius: BorderRadius.circular(10),
-                           border: Border.all(color: severityColor.withOpacity(0.5)),
-                         ),
-                         child: Text(
-                           severity,
-                           style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(
-                             color: severityColor,
-                             fontWeight: FontWeight.bold,
-                             fontSize: 10,
-                           ),
-                         ),
-                       ),
-                     ],
-                   ),
-                   const SizedBox(height: 4),
-                   Text(
-                     time,
-                     style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
-                       color: AppTheme.textSecondary,
-                     ),
-                   ),
-                 ],
-               ),
-             ),
-             const SizedBox(width: 8),
-             const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
-           ],
-         ),
-       ),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassCard(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => HistoryDetailScreen(item: item)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: severityColor.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: severityColor, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          type,
+                          style: AppTheme.darkTheme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: severityColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border:
+                              Border.all(color: severityColor.withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          severity,
+                          style:
+                              AppTheme.darkTheme.textTheme.labelSmall?.copyWith(
+                            color: severityColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    time,
+                    style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
+          ],
+        ),
+      ),
     );
   }
 
+  /// Duruma göre ekranda kullanılacak rengi belirler.
   Color _severityColor(AlertSeverity s) {
     switch (s) {
       case AlertSeverity.critical:
@@ -221,6 +232,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  /// Duruma göre ekranda kullanılacak ikonu belirler.
   IconData _severityIcon(AlertSeverity s) {
     switch (s) {
       case AlertSeverity.critical:

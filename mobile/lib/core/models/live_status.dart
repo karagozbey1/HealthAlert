@@ -1,3 +1,4 @@
+/// Canlı sağlık ölçümü, risk ve sensör ayrıntılarını uygulama içinde temsil eder.
 class LiveStatus {
   const LiveStatus({
     required this.id,
@@ -77,6 +78,7 @@ class LiveStatus {
   final double? irRangePercent;
   final String? source;
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static LiveStatus fromJson(Map<String, dynamic> json) => LiveStatus(
         id: json['id'] as String? ?? '',
         userId: json['user_id'] as String? ?? '',
@@ -142,9 +144,7 @@ class LiveStatus {
 
   bool get isAlert => scenario == 'warning' || scenario == 'critical';
 
-  /// Creates a copy of this LiveStatus with selected fields replaced.
-  /// Only the fields used for BLE enrichment are exposed; all others are
-  /// carried over unchanged.
+  /// Modelin seçilen alanları değişmiş yeni bir kopyasını üretir.
   LiveStatus copyWith({
     double? heartRate,
     bool? heartRateValid,

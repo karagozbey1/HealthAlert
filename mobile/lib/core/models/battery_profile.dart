@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class BatteryProfile {
   const BatteryProfile({
     required this.mode,

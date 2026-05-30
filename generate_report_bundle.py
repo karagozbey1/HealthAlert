@@ -82,6 +82,7 @@ ALL_DIRS = [SUMMARY_DIR, METRICS_DIR, FIGURES_DIR, CM_DIR, CURVES_DIR,
 
 
 def ensure_dirs():
+    """Rapor paketinin çıktı klasörlerini oluşturur."""
     for d in ALL_DIRS:
         d.mkdir(parents=True, exist_ok=True)
 
@@ -90,6 +91,7 @@ def ensure_dirs():
 # HELPERS
 # ============================================================
 def safe_metric(fn, *args, **kwargs):
+    """Metrik hesaplama hatasını yakalayıp rapora güvenli varsayılan döndürür."""
     try:
         return float(fn(*args, **kwargs))
     except Exception:
@@ -97,6 +99,7 @@ def safe_metric(fn, *args, **kwargs):
 
 
 def save_csv(path: Path, rows: List[Dict], fieldnames: List[str] = None):
+    """Rapor verilerini CSV dosyasına yazar."""
     if not rows:
         return
     if fieldnames is None:
@@ -116,11 +119,13 @@ def save_csv(path: Path, rows: List[Dict], fieldnames: List[str] = None):
 
 
 def save_json(path: Path, data):
+    """Rapor verilerini JSON dosyasına yazar."""
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False, default=str)
 
 
 def save_text(path: Path, text: str):
+    """Rapor metnini hedef dosyaya yazar."""
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
@@ -129,7 +134,7 @@ def save_text(path: Path, text: str):
 # PART A: Multi-Task Model Evaluation (healthalert_final_ai)
 # ============================================================
 def evaluate_multitask_model():
-    """Load best_final_fusion_model.pt and evaluate on test split."""
+    """generate report bundle dosyasındaki backend yardımcı işlemini yürütür."""
     print("\n" + "=" * 70)
     print("  PART A: Multi-Task Model (HealthAlertModelV2) Evaluation")
     print("=" * 70)
@@ -230,7 +235,7 @@ def evaluate_multitask_model():
     ckpt_vitals_dim = cfg.get("model", {}).get("vitals_mlp", {}).get("input_dim", 2)
 
     def _pad_vitals_if_needed(batch, target_dim):
-        """Pad vitals tensor from dataset dim to model's expected dim."""
+        """generate report bundle dosyasındaki backend yardımcı işlemini yürütür."""
         v = batch["vitals"]
         if v.shape[-1] < target_dim:
             pad = torch.zeros(*v.shape[:-1], target_dim - v.shape[-1], dtype=v.dtype, device=v.device)
@@ -393,7 +398,7 @@ def evaluate_multitask_model():
 # PART B: HIFD CRNN (Legacy) Training + Evaluation
 # ============================================================
 def run_hifd_crnn():
-    """Run HIFD CRNN training and evaluation."""
+    """generate report bundle dosyasındaki backend yardımcı işlemini yürütür."""
     print("\n" + "=" * 70)
     print("  PART B: HIFD CRNN (Binary Fall Detection) Training")
     print("=" * 70)
@@ -541,7 +546,7 @@ def run_hifd_crnn():
 # ============================================================
 
 def plot_confusion_matrix(y_true, y_pred, class_names, title, save_path, normalize=False):
-    """Generate and save a confusion matrix plot."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     cm = confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
     if normalize:
         row_sums = cm.sum(axis=1, keepdims=True)
@@ -576,7 +581,7 @@ def plot_confusion_matrix(y_true, y_pred, class_names, title, save_path, normali
 
 
 def plot_roc_curve(y_true, y_score, title, save_path, pos_label=1):
-    """ROC curve with AUC."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     if y_score is None or len(np.unique(y_true)) < 2:
         return
     fpr, tpr, thresholds = roc_curve(y_true, y_score, pos_label=pos_label)
@@ -598,7 +603,7 @@ def plot_roc_curve(y_true, y_score, title, save_path, pos_label=1):
 
 
 def plot_pr_curve(y_true, y_score, title, save_path, pos_label=1):
-    """Precision-Recall curve with AP."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     if y_score is None or len(np.unique(y_true)) < 2:
         return
     precision, recall, _ = precision_recall_curve(y_true, y_score, pos_label=pos_label)
@@ -621,7 +626,7 @@ def plot_pr_curve(y_true, y_score, title, save_path, pos_label=1):
 
 
 def plot_loss_curves(train_losses, val_losses, title, save_path):
-    """Train vs Validation loss curves."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     epochs = np.arange(1, len(train_losses) + 1)
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(epochs, train_losses, "b-o", markersize=3, label="Train Loss")
@@ -638,7 +643,7 @@ def plot_loss_curves(train_losses, val_losses, title, save_path):
 
 
 def plot_metric_curves(val_metrics_history, title, save_path):
-    """Validation metrics over epochs."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     fig, ax = plt.subplots(figsize=(10, 6))
     epochs = None
     for key in ["Accuracy", "F1_macro", "MCC", "BalancedAcc"]:
@@ -659,7 +664,7 @@ def plot_metric_curves(val_metrics_history, title, save_path):
 
 
 def plot_scatter_regression(y_true, y_pred, title, save_path):
-    """Predicted vs Actual scatter plot for regression."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     fig, ax = plt.subplots(figsize=(8, 7))
     ax.scatter(y_true, y_pred, alpha=0.3, s=10, c="steelblue")
     mn, mx = min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())
@@ -675,7 +680,7 @@ def plot_scatter_regression(y_true, y_pred, title, save_path):
 
 
 def plot_residuals(y_true, y_pred, title, save_path):
-    """Residual plot for regression."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     residuals = y_pred - y_true
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -700,7 +705,7 @@ def plot_residuals(y_true, y_pred, title, save_path):
 
 
 def plot_class_distribution(split_info, save_path):
-    """Class distribution bar chart across splits."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
     label_map = {0: "ADL", 1: "Fall", 2: "Near-Fall", -1: "PPG Quality"}
 
@@ -725,7 +730,7 @@ def plot_class_distribution(split_info, save_path):
 
 
 def plot_dataset_split_summary(split_info, save_path):
-    """Dataset composition per split."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # Records per split
@@ -762,7 +767,7 @@ def plot_dataset_split_summary(split_info, save_path):
 
 
 def plot_confidence_histogram(y_prob, y_true, title, save_path):
-    """Prediction confidence histogram."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     if y_prob is None or len(y_prob) == 0:
         return
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -787,7 +792,7 @@ def plot_confidence_histogram(y_prob, y_true, title, save_path):
 
 
 def plot_threshold_analysis(y_true, y_score, task_name, save_path):
-    """Threshold vs metrics curve."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     if y_score is None or len(np.unique(y_true)) < 2:
         return
     thresholds = np.linspace(0.05, 0.95, 100)
@@ -825,7 +830,7 @@ def plot_threshold_analysis(y_true, y_score, task_name, save_path):
 
 
 def _get_metric(m, *keys, default=0):
-    """Get first matching metric key from a dict (handles different naming conventions)."""
+    """İstenen veriyi ilgili kaynaktan okuyup çağırana döndürür."""
     for k in keys:
         if k in m:
             v = m[k]
@@ -836,7 +841,7 @@ def _get_metric(m, *keys, default=0):
 
 
 def plot_metrics_summary_bar(all_task_metrics, save_path):
-    """Summary bar chart of key metrics across all tasks."""
+    """Rapor paketinde kullanılacak ilgili grafiği dosyaya kaydeder."""
     tasks = list(all_task_metrics.keys())
     metric_keys = ["F1", "Precision", "Recall", "MCC", "AUC", "Specificity"]
 
@@ -878,7 +883,7 @@ def plot_metrics_summary_bar(all_task_metrics, save_path):
 # METRIC COMPUTATION FOR MULTITASK
 # ============================================================
 def compute_full_binary_metrics(y_true, y_prob, threshold=0.5):
-    """Full binary classification metrics."""
+    """İlgili metrik veya risk değerini verilen girdilerden hesaplar."""
     y_pred = (y_prob > threshold).astype(int)
     metrics = {}
     metrics["accuracy"] = safe_metric(accuracy_score, y_true, y_pred)
@@ -912,7 +917,7 @@ def compute_full_binary_metrics(y_true, y_prob, threshold=0.5):
 
 
 def compute_full_regression_metrics(y_true, y_pred):
-    """Full regression metrics."""
+    """İlgili metrik veya risk değerini verilen girdilerden hesaplar."""
     metrics = {}
     metrics["mse"] = safe_metric(mean_squared_error, y_true, y_pred)
     metrics["rmse"] = float(np.sqrt(max(metrics["mse"], 0)))
@@ -931,7 +936,7 @@ def compute_full_regression_metrics(y_true, y_pred):
 # PREDICTION ANALYSIS
 # ============================================================
 def prediction_case_analysis(y_true, y_prob, threshold, task_name, n_samples=10):
-    """Generate case analysis: correct, incorrect, borderline."""
+    """generate report bundle dosyasındaki backend yardımcı işlemini yürütür."""
     y_pred = (y_prob > threshold).astype(int)
     cases = []
 
@@ -977,7 +982,7 @@ def prediction_case_analysis(y_true, y_prob, threshold, task_name, n_samples=10)
 # CONFIG COPY
 # ============================================================
 def copy_configs():
-    """Copy config files to report bundle."""
+    """generate report bundle dosyasındaki backend yardımcı işlemini yürütür."""
     config_dir = HEALTHALERT_AI_ROOT / "config"
     for yaml_file in config_dir.glob("*.yaml"):
         import shutil
@@ -989,6 +994,7 @@ def copy_configs():
 # MAIN REPORT GENERATOR
 # ============================================================
 def generate_report_bundle():
+    """Model değerlendirme çıktıları ve görsellerinden rapor paketini üretir."""
     print("\n" + "#" * 70)
     print("#  HealthAlert — Rapor Paketi Üretimi Başlıyor")
     print("#" * 70)
@@ -1276,6 +1282,7 @@ def generate_report_bundle():
             spec = metrics.get("specificity", metrics.get("Specificity_neg", "-"))
 
             def fmt(v):
+                """generate report bundle dosyasındaki backend yardımcı işlemini yürütür."""
                 return f"{v:.4f}" if isinstance(v, (int, float)) and not (isinstance(v, float) and np.isnan(v)) else str(v)
 
             report_lines.append(f"| {task_name} | {fmt(f1_val)} | {fmt(prec)} | {fmt(rec)} | {fmt(mcc)} | {fmt(auc)} | {fmt(spec)} |")

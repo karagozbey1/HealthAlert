@@ -21,16 +21,19 @@ from services.llm_client import get_llm_client
 router = APIRouter(prefix="/assistant", tags=["assistant-chat"])
 
 class ChatRequest(BaseModel):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     message: str = Field(..., min_length=1, max_length=2000)
     session_id: Optional[str] = None
     screen_context: str = ""
     target_user_id: Optional[str] = None
 
 class UIActionOut(BaseModel):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     label: str
     route: str
 
 class ChatResponse(BaseModel):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     session_id: str
     message: str
     source: str
@@ -39,9 +42,11 @@ class ChatResponse(BaseModel):
     context_summary: str = ""
 
 class SuggestionsResponse(BaseModel):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     suggestions: List[str]
 
 class ChatStatusResponse(BaseModel):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     llm_configured: bool
     llm_model: str
     llm_status: str
@@ -55,6 +60,7 @@ async def chat(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Sohbet endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     role = current_user.role
     target_id = body.target_user_id or current_user.id
 
@@ -113,6 +119,7 @@ async def chat(
 async def suggestions(
     current_user: User = Depends(get_current_user),
 ):
+    """Sohbet endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     return SuggestionsResponse(suggestions=get_suggestions(current_user.role))
 
 # Secilen kullanici icin asistanin gorecegi baglam metnini onizleme olarak uretir.
@@ -123,6 +130,7 @@ async def context_preview(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Sohbet endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     target_id = target_user_id or current_user.id
     role = current_user.role
 
@@ -162,6 +170,7 @@ async def context_preview(
 async def chat_status(
     current_user: User = Depends(get_current_user),
 ):
+    """Sohbet endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     llm = get_llm_client()
     status_info = await llm.health_check()
     return ChatStatusResponse(

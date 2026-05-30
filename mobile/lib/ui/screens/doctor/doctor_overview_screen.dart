@@ -10,13 +10,16 @@ import 'doctor_alerts_screen.dart';
 import 'doctor_dashboard_screen.dart';
 import 'patient_detail_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class DoctorOverviewScreen extends StatefulWidget {
   const DoctorOverviewScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<DoctorOverviewScreen> createState() => _DoctorOverviewScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
   bool _loading = true;
   bool _refreshing = false;
@@ -24,7 +27,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
   final Map<String, LiveStatus?> _liveData = {};
   Timer? _autoRefreshTimer;
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
@@ -35,13 +38,14 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     _startAutoRefresh();
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _autoRefreshTimer?.cancel();
     super.dispose();
   }
 
+  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   void _startAutoRefresh() {
     _autoRefreshTimer?.cancel();
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -50,6 +54,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     });
   }
 
+  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load({bool isRefresh = false}) async {
     if (_loadInProgress) return;
     _loadInProgress = true;
@@ -69,7 +74,9 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
         try {
           final live = await app.getLiveStatusForUser(u.id);
           _liveData[u.id] = live;
-        } catch (_) {}
+        } catch (error) {
+          debugPrint('[DoctorOverview] Live load failed for ${u.id}: $error');
+        }
       }
     } catch (e) {
       debugPrint('[DoctorOverview] _load error: $e');
@@ -83,7 +90,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -321,6 +328,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _statBox(String value, String label, IconData icon, Color color) {
     return Expanded(
       child: GlassCard(
@@ -342,6 +350,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionHeader(String title, IconData icon) {
     return Row(
       children: [
@@ -352,6 +361,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _quickButton(
       String label, IconData icon, Color color, VoidCallback onTap) {
     return GlassCard(
@@ -372,6 +382,7 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen> {
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildEmpty() {
     final app = AppScope.of(context);
     return GlassCard(

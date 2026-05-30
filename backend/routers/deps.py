@@ -17,6 +17,7 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
+    """Yetkili kullanıcı için router bağımlılığı okuma isteğini işler."""
     payload = decode_token(token)
     if not payload:
         raise HTTPException(
@@ -35,4 +36,5 @@ async def get_current_user(
 
 # Aktif DATA_MODE için RepoSet döndüren FastAPI dependency.
 async def get_repo_set(db: AsyncSession = Depends(get_db)) -> RepoSet:
+    """Yetkili kullanıcı için router bağımlılığı okuma isteğini işler."""
     return get_repos(db=db)

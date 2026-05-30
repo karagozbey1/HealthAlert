@@ -3,27 +3,32 @@ import '../../core/state/app_scope.dart';
 import '../theme/app_theme.dart';
 import '../widgets/notification_tile.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _refreshing = false;
 
+  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   Future<void> _refresh() async {
     setState(() => _refreshing = true);
     await AppScope.of(context).refreshNotifications();
     if (mounted) setState(() => _refreshing = false);
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _markAllRead() async {
     await AppScope.of(context).markNotificationsRead();
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -50,7 +55,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 child: Text(
                   '$unread okunmamış',
                   style: const TextStyle(
-                      color: AppTheme.critical, fontSize: 11, fontWeight: FontWeight.bold),
+                      color: AppTheme.critical,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -60,7 +67,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (unread > 0)
             TextButton.icon(
               onPressed: _markAllRead,
-              icon: const Icon(Icons.done_all, size: 16, color: AppTheme.primary),
+              icon:
+                  const Icon(Icons.done_all, size: 16, color: AppTheme.primary),
               label: const Text('Tümünü okundu yap',
                   style: TextStyle(color: AppTheme.primary, fontSize: 12)),
             ),
@@ -82,14 +90,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               size: 64, color: Colors.white24),
                           const SizedBox(height: 16),
                           const Text('Henüz bildirim yok',
-                              style: TextStyle(color: Colors.white38, fontSize: 16)),
+                              style: TextStyle(
+                                  color: Colors.white38, fontSize: 16)),
                           const SizedBox(height: 8),
                           Text(
                             app.isBackendMode
                                 ? 'Canlı modda henüz bildirim oluşmadı.\n'
-                                  'Alarm veya anomali tespit edildiğinde burada görünecek.'
+                                    'Alarm veya anomali tespit edildiğinde burada görünecek.'
                                 : 'Yenilemek için aşağı çekin.',
-                            style: const TextStyle(color: Colors.white24, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white24, fontSize: 12),
                             textAlign: TextAlign.center,
                           ),
                         ],

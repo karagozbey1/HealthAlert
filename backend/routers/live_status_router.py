@@ -19,6 +19,7 @@ async def get_live_status(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için canlı durum okuma isteğini işler."""
     if current_user.id != user_id:
         link = await repos.relations.find_active_link(user_id, current_user.id)
         if link is None:

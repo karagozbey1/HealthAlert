@@ -4,13 +4,16 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_button.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RedeemCodeScreen extends StatefulWidget {
   const RedeemCodeScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<RedeemCodeScreen> createState() => _RedeemCodeScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
   final _codeController = TextEditingController();
   bool _loading = false;
@@ -18,13 +21,14 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
   bool _success = false;
   String? _successMessage;
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _codeController.dispose();
     super.dispose();
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _submit() async {
     final code = _codeController.text.trim().toUpperCase();
     if (code.isEmpty) {
@@ -49,7 +53,8 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
       } else {
         setState(() {
           _success = true;
-          _successMessage = 'Kod doğrulandı. Asıl kişi hesabına bağlantınız kuruldu.';
+          _successMessage =
+              'Kod doğrulandı. Asıl kişi hesabına bağlantınız kuruldu.';
           _loading = false;
         });
         Future.delayed(const Duration(seconds: 2), () {
@@ -65,7 +70,7 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,13 +93,16 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
                   color: AppTheme.primary.withOpacity(0.1),
                   border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
                 ),
-                child: const Icon(Icons.qr_code_scanner, size: 48, color: AppTheme.primary),
+                child: const Icon(Icons.qr_code_scanner,
+                    size: 48, color: AppTheme.primary),
               ),
               const SizedBox(height: 24),
               const Text(
                 'Bağlantı Kodunu Gir',
                 style: TextStyle(
-                    color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -150,15 +158,18 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
                         decoration: BoxDecoration(
                           color: Colors.redAccent.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                          border: Border.all(
+                              color: Colors.redAccent.withOpacity(0.3)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline, color: Colors.redAccent, size: 16),
+                            const Icon(Icons.error_outline,
+                                color: Colors.redAccent, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(_error!,
-                                  style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                                  style: const TextStyle(
+                                      color: Colors.redAccent, fontSize: 12)),
                             ),
                           ],
                         ),
@@ -171,7 +182,8 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
                         decoration: BoxDecoration(
                           color: AppTheme.success.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.success.withOpacity(0.3)),
+                          border: Border.all(
+                              color: AppTheme.success.withOpacity(0.3)),
                         ),
                         child: Row(
                           children: [
@@ -179,7 +191,7 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
                                 color: AppTheme.success, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
-                                child: Text(_successMessage ?? 'Başarılı!',
+                              child: Text(_successMessage ?? 'Başarılı!',
                                   style: const TextStyle(
                                       color: AppTheme.success, fontSize: 12)),
                             ),

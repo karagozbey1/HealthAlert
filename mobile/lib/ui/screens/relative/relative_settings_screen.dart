@@ -10,17 +10,21 @@ import '../profile_screen.dart';
 import 'monitored_user_live_screen.dart';
 import 'relative_generate_code_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RelativeSettingsScreen extends StatefulWidget {
   const RelativeSettingsScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<RelativeSettingsScreen> createState() => _RelativeSettingsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
   bool _notif = true;
   bool _initialized = false;
 
+  /// Inherited bağımlılıklar değiştiğinde ekran ayarlarını günceller.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -29,11 +33,13 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     _initialized = true;
   }
 
+  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> _persist() async {
     final app = AppScope.of(context);
     await app.saveSettings(app.settings.copyWith(notificationsEnabled: _notif));
   }
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -168,6 +174,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _sectionTitle(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -178,6 +185,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _settingsCard(List<Widget> children) {
     return GlassCard(
       padding: EdgeInsets.zero,
@@ -185,6 +193,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _accountTile({
     required String name,
     required String email,
@@ -226,6 +235,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _settingsTile({
     required IconData icon,
     required Color iconColor,
@@ -247,6 +257,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _rolePill(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -266,6 +277,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     );
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _roleLabel(UserRole? role) {
     switch (role) {
       case UserRole.doctor:
@@ -278,6 +290,7 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
     }
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _logoutToLogin(BuildContext context) async {
     final app = AppScope.of(context);
     await app.logout();
@@ -289,27 +302,33 @@ class _RelativeSettingsScreenState extends State<RelativeSettingsScreen> {
   }
 }
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class _LinkedPatientsScreen extends StatefulWidget {
   const _LinkedPatientsScreen();
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<_LinkedPatientsScreen> createState() => _LinkedPatientsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _LinkedPatientsScreenState extends State<_LinkedPatientsScreen> {
   bool _loading = true;
 
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
+  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load() async {
     await AppScope.of(context).loadMonitoredUsers();
     if (mounted) setState(() => _loading = false);
   }
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -357,6 +376,7 @@ class _LinkedPatientsScreenState extends State<_LinkedPatientsScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _patientTile(UserProfile user) {
     return GlassCard(
       padding: EdgeInsets.zero,
@@ -388,9 +408,11 @@ class _LinkedPatientsScreenState extends State<_LinkedPatientsScreen> {
   }
 }
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class _RelativePrivacyScreen extends StatelessWidget {
   const _RelativePrivacyScreen();
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -436,6 +458,7 @@ class _RelativePrivacyScreen extends StatelessWidget {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _PrivacyRow extends StatelessWidget {
   const _PrivacyRow({
     required this.icon,
@@ -447,6 +470,7 @@ class _PrivacyRow extends StatelessWidget {
   final String title;
   final String text;
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Row(

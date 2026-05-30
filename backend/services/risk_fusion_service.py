@@ -6,10 +6,12 @@ from config import settings
 
 
 def _clamp01(value: float) -> float:
+    """risk fusion servisindeki HealthAlert iş kuralını uygular."""
     return max(0.0, min(1.0, float(value)))
 
 
 class RiskFusionService:
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     def compute_final_risk_with_personalization(
         self,
         ml_result: Optional[Dict[str, Any]],
@@ -18,6 +20,7 @@ class RiskFusionService:
         quality_info: Optional[Dict[str, Any]],
         fusion_settings=settings,
     ) -> Dict[str, Any]:
+        """risk fusion servisinde risk veya skor değerini hesaplar."""
         baseline_result = baseline_result or {}
         personalization_result = personalization_result or {}
         quality_info = quality_info or {}

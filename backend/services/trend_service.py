@@ -11,6 +11,7 @@ def analyze_trends(
     role: str = "SELF",
 ) -> Dict[str, Any]:
 
+    """trend servisindeki HealthAlert iş kuralını uygular."""
     now = datetime.utcnow()
     last_1h = now - timedelta(hours=1)
     last_24h = now - timedelta(hours=24)
@@ -62,6 +63,7 @@ def _determine_trend_label(
     live_status: Optional[Dict],
 ) -> str:
 
+    """trend servisindeki HealthAlert iş kuralını uygular."""
     if live_status is None and not anomalies_24h:
         return "veri_yetersiz"
 
@@ -102,6 +104,7 @@ def _build_trend_summary(
     role: str,
 ) -> List[str]:
 
+    """trend servisinde kullanılacak kayıt veya bağlamı hazırlar."""
     lines = []
     role_prefix = ""
     if role == "RELATIVE":
@@ -140,6 +143,7 @@ def _build_trend_summary(
 
 # Kayittaki farkli tarih alanlarini tek bir datetime nesnesine cevirir.
 def _parse_dt(val) -> datetime:
+    """trend servisindeki HealthAlert iş kuralını uygular."""
     if val is None:
         return datetime.min
     if isinstance(val, datetime):

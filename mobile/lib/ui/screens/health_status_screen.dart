@@ -6,10 +6,11 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HealthStatusScreen extends StatelessWidget {
   const HealthStatusScreen({super.key});
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -50,6 +51,7 @@ class HealthStatusScreen extends StatelessWidget {
     );
   }
 
+  /// Duruma göre ekranda kullanılacak rengi belirler.
   Color _severityColor(AlertSeverity severity) {
     switch (severity) {
       case AlertSeverity.critical:
@@ -63,6 +65,7 @@ class HealthStatusScreen extends StatelessWidget {
     }
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _severityLabel(AlertSeverity severity) {
     switch (severity) {
       case AlertSeverity.critical:
@@ -76,6 +79,7 @@ class HealthStatusScreen extends StatelessWidget {
     }
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildStatusCard(
     BuildContext context,
     String title,
@@ -88,7 +92,8 @@ class HealthStatusScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: GlassCard(
-        onTap: () => _showDetailSheet(context, title, severityColor, recommendations),
+        onTap: () =>
+            _showDetailSheet(context, title, severityColor, recommendations),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -105,7 +110,8 @@ class HealthStatusScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: severityColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -138,10 +144,12 @@ class HealthStatusScreen extends StatelessWidget {
               children: [
                 Text(
                   "Önerileri Gör",
-                  style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: AppTheme.primary, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward, color: AppTheme.primary, size: 16),
+                const Icon(Icons.arrow_forward,
+                    color: AppTheme.primary, size: 16),
               ],
             ),
           ],
@@ -150,7 +158,9 @@ class HealthStatusScreen extends StatelessWidget {
     );
   }
 
-  void _showDetailSheet(BuildContext context, String title, Color color, List<String> recommendations) {
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
+  void _showDetailSheet(BuildContext context, String title, Color color,
+      List<String> recommendations) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -170,7 +180,12 @@ class HealthStatusScreen extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(2))),
+              Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: Colors.grey[700],
+                      borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 24),
               Expanded(
                 child: ListView(
@@ -187,62 +202,71 @@ class HealthStatusScreen extends StatelessWidget {
                     const SizedBox(height: 32),
                     Text(
                       "ÇÖZÜM ÖNERİLERİ",
-                      style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2, color: AppTheme.textSecondary),
+                      style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(
+                          letterSpacing: 2, color: AppTheme.textSecondary),
                     ),
                     const SizedBox(height: 16),
                     ...recommendations.asMap().entries.map((entry) {
-                       return Padding(
-                         padding: const EdgeInsets.only(bottom: 16),
-                         child: Row(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             CircleAvatar(
-                               radius: 12,
-                               backgroundColor: color.withOpacity(0.2),
-                               child: Text(
-                                 "${entry.key + 1}",
-                                 style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
-                               ),
-                             ),
-                             const SizedBox(width: 16),
-                             Expanded(
-                               child: Text(
-                                 entry.value,
-                                 style: const TextStyle(fontSize: 16, height: 1.4),
-                               ),
-                             ),
-                           ],
-                         ),
-                       );
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: color.withOpacity(0.2),
+                              child: Text(
+                                "${entry.key + 1}",
+                                style: TextStyle(
+                                    color: color,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                entry.value,
+                                style:
+                                    const TextStyle(fontSize: 16, height: 1.4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
                     }).toList(),
                     const SizedBox(height: 32),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                         color: AppTheme.critical.withOpacity(0.1),
-                         borderRadius: BorderRadius.circular(16),
-                         border: Border.all(color: AppTheme.critical.withOpacity(0.3)),
+                        color: AppTheme.critical.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: AppTheme.critical.withOpacity(0.3)),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline, color: AppTheme.critical),
+                          const Icon(Icons.info_outline,
+                              color: AppTheme.critical),
                           const SizedBox(width: 12),
                           const Expanded(
                             child: Text(
                               "Bu öneriler bilgilendirme amaçlıdır. Rahatsızlık devam ederse doktora başvurun.",
-                              style: TextStyle(fontSize: 12, color: Colors.white70),
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.white70),
                             ),
                           ),
                         ],
                       ),
                     ),
-                     const SizedBox(height: 24),
-                     GradientButton(
-                       text: "TAMAM",
-                       onPressed: () => Navigator.pop(context),
-                       gradient: LinearGradient(colors: [color.withOpacity(0.8), color]),
-                     ),
-                     const SizedBox(height: 40),
+                    const SizedBox(height: 24),
+                    GradientButton(
+                      text: "TAMAM",
+                      onPressed: () => Navigator.pop(context),
+                      gradient: LinearGradient(
+                          colors: [color.withOpacity(0.8), color]),
+                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),

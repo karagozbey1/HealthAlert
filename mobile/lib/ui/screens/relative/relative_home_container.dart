@@ -6,13 +6,16 @@ import 'relative_dashboard_screen.dart';
 import 'relative_history_screen.dart';
 import 'relative_settings_screen.dart';
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class RelativeHomeContainer extends StatefulWidget {
   const RelativeHomeContainer({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<RelativeHomeContainer> createState() => _RelativeHomeContainerState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _RelativeHomeContainerState extends State<RelativeHomeContainer> {
   int _currentIndex = 0;
 
@@ -24,6 +27,7 @@ class _RelativeHomeContainerState extends State<RelativeHomeContainer> {
     const RelativeSettingsScreen(),
   ];
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(

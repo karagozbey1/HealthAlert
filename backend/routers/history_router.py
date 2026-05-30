@@ -18,6 +18,7 @@ async def get_my_history(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için geçmiş okuma isteğini işler."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="SELF role required")
     return await repos.history.list_by_user(current_user.id)
@@ -30,6 +31,7 @@ async def get_user_history(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için geçmiş okuma isteğini işler."""
     if current_user.id != user_id:
         link = await repos.relations.find_active_link(user_id, current_user.id)
         if link is None:

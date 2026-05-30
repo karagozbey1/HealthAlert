@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class UserProfile {
   const UserProfile({
     required this.id,
@@ -19,6 +20,7 @@ class UserProfile {
   final String deviceId;
   final UserRole role;
 
+  /// Modelin seçilen alanları değişmiş yeni bir kopyasını üretir.
   UserProfile copyWith({
     String? fullName,
     String? email,
@@ -38,6 +40,7 @@ class UserProfile {
     );
   }
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'id': id,
         'fullName': fullName,
@@ -48,6 +51,7 @@ class UserProfile {
         'role': role.name,
       };
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static UserProfile fromJson(Map<String, dynamic> json) => UserProfile(
         id: json['id'] as String,
         fullName: (json['fullName'] ?? json['full_name'] ?? '') as String,

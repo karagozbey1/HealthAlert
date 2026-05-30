@@ -7,14 +7,17 @@
 #include "ha_mock_sensors.h"
 #include "ha_types.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 class SerialCmd {
 public:
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     void begin(MockSensors* mock, SensorStatus* status) {
         _mock = mock;
         _status = status;
         _buf_pos = 0;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     bool poll() {
         while (HA_SERIAL_AVAILABLE()) {
             char c = (char)HA_SERIAL_READ();
@@ -43,7 +46,9 @@ private:
     MockSensors* _mock = nullptr;
     SensorStatus* _status = nullptr;
 
+    /// Ham sensör örneklerinden kullanılacak ölçüm değerini hesaplar.
     void _process(const char* cmd) {
+        /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
         String s(cmd);
         s.trim();
         s.toLowerCase();
@@ -80,6 +85,7 @@ private:
         }
     }
 
+    /// Firmware durum bilgisini seri porta okunabilir biçimde yazar.
     void _print_help() {
         HA_SERIAL_PRINTLN("=== HealthAlert Serial Commands ===");
         HA_SERIAL_PRINTLN("  help                 - Show this help");
@@ -97,6 +103,7 @@ private:
         HA_SERIAL_PRINTLN("===================================");
     }
 
+    /// Firmware çalışma durumunu güncel ölçüm ve bağlantı bilgisiyle yeniler.
     void _print_status() {
         HA_SERIAL_PRINTLN("=== Sensor Status ===");
         HA_SERIAL_PRINTF("  IMU present:      %s\n", _status->imu_present ? "YES" : "NO");
@@ -111,6 +118,7 @@ private:
         HA_SERIAL_PRINTLN("=====================");
     }
 
+    /// Firmware durum bilgisini seri porta okunabilir biçimde yazar.
     void _print_config() {
         HA_SERIAL_PRINTLN("=== Configuration ===");
         HA_SERIAL_PRINTF("  Firmware:         %s v%s\n", FW_NAME, FW_VERSION);
@@ -126,6 +134,7 @@ private:
         HA_SERIAL_PRINTLN("=====================");
     }
 
+    /// Firmware çalışma ayarı veya senaryo seçimini günceller.
     void _set_scenario(const String& name) {
         if (!_mock) {
             HA_SERIAL_PRINTLN("[CMD] Mock engine not available.");

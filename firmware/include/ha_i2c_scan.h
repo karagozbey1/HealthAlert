@@ -6,12 +6,14 @@
 #include "ha_config.h"
 #include "ha_debug.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 struct I2cScanResult {
     bool mpu6050_found;
     bool max30102_found;
     uint8_t device_count;
 };
 
+/// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
 inline I2cScanResult i2c_scan() {
     I2cScanResult result = {false, false, 0};
 

@@ -22,6 +22,7 @@ async def get_notifications(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için bildirim okuma isteğini işler."""
     return await repos.notifications.list_by_recipient(current_user.id)
 
 # Mevcut kullanicinin tum bildirimlerini okundu isaretler.
@@ -31,6 +32,7 @@ async def mark_all_read(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için bildirim okuma isteğini işler."""
     await repos.notifications.mark_all_read(current_user.id)
     await db.commit()
 
@@ -42,6 +44,7 @@ async def mark_one_read(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için bildirim okuma isteğini işler."""
     found = await repos.notifications.mark_read(notif_id, current_user.id)
     if not found:
         raise HTTPException(status_code=404, detail="Notification not found")
@@ -54,6 +57,7 @@ async def register_device_token(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Bildirim oluşturma isteğini doğrulayıp kaydeder."""
     result = await db.execute(
         select(DeviceToken).where(
             DeviceToken.user_id == current_user.id,
@@ -86,6 +90,7 @@ async def unregister_device_token(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Bildirim endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     await db.execute(
         delete(DeviceToken).where(
             DeviceToken.user_id == current_user.id,

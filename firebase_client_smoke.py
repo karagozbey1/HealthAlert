@@ -32,6 +32,7 @@ FAIL_SYM = "❌ FAIL"
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 def _sa_token() -> str:
+    """Firebase smoke çağrıları için servis hesabı tokenı üretir."""
     creds = google.oauth2.service_account.Credentials.from_service_account_file(
         SA_PATH,
         scopes=["https://www.googleapis.com/auth/cloud-platform",
@@ -40,12 +41,14 @@ def _sa_token() -> str:
     return creds.token
 
 def _field(v):
+    """Smoke script değerini Firestore REST field formatına dönüştürür."""
     if isinstance(v, bool):   return {"booleanValue": v}
     if isinstance(v, int):    return {"integerValue": str(v)}
     if isinstance(v, float):  return {"doubleValue": v}
     return {"stringValue": str(v)}
 
 def _patch(collection: str, doc_id: str, data: dict, *, admin=False, token=""):
+    """Smoke script içinde Firestore belgesine patch isteği gönderir."""
     url = f"{FS_BASE}/{collection}/{doc_id}"
     url += f"" if admin else f"?key={ANDROID_API_KEY}"
     headers = ({"Authorization": f"Bearer {token}"} if admin else {})
@@ -53,16 +56,19 @@ def _patch(collection: str, doc_id: str, data: dict, *, admin=False, token=""):
     return requests.patch(url, json=body, headers=headers, timeout=15)
 
 def _get(collection: str, doc_id: str, *, admin=False, token=""):
+    """Smoke script içinde Firestore belgesini REST API üzerinden okur."""
     url = f"{FS_BASE}/{collection}/{doc_id}"
     url += "" if admin else f"?key={ANDROID_API_KEY}"
     headers = ({"Authorization": f"Bearer {token}"} if admin else {})
     return requests.get(url, headers=headers, timeout=15)
 
 def _delete(path: str, token: str):
+    """Smoke script içinde Firestore belgesini REST API üzerinden siler."""
     return requests.delete(f"{FS_BASE}/{path}",
                            headers={"Authorization": f"Bearer {token}"}, timeout=10)
 
 def check(name: str, ok: bool, detail: str = ""):
+    """Smoke kontrol sonucunu okunabilir PASS veya FAIL satırı olarak yazdırır."""
     results[name] = ok
     sym = PASS_SYM if ok else FAIL_SYM
     suffix = f"  ({detail})" if detail else ""
@@ -70,6 +76,7 @@ def check(name: str, ok: bool, detail: str = ""):
     return ok
 
 def ts() -> str:
+    """Smoke verisi için ISO zaman damgası üretir."""
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 # ─── header ───────────────────────────────────────────────────────────────────

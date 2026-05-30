@@ -6,13 +6,16 @@ import 'live_monitor_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class HomeContainer extends StatefulWidget {
   const HomeContainer({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<HomeContainer> createState() => _HomeContainerState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _HomeContainerState extends State<HomeContainer> {
   int _currentIndex = 0;
 
@@ -24,7 +27,7 @@ class _HomeContainerState extends State<HomeContainer> {
     const SettingsScreen(),
   ];
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -42,7 +45,8 @@ class _HomeContainerState extends State<HomeContainer> {
               onPressed: () => Navigator.pushNamed(context, '/alert'),
               icon: Stack(
                 children: const [
-                  Icon(Icons.notification_important_outlined, color: Colors.redAccent),
+                  Icon(Icons.notification_important_outlined,
+                      color: Colors.redAccent),
                   Positioned(
                     right: 0,
                     top: 0,

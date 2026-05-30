@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class NotificationItem {
   const NotificationItem({
     required this.id,
@@ -27,6 +28,7 @@ class NotificationItem {
   final String? referenceId;
   final String? referenceType;
 
+  /// Modelin seçilen alanları değişmiş yeni bir kopyasını üretir.
   NotificationItem copyWith({bool? read}) {
     return NotificationItem(
       id: id,
@@ -43,6 +45,7 @@ class NotificationItem {
     );
   }
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static NotificationItem fromJson(Map<String, dynamic> json) =>
       NotificationItem(
         id: json['id'] as String,
@@ -60,6 +63,7 @@ class NotificationItem {
         referenceType: json['reference_type'] as String?,
       );
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,

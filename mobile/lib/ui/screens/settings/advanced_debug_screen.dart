@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/ble_device_service.dart';
-import '../../../core/services/transport_orchestrator.dart';
 import '../../../core/state/app_scope.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/widgets/connection_status_card.dart';
 import '../../../ui/widgets/glass_card.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class AdvancedDebugScreen extends StatelessWidget {
   const AdvancedDebugScreen({super.key});
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -163,6 +164,7 @@ class AdvancedDebugScreen extends StatelessWidget {
     );
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   static String _bleStateLabel(BleConnectionState state) {
     switch (state) {
       case BleConnectionState.connected:
@@ -178,6 +180,7 @@ class AdvancedDebugScreen extends StatelessWidget {
     }
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   static String _ago(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds}s önce';
@@ -186,11 +189,13 @@ class AdvancedDebugScreen extends StatelessWidget {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _DebugRow extends StatelessWidget {
   final String label;
   final String value;
   const _DebugRow(this.label, this.value);
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Row(

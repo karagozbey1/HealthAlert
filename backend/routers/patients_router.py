@@ -37,7 +37,7 @@ router = APIRouter(tags=["patients"])
 # ──────────────────────────────────────────
 
 async def can_access_patient(user: User, patient_id: str, repos: RepoSet) -> bool:
-    """Return True if *user* is authorised to read *patient_id*'s health data."""
+    """Kullanıcının seçili hastanın sağlık verisini okuyup okuyamayacağını kontrol eder."""
     # SELF can only see themselves.
     if user.role == "SELF":
         return user.id == patient_id
@@ -47,6 +47,7 @@ async def can_access_patient(user: User, patient_id: str, repos: RepoSet) -> boo
 
 
 def _risk_level(score: float) -> str:
+    """Sayısal risk skorunu mobil arayüzde kullanılan risk seviyesine çevirir."""
     if score >= 0.7:
         return "critical"
     if score >= 0.5:
@@ -65,11 +66,7 @@ async def get_accessible_patients(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    """
-    Returns the list of SELF users that the caller can monitor.
-    - SELF  → [themselves]
-    - DOCTOR / RELATIVE → all SELF users linked via UserRelation
-    """
+    """Mevcut kullanıcının erişebildiği hasta listesini döndürür."""
     if current_user.role == "SELF":
         user = await repos.users.get_by_id(current_user.id)
         return [user] if user else []
@@ -98,11 +95,7 @@ async def get_patient_live(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    """
-    Latest live status for a specific patient.
-    Returns 403 if the caller is not authorised.
-    Returns 404 if no live data has been ingested yet.
-    """
+    """Yetkili kullanıcının seçili hastanın en güncel canlı durumunu okumasını sağlar."""
     if not await can_access_patient(current_user, patient_id, repos):
         raise HTTPException(status_code=403, detail="Access denied")
 
@@ -122,10 +115,7 @@ async def get_patient_summary(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    """
-    Compact summary card for a patient (suitable for doctor/relative overview screens).
-    Returns 403 if the caller is not authorised.
-    """
+    """Yetkili kullanıcı için hasta özet kartı verisini hazırlar."""
     if not await can_access_patient(current_user, patient_id, repos):
         raise HTTPException(status_code=403, detail="Access denied")
 
@@ -182,7 +172,7 @@ async def get_doctor_patients(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    """Doctor-specific endpoint: list of the doctor's assigned patients."""
+    """Doktor rolündeki kullanıcının atanmış hasta listesini döndürür."""
     if current_user.role != "DOCTOR":
         raise HTTPException(status_code=403, detail="Doctor role required")
 
@@ -209,7 +199,7 @@ async def get_relative_patients(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
-    """Relative-specific endpoint: list of patients the relative is monitoring."""
+    """Yakın rolündeki kullanıcının izlediği hasta listesini döndürür."""
     if current_user.role != "RELATIVE":
         raise HTTPException(status_code=403, detail="Relative role required")
 

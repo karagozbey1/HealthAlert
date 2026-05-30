@@ -24,10 +24,12 @@ _firebase_status: Dict[str, Any] = {
 
 # Firebase gerekip gerekmediğini kontrol eder.
 def _needs_firebase() -> bool:
+    """Aktif ayarlara göre Firebase istemcisinin gerekli olup olmadığını belirler."""
     return settings.DATA_MODE in ("firebase", "hybrid")
 
 # FIREBASE_CREDENTIALS_PATH dosyasını doğrular.
 def _validate_credentials_path() -> Optional[str]:
+    """Firebase servis hesabı dosyasının okunabilir konumunu doğrular."""
     path = settings.FIREBASE_CREDENTIALS_PATH
     if not path:
         return None
@@ -43,6 +45,7 @@ def _validate_credentials_path() -> Optional[str]:
 
 # Firebase Admin SDK'yı başlatır; sqlite modunda no-op.
 def init_firebase() -> None:
+    """Firebase Admin istemcisini yapılandırmaya göre başlatır."""
     global _firestore_client, _initialised, _firebase_status
 
     if _initialised:
@@ -136,18 +139,21 @@ def init_firebase() -> None:
 
 # Firestore istemcisini döndürür.
 def get_firestore_client():
+    """Hazır Firebase istemcisinden Firestore client nesnesini döndürür."""
     if not _initialised:
         init_firebase()
     return _firestore_client
 
 # Firebase ilk durumunu ve hata bilgisini ozette dondurur.
 def get_firebase_status() -> Dict[str, Any]:
+    """İstenen veriyi ilgili kaynaktan okuyup çağırana döndürür."""
     if not _initialised:
         init_firebase()
     return dict(_firebase_status)
 
 # Firestore baglantisini yazma-okuma-silme turu ile sinar.
 async def firebase_smoke_test() -> Dict[str, Any]:
+    """Firebase bağlantısının temel okuma yazma akışını dener."""
     client = get_firestore_client()
     if client is None:
         return {

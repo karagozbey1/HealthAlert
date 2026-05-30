@@ -8,13 +8,16 @@ import 'home_container.dart';
 import 'relative/relative_home_container.dart';
 import 'doctor/doctor_home_container.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _RegisterScreenState extends State<RegisterScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
@@ -52,16 +55,17 @@ class _RegisterScreenState extends State<RegisterScreen>
     ),
   };
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _ctrl.forward();
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _ctrl.dispose();
@@ -72,6 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -111,11 +116,12 @@ class _RegisterScreenState extends State<RegisterScreen>
         ),
       );
     } else {
-      setState(() => _error = 'Kayıt başarısız oldu. Farklı bir e-posta deneyin.');
+      setState(
+          () => _error = 'Kayıt başarısız oldu. Farklı bir e-posta deneyin.');
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,7 +133,8 @@ class _RegisterScreenState extends State<RegisterScreen>
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Hesap Oluştur', style: TextStyle(color: Colors.white70)),
+        title: const Text('Hesap Oluştur',
+            style: TextStyle(color: Colors.white70)),
       ),
       body: FadeTransition(
         opacity: _fadeAnim,
@@ -138,7 +145,9 @@ class _RegisterScreenState extends State<RegisterScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Rolünüz', style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 1.5)),
+                Text('Rolünüz',
+                    style: AppTheme.darkTheme.textTheme.labelSmall
+                        ?.copyWith(letterSpacing: 1.5)),
                 const SizedBox(height: 12),
                 Row(
                   children: UserRole.values.map((role) {
@@ -150,7 +159,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 8),
                           decoration: BoxDecoration(
                             color: selected
                                 ? info.color.withOpacity(0.2)
@@ -164,7 +174,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                           child: Column(
                             children: [
                               Icon(info.icon,
-                                  color: selected ? info.color : Colors.white54, size: 28),
+                                  color: selected ? info.color : Colors.white54,
+                                  size: 28),
                               const SizedBox(height: 8),
                               Text(
                                 info.label,
@@ -172,7 +183,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 style: TextStyle(
                                   color: selected ? info.color : Colors.white70,
                                   fontSize: 11,
-                                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: selected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                             ],
@@ -185,9 +198,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                 const SizedBox(height: 8),
                 Text(
                   _roleInfo[_selectedRole]!.desc,
-                  style: TextStyle(color: _roleInfo[_selectedRole]!.color, fontSize: 12),
+                  style: TextStyle(
+                      color: _roleInfo[_selectedRole]!.color, fontSize: 12),
                 ),
-
                 const SizedBox(height: 24),
                 GlassCard(
                   padding: const EdgeInsets.all(24),
@@ -197,8 +210,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                         controller: _nameCtrl,
                         label: 'Ad Soyad',
                         icon: Icons.person_outline,
-                        validator: (v) =>
-                            v == null || v.trim().isEmpty ? 'Zorunlu alan' : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Zorunlu alan'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       _field(
@@ -207,8 +221,10 @@ class _RegisterScreenState extends State<RegisterScreen>
                         icon: Icons.email_outlined,
                         keyboard: TextInputType.emailAddress,
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Zorunlu alan';
-                          if (!v.contains('@')) return 'Geçerli bir e-posta girin';
+                          if (v == null || v.trim().isEmpty)
+                            return 'Zorunlu alan';
+                          if (!v.contains('@'))
+                            return 'Geçerli bir e-posta girin';
                           return null;
                         },
                       ),
@@ -226,13 +242,17 @@ class _RegisterScreenState extends State<RegisterScreen>
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           labelText: 'Şifre',
-                          prefixIcon: const Icon(Icons.lock_outline, color: Colors.white54),
+                          prefixIcon: const Icon(Icons.lock_outline,
+                              color: Colors.white54),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePass ? Icons.visibility_off : Icons.visibility,
+                              _obscurePass
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: Colors.white54,
                             ),
-                            onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                            onPressed: () =>
+                                setState(() => _obscurePass = !_obscurePass),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -242,8 +262,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                           fillColor: Colors.white.withOpacity(0.05),
                           labelStyle: const TextStyle(color: Colors.white70),
                         ),
-                        validator: (v) =>
-                            v == null || v.length < 6 ? 'En az 6 karakter' : null,
+                        validator: (v) => v == null || v.length < 6
+                            ? 'En az 6 karakter'
+                            : null,
                       ),
                     ],
                   ),
@@ -251,7 +272,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                    child: Text(_error!,
+                        style: const TextStyle(color: Colors.redAccent)),
                   ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -277,6 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _field({
     required TextEditingController controller,
     required String label,

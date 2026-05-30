@@ -12,10 +12,12 @@ engine = create_async_engine(settings.DATABASE_URL, echo=False)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 class Base(DeclarativeBase):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     pass
 
 # Asenkron veritabanı oturumu sağlayan FastAPI dependency.
 async def get_db():
+    """İstenen veriyi ilgili kaynaktan okuyup çağırana döndürür."""
     async with AsyncSessionLocal() as session:
         yield session
 
@@ -23,6 +25,7 @@ async def get_db():
 # Mevcut tablolara gereken ek kolonlari guvenli sekilde ekler.
 def _apply_schema_guards(sync_conn) -> None:
     # app_settings.alert_sensitivity kolonunu gerekirse ekler.
+    """SQLite tablolarında geriye dönük şema alanlarını hazırlar."""
     rows = sync_conn.execute(text("PRAGMA table_info(app_settings)")).fetchall()
     existing_cols = {row[1] for row in rows}
     if "alert_sensitivity" not in existing_cols:
@@ -84,6 +87,7 @@ def _apply_schema_guards(sync_conn) -> None:
 
 # Tüm tabloları yoksa oluşturur; mevcut tablolara eksik kolonları ekler.
 async def init_db() -> None:
+    """Backend veritabanı tablolarını ve şema korumalarını hazırlar."""
     import models  # noqa: F401 — registers all ORM models with Base.metadata
 
     async with engine.begin() as conn:

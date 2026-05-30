@@ -4,13 +4,16 @@ import 'monitoring_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
@@ -21,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const SettingsScreen(),
   ];
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(

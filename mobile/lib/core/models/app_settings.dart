@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class AppSettings {
   const AppSettings({
     required this.hrHighThreshold,
@@ -29,6 +30,7 @@ class AppSettings {
     uploadIntervalMinutes: 5,
   );
 
+  /// Modelin seçilen alanları değişmiş yeni bir kopyasını üretir.
   AppSettings copyWith({
     double? hrHighThreshold,
     double? hrLowThreshold,
@@ -45,10 +47,12 @@ class AppSettings {
       batteryMode: batteryMode ?? this.batteryMode,
       dimBrightness: dimBrightness ?? this.dimBrightness,
       backgroundMonitoring: backgroundMonitoring ?? this.backgroundMonitoring,
-      uploadIntervalMinutes: uploadIntervalMinutes ?? this.uploadIntervalMinutes,
+      uploadIntervalMinutes:
+          uploadIntervalMinutes ?? this.uploadIntervalMinutes,
     );
   }
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'hrHighThreshold': hrHighThreshold,
         'hrLowThreshold': hrLowThreshold,
@@ -59,18 +63,24 @@ class AppSettings {
         'uploadIntervalMinutes': uploadIntervalMinutes,
       };
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static AppSettings fromJson(Map<String, dynamic> json) {
     return AppSettings(
-      hrHighThreshold: (json['hrHighThreshold'] as num?)?.toDouble() ?? defaults.hrHighThreshold,
-      hrLowThreshold: (json['hrLowThreshold'] as num?)?.toDouble() ?? defaults.hrLowThreshold,
-      notificationsEnabled: json['notificationsEnabled'] as bool? ?? defaults.notificationsEnabled,
+      hrHighThreshold: (json['hrHighThreshold'] as num?)?.toDouble() ??
+          defaults.hrHighThreshold,
+      hrLowThreshold: (json['hrLowThreshold'] as num?)?.toDouble() ??
+          defaults.hrLowThreshold,
+      notificationsEnabled: json['notificationsEnabled'] as bool? ??
+          defaults.notificationsEnabled,
       batteryMode: BatteryMode.values.firstWhere(
         (e) => e.name == json['batteryMode'],
         orElse: () => defaults.batteryMode,
       ),
       dimBrightness: json['dimBrightness'] as bool? ?? defaults.dimBrightness,
-      backgroundMonitoring: json['backgroundMonitoring'] as bool? ?? defaults.backgroundMonitoring,
-      uploadIntervalMinutes: json['uploadIntervalMinutes'] as int? ?? defaults.uploadIntervalMinutes,
+      backgroundMonitoring: json['backgroundMonitoring'] as bool? ??
+          defaults.backgroundMonitoring,
+      uploadIntervalMinutes: json['uploadIntervalMinutes'] as int? ??
+          defaults.uploadIntervalMinutes,
     );
   }
 }

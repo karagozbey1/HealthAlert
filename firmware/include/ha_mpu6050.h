@@ -8,9 +8,11 @@
 #include "ha_debug.h"
 #include "ha_types.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 class HaMpu6050 {
 public:
     // Sensörü başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool begin() {
         for (int attempt = 0; attempt < SENSOR_INIT_RETRIES; attempt++) {
             if (_try_init()) {
@@ -29,6 +31,7 @@ public:
         return false;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     ImuSample read() {
         ImuSample sample = {0, 0, 0, 0, 0, 0, false};
         if (!_initialized) return sample;
@@ -66,13 +69,17 @@ public:
         return sample;
     }
 
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool reinit() {
         _initialized = false;
         _ok = false;
+        /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
         return begin();
     }
 
+    /// Firmware durum bayrağını çağırana sade bool değer olarak döndürür.
     bool isOk() const { return _ok; }
+    /// Firmware durum bayrağını çağırana sade bool değer olarak döndürür.
     bool isInitialized() const { return _initialized; }
 
 private:
@@ -81,6 +88,7 @@ private:
     int16_t _ax_offset = 0, _ay_offset = 0, _az_offset = 0;
     int16_t _gx_offset = 0, _gy_offset = 0, _gz_offset = 0;
 
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool _try_init() {
         Wire.beginTransmission(MPU6050_I2C_ADDR);
         Wire.write(0x75);
@@ -99,6 +107,7 @@ private:
         return true;
     }
 
+    /// Sensör başlangıcında kullanılacak ofset değerlerini hesaplar.
     void _calibrate() {
         HA_SERIAL_PRINTLN("[MPU6050] Calibrating (128 samples)...");
         delay(200); // let vibration settle after USB-connect
@@ -127,6 +136,7 @@ private:
         HA_SERIAL_PRINTLN("[MPU6050] Calibration done.");
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void _write_reg(uint8_t reg, uint8_t val) {
         Wire.beginTransmission(MPU6050_I2C_ADDR);
         Wire.write(reg);

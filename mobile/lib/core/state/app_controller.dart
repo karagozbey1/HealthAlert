@@ -26,7 +26,11 @@ import '../services/live_data_service.dart';
 import '../services/recommendation_service.dart';
 import '../services/transport_orchestrator.dart';
 
+/// Oturum, canlı veri, alarm ve kullanıcı ekran durumlarını tek merkezden yönetir.
 class AppController extends ChangeNotifier {
+  static const int _criticalAlertCountdownSeconds = 30;
+  static const int _warningAlertCountdownSeconds = 20;
+
   AppController({
     required SessionRepository sessionRepository,
     required UserRepository userRepository,
@@ -157,8 +161,7 @@ class AppController extends ChangeNotifier {
       _transportOrchestrator?.transportLabel ?? 'Bağlantı yok';
   bool get isFirestoreSyncAvailable => _firestoreSync?.isAvailable ?? false;
 
-  /// Returns a reactive stream of [LiveStatus] for a monitored patient from
-  /// Firestore, or [null] if Firestore is not available.
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   Stream<LiveStatus?>? getFirestoreLiveStatusStream(String userId) {
     if (!isFirestoreSyncAvailable || _firestoreSync == null) return null;
     return _firestoreSync!.getLiveStatusStream(userId).map((doc) {
@@ -167,7 +170,9 @@ class AppController extends ChangeNotifier {
         final data = doc.data();
         if (data == null) return null;
         return FirestoreSyncService.liveStatusFromFirestoreMap(data, userId);
-      } catch (_) {
+      } catch (error) {
+        debugPrint(
+            '[AppController] Firestore live stream parse failed: $error');
         return null;
       }
     });
@@ -176,6 +181,7 @@ class AppController extends ChangeNotifier {
   String? get selectedMonitoredUserId =>
       _monitoredUsers.isNotEmpty ? _monitoredUsers.first.id : null;
 
+  /// Uygulama başlangıcında oturum, ayar ve yerel verileri yükler.
   Future<void> initialize() async {
     _settings = await _settingsRepository.getSettings();
     _deviceState = await _deviceRepository.getState();
@@ -216,7 +222,9 @@ class AppController extends ChangeNotifier {
     }
 
     // Start BLE transport for unauthenticated demo/local mode (no saved session).
-    if (!_authenticated && _transportMode != 'off' && _transportOrchestrator != null) {
+    if (!_authenticated &&
+        _transportMode != 'off' &&
+        _transportOrchestrator != null) {
       _transportPacketSub?.cancel();
       _transportPacketSub =
           _transportOrchestrator!.packetStream.listen(_onTransportPacket);
@@ -224,13 +232,15 @@ class AppController extends ChangeNotifier {
       _transportStatusSub =
           _transportOrchestrator!.statusStream.listen(_onTransportStatus);
       _transportOrchestrator!.start();
-      debugPrint('[AppController] BLE transport started in unauthenticated demo mode.');
+      debugPrint(
+          '[AppController] BLE transport started in unauthenticated demo mode.');
     }
 
     _initialized = true;
     notifyListeners();
   }
 
+  /// Oturum açıldıktan sonra role uygun canlı veri akışlarını başlatır.
   Future<void> _onAuthenticatedInit() async {
     if (role == UserRole.self) {
       _startTransportLayer();
@@ -246,6 +256,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// İlgili timer, listener veya bağlantı akışını başlatır.
   void _startTransportLayer() {
     if (_transportMode == 'off') return;
 
@@ -280,6 +291,7 @@ class AppController extends ChangeNotifier {
         '[AppController] Transport layer started for user ${_user?.id} (mode: $_transportMode)');
   }
 
+  /// Çalışan timer, listener veya bağlantı akışını güvenli şekilde durdurur.
   void _stopTransportLayer() {
     _transportPacketSub?.cancel();
     _transportPacketSub = null;
@@ -289,6 +301,7 @@ class AppController extends ChangeNotifier {
     _firestoreSync?.stop();
   }
 
+  /// BLE paketini Firestore ve gerekiyorsa backend ile paylaşır.
   void _onTransportPacket(BlePacket packet) {
     _firestoreSync?.addPacket(packet);
 
@@ -297,6 +310,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Canlı durum güncellemesini state'e ve Firestore senkronuna aktarır.
   void _onTransportStatus(LiveStatus status) {
     _latestLiveStatus = status;
 
@@ -313,6 +327,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// BLE paketini backend cihaz paketi endpoint'ine gönderir.
   Future<void> _forwardPacketToBackend(BlePacket packet) async {
     try {
       await _apiClient?.post('/ingest/device-packet', packet.toJson());
@@ -321,7 +336,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  /// Changes connection mode (ble_only | wifi_only | auto) and restarts transport.
+  /// BLE, Wi-Fi veya otomatik bağlantı modunu seçip taşıma katmanını yeniler.
   Future<void> setConnectionMode(String mode) async {
     // Normalize to the modes TransportOrchestrator understands.
     final mapped = switch (mode) {
@@ -338,6 +353,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Backend erişilebilir olduğunda uygulamayı canlı çalışma moduna geçirir.
   Future<String?> switchToLive({String? url}) async {
     final backendUrl = url ?? _backendUrl;
     _backendUrl = backendUrl;
@@ -365,7 +381,8 @@ class AppController extends ChangeNotifier {
           _startMonitoredLivePolling();
         }
       }
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[AppController] Switch to live refresh failed: $error');
     } finally {
       _isRefreshing = false;
       notifyListeners();
@@ -373,6 +390,7 @@ class AppController extends ChangeNotifier {
     return null;
   }
 
+  /// Uygulamayı yerel demo verisiyle çalışacak moda döndürür.
   void switchToDemo() {
     _demoMode = true;
     _apiClient?.clearToken();
@@ -385,6 +403,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Backend kaynaklı anomali, geçmiş, bildirim, alarm ve ilişki verilerini yükler.
   Future<void> _loadFromBackend() async {
     if (!isBackendMode || _user == null) return;
 
@@ -440,6 +459,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Pil moduna göre kendi canlı veri yenileme aralığını seçer.
   int _intervalForBatteryMode(BatteryMode mode) {
     if (_demoMode) {
       switch (mode) {
@@ -462,6 +482,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Kendi kullanıcısı için canlı veri polling akışını başlatır.
   void _startLiveDataPolling() {
     _liveDataService?.dispose();
     final interval = _intervalForBatteryMode(_settings.batteryMode);
@@ -491,10 +512,12 @@ class AppController extends ChangeNotifier {
     });
   }
 
+  /// Kendi kullanıcısı için çalışan canlı veri polling akışını durdurur.
   void stopLiveDataPolling() {
     _liveDataService?.stop();
   }
 
+  /// Pil moduna göre izlenen hastalar için canlı veri aralığını seçer.
   int _intervalForMonitoredLive(BatteryMode mode) {
     switch (mode) {
       case BatteryMode.performance:
@@ -506,6 +529,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Doktor veya yakın panelindeki izlenen hastalar için polling başlatır.
   void _startMonitoredLivePolling() {
     _stopMonitoredLivePolling();
     if (!isBackendMode || _user == null) return;
@@ -517,11 +541,13 @@ class AppController extends ChangeNotifier {
     });
   }
 
+  /// İzlenen hastalar için çalışan canlı veri timer'ını durdurur.
   void _stopMonitoredLivePolling() {
     _monitoredLiveTimer?.cancel();
     _monitoredLiveTimer = null;
   }
 
+  /// İzlenen hastaların canlı durumlarını backend'den tazeleyip state'i günceller.
   Future<void> _refreshMonitoredLiveStatuses() async {
     if (!isBackendMode || _monitoredLiveRefreshing) return;
     _monitoredLiveRefreshing = true;
@@ -539,7 +565,11 @@ class AppController extends ChangeNotifier {
               changed = true;
             }
           }
-        } catch (_) {}
+        } catch (error) {
+          debugPrint(
+            '[AppController] Monitored live refresh failed for ${user.id}: $error',
+          );
+        }
       }
       if (changed) notifyListeners();
     } finally {
@@ -547,6 +577,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Kullanıcı girişini seçili çalışma moduna göre gerçekleştirir.
   Future<bool> login(String email, String password) async {
     if (email.trim().isEmpty || password.trim().isEmpty) return false;
 
@@ -556,6 +587,7 @@ class AppController extends ChangeNotifier {
     return _loginMock(email.trim(), password);
   }
 
+  /// Backend login yanıtından oturum tokenı ve kullanıcı profilini hazırlar.
   Future<bool> _loginViaApi(String email, String password) async {
     try {
       final data = await _apiClient!.post(
@@ -572,10 +604,6 @@ class AppController extends ChangeNotifier {
       await LocalStore.setString('session_user_id', userId);
       await LocalStore.setString('user_role', roleStr);
 
-      final role = UserRole.values.firstWhere(
-        (r) => r.name == roleStr,
-        orElse: () => UserRole.self,
-      );
       final userData =
           await _apiClient!.get('/users/me') as Map<String, dynamic>;
       _user = UserProfile.fromJson(userData);
@@ -586,11 +614,13 @@ class AppController extends ChangeNotifier {
       return true;
     } on ApiException {
       return false;
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[AppController] Login via API failed: $error');
       return false;
     }
   }
 
+  /// Demo kullanıcı bilgileriyle yerel oturum durumunu hazırlar.
   Future<bool> _loginMock(String email, String password) async {
     final demoPairs = {
       'self@demo.com': UserRole.self,
@@ -618,6 +648,7 @@ class AppController extends ChangeNotifier {
     return true;
   }
 
+  /// Yeni kullanıcı kaydını seçili çalışma moduna göre oluşturur.
   Future<bool> register({
     required String email,
     required String password,
@@ -665,6 +696,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Aktif oturumu kapatıp canlı veri kaynaklarını durdurur.
   Future<void> logout() async {
     _alertTimer?.cancel();
     _liveDataService?.dispose();
@@ -686,6 +718,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Yerel oturum anahtarlarını ve repository oturum bilgisini temizler.
   Future<void> _clearSession() async {
     await _sessionRepository.clearSession();
     await LocalStore.remove('auth_token');
@@ -693,6 +726,7 @@ class AppController extends ChangeNotifier {
     await LocalStore.remove('session_user_id');
   }
 
+  /// Kullanıcı profilini backend veya yerel repository üzerinden günceller.
   Future<void> updateProfile(UserProfile profile) async {
     if (isBackendMode) {
       try {
@@ -702,7 +736,8 @@ class AppController extends ChangeNotifier {
           'birth_date': profile.birthDate,
         });
         _user = UserProfile.fromJson(data).copyWith(role: role);
-      } catch (_) {
+      } catch (error) {
+        debugPrint('[AppController] Profile update sync failed: $error');
         _user = profile;
       }
     } else {
@@ -711,6 +746,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Kullanıcının seçtiği ayar veya veriyi kalıcı kaynağa yazar.
   Future<void> saveSettings(AppSettings s) async {
     final previousBatteryMode = _settings.batteryMode;
     _settings = await _settingsRepository.saveSettings(s);
@@ -735,11 +771,14 @@ class AppController extends ChangeNotifier {
           'background_monitoring': s.backgroundMonitoring,
           'update_interval_seconds': s.uploadIntervalMinutes * 60,
         });
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Settings sync failed: $error');
+      }
     }
     notifyListeners();
   }
 
+  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> loadSettings() async {
     if (isBackendMode) {
       try {
@@ -758,21 +797,27 @@ class AppController extends ChangeNotifier {
           uploadIntervalMinutes: _settings.uploadIntervalMinutes,
         );
         notifyListeners();
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Settings load failed: $error');
+      }
     }
   }
 
+  /// Bildirimlerin okundu bilgisini backend veya yerel depoda günceller.
   Future<void> markNotificationsRead() async {
     if (isBackendMode) {
       try {
         await _apiClient!.put('/notifications/read-all', {});
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Mark notifications read failed: $error');
+      }
     }
     await _notificationRepository.markAllRead();
     _notifications = await _notificationRepository.getNotifications();
     notifyListeners();
   }
 
+  /// Ekranda gösterilen güncel veriyi yeniden yükler.
   Future<void> refreshNotifications() async {
     if (isBackendMode) {
       try {
@@ -783,12 +828,15 @@ class AppController extends ChangeNotifier {
             .toList();
         notifyListeners();
         return;
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Refresh notifications failed: $error');
+      }
     }
     _notifications = await _notificationRepository.getNotifications();
     notifyListeners();
   }
 
+  /// Demo akışında yeni anomali, geçmiş ve gerekirse alarm kaydı oluşturur.
   Future<void> simulateAnomaly({
     required String metric,
     required double value,
@@ -829,9 +877,16 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Alarm akışındaki ilgili işlemi mevcut durumla uyumlu şekilde yürütür.
   Future<void> raiseAlertFromAnomaly(AnomalyEvent anomaly) async {
     final recommendations =
         _recommendationService.forSeverity(anomaly.severity);
+    int countdownSeconds;
+    if (anomaly.severity == AlertSeverity.critical) {
+      countdownSeconds = _criticalAlertCountdownSeconds;
+    } else {
+      countdownSeconds = _warningAlertCountdownSeconds;
+    }
     final alert = AlertEvent(
       id: 'al_${DateTime.now().millisecondsSinceEpoch}',
       title: '${anomaly.metric} alert',
@@ -839,9 +894,8 @@ class AppController extends ChangeNotifier {
       severity: anomaly.severity,
       status: AlertLifecycleStatus.raised,
       createdAt: DateTime.now(),
-      countdownTotalSec: anomaly.severity == AlertSeverity.critical ? 30 : 20,
-      countdownRemainingSec:
-          anomaly.severity == AlertSeverity.critical ? 30 : 20,
+      countdownTotalSec: countdownSeconds,
+      countdownRemainingSec: countdownSeconds,
       recommendations: recommendations,
       relatedAnomalyId: anomaly.id,
     );
@@ -877,6 +931,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Kullanıcının iyi olduğunu bildirip alarmı olay sonrası izlemeye taşır.
   Future<void> confirmImOkay() async {
     if (_activeAlert == null) return;
     _alertTimer?.cancel();
@@ -885,7 +940,9 @@ class AppController extends ChangeNotifier {
       try {
         await _apiClient!
             .put('/alerts/${_activeAlert!.id}/respond', {'action': 'OKAY'});
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Confirm OK backend sync failed: $error');
+      }
     }
 
     _activeAlert = _stateMachine.onImOkay(_activeAlert!);
@@ -907,6 +964,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Acil yardım isteğini kaydedip alarmı olay sonrası izlemeye taşır.
   Future<void> requestEmergency() async {
     if (_activeAlert == null) return;
     _alertTimer?.cancel();
@@ -915,7 +973,9 @@ class AppController extends ChangeNotifier {
       try {
         await _apiClient!.put(
             '/alerts/${_activeAlert!.id}/respond', {'action': 'EMERGENCY'});
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Emergency backend sync failed: $error');
+      }
     }
 
     _activeAlert = _stateMachine.onEmergency(_activeAlert!);
@@ -937,6 +997,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Olay sonrası izlemeyi kapatıp aktif alarm durumunu temizler.
   Future<void> closePostEvent() async {
     if (_activeAlert == null) return;
     _alertTimer?.cancel();
@@ -946,6 +1007,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Aktif alarm geri sayımını her saniye güncelleyip zaman aşımını işler.
   void _startAlertCountdown() {
     _alertTimer?.cancel();
     _alertTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
@@ -978,6 +1040,7 @@ class AppController extends ChangeNotifier {
     });
   }
 
+  /// Hasta paylaşımı için backend veya demo bağlantı kodu üretir.
   Future<LinkCode?> generateLinkCode({required String relationType}) async {
     if (role != UserRole.self) return null;
 
@@ -985,12 +1048,13 @@ class AppController extends ChangeNotifier {
       try {
         final data = await _apiClient!.post('/link-codes/generate', {
           'relation_type': relationType,
-        }) as Map<String, dynamic>;
+        });
         final code = LinkCode.fromJson(data);
         _linkCodes = [code, ..._linkCodes];
         notifyListeners();
         return code;
-      } catch (_) {
+      } catch (error) {
+        debugPrint('[AppController] Generate link code failed: $error');
         return null;
       }
     }
@@ -1008,6 +1072,7 @@ class AppController extends ChangeNotifier {
     return mock;
   }
 
+  /// Kullanıcının oluşturduğu aktif bağlantı kodlarını yükler.
   Future<void> loadLinkCodes() async {
     if (isBackendMode) {
       try {
@@ -1017,10 +1082,13 @@ class AppController extends ChangeNotifier {
             .map((e) => LinkCode.fromJson(e as Map<String, dynamic>))
             .toList();
         notifyListeners();
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Load link codes failed: $error');
+      }
     }
   }
 
+  /// Yakın veya doktor kullanıcının hasta bağlantı kodunu kullanmasını sağlar.
   Future<String?> redeemCode(String code) async {
     if (role == UserRole.self) {
       return 'Sadece Yakın veya Doktor kod girebilir.';
@@ -1035,7 +1103,8 @@ class AppController extends ChangeNotifier {
         return null; // success
       } on ApiException catch (e) {
         return e.message;
-      } catch (_) {
+      } catch (error) {
+        debugPrint('[AppController] Redeem code failed: $error');
         return 'Bağlantı hatası';
       }
     }
@@ -1044,6 +1113,7 @@ class AppController extends ChangeNotifier {
     return null;
   }
 
+  /// Kullanıcının hasta bağlantı ilişkilerini backend'den yükler.
   Future<void> loadRelations() async {
     if (isBackendMode) {
       try {
@@ -1053,10 +1123,13 @@ class AppController extends ChangeNotifier {
             .map((e) => UserRelation.fromJson(e as Map<String, dynamic>))
             .toList();
         notifyListeners();
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Load relations failed: $error');
+      }
     }
   }
 
+  /// Seçili hasta bağlantı ilişkisini kaldırıp izlenen kullanıcı listesini günceller.
   Future<void> removeRelation(String relationId) async {
     if (isBackendMode) {
       try {
@@ -1066,12 +1139,15 @@ class AppController extends ChangeNotifier {
           return _relations.any((r) => r.selfUserId == u.id);
         }).toList();
         notifyListeners();
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[AppController] Remove relation failed: $error');
+      }
     }
   }
 
   bool _monitoredUsersLoading = false;
 
+  /// Doktor veya yakın rolünün erişebildiği hastaları yükler.
   Future<void> loadMonitoredUsers() async {
     if (_monitoredUsersLoading) return;
     _monitoredUsersLoading = true;
@@ -1090,9 +1166,13 @@ class AppController extends ChangeNotifier {
             _relations = relData
                 .map((e) => UserRelation.fromJson(e as Map<String, dynamic>))
                 .toList();
-          } catch (_) {}
+          } catch (error) {
+            debugPrint(
+                '[AppController] Refresh relations after patients failed: $error');
+          }
         } catch (e) {
-          debugPrint('[AppController] loadMonitoredUsers via /patients/accessible failed: $e — falling back to relations');
+          debugPrint(
+              '[AppController] loadMonitoredUsers via /patients/accessible failed: $e — falling back to relations');
           // Fallback: use /link-codes/relations + /users/{id} per relation.
           try {
             final List<dynamic> relData =
@@ -1104,14 +1184,18 @@ class AppController extends ChangeNotifier {
             final users = <UserProfile>[];
             for (final rel in _relations) {
               try {
-                final userData = await _apiClient!.get('/users/${rel.selfUserId}')
-                    as Map<String, dynamic>;
+                final userData = await _apiClient!
+                    .get('/users/${rel.selfUserId}') as Map<String, dynamic>;
                 users.add(UserProfile.fromJson(userData));
-              } catch (_) {}
+              } catch (error) {
+                debugPrint(
+                    '[AppController] Load monitored user ${rel.selfUserId} failed: $error');
+              }
             }
             _monitoredUsers = users;
           } catch (e2) {
-            debugPrint('[AppController] loadMonitoredUsers fallback failed: $e2');
+            debugPrint(
+                '[AppController] loadMonitoredUsers fallback failed: $e2');
           }
         }
       } else {
@@ -1151,6 +1235,7 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Seçili hastanın canlı durumunu backend'den veya demo üreticiden döndürür.
   Future<LiveStatus?> getLiveStatusForUser(String userId,
       {bool notify = true}) async {
     if (isBackendMode) {
@@ -1159,7 +1244,9 @@ class AppController extends ChangeNotifier {
         Map<String, dynamic>? data;
         try {
           data = await _apiClient!.getPatientLive(userId);
-        } catch (_) {
+        } catch (error) {
+          debugPrint(
+              '[AppController] Patient live endpoint failed for $userId: $error');
           final raw = await _apiClient!.get('/live/$userId');
           if (raw is Map<String, dynamic>) data = raw;
         }
@@ -1169,7 +1256,9 @@ class AppController extends ChangeNotifier {
           if (notify) notifyListeners();
           return live;
         }
-      } catch (_) {
+      } catch (error) {
+        debugPrint(
+            '[AppController] Live status load failed for $userId: $error');
         return _monitoredLiveStatuses[userId];
       }
       return _monitoredLiveStatuses[userId];
@@ -1179,8 +1268,15 @@ class AppController extends ChangeNotifier {
     final profile = seed % 3;
     final wave = math.sin((now.millisecondsSinceEpoch / 1000.0) + seed / 10.0);
 
-    double clamp(double v, double min, double max) =>
-        v < min ? min : (v > max ? max : v);
+    double clamp(double value, double min, double max) {
+      if (value < min) {
+        return min;
+      }
+      if (value > max) {
+        return max;
+      }
+      return value;
+    }
 
     double heartRate;
     double spo2;
@@ -1223,6 +1319,7 @@ class AppController extends ChangeNotifier {
     return demoLive;
   }
 
+  /// Seçili hastaya ait alarm listesini backend veya demo kaynaktan döndürür.
   Future<List<AlertEvent>> getAlertsForUser(String userId) async {
     if (isBackendMode) {
       try {
@@ -1231,7 +1328,8 @@ class AppController extends ChangeNotifier {
         return data
             .map((e) => _alertFromApiJson(e as Map<String, dynamic>))
             .toList();
-      } catch (_) {
+      } catch (error) {
+        debugPrint('[AppController] Alerts load failed for $userId: $error');
         return const [];
       }
     }
@@ -1269,6 +1367,7 @@ class AppController extends ChangeNotifier {
     ];
   }
 
+  /// Seçili hastaya ait geçmiş kayıtlarını backend veya demo kaynaktan döndürür.
   Future<List<HistoryItem>> getHistoryForUser(String userId) async {
     if (isBackendMode) {
       try {
@@ -1277,7 +1376,8 @@ class AppController extends ChangeNotifier {
         return data
             .map((e) => _historyFromApiJson(e as Map<String, dynamic>))
             .toList();
-      } catch (_) {
+      } catch (error) {
+        debugPrint('[AppController] History load failed for $userId: $error');
         return const [];
       }
     }
@@ -1311,6 +1411,7 @@ class AppController extends ChangeNotifier {
     ];
   }
 
+  /// Seçili hastaya ait klinik notları cache veya backend üzerinden döndürür.
   Future<List<ClinicalNote>> getClinicalNotes(String patientId) async {
     if (_clinicalNotes.containsKey(patientId))
       return _clinicalNotes[patientId]!;
@@ -1324,12 +1425,16 @@ class AppController extends ChangeNotifier {
             .toList();
         _clinicalNotes[patientId] = notes;
         return notes;
-      } catch (_) {}
+      } catch (error) {
+        debugPrint(
+            '[AppController] Clinical notes load failed for $patientId: $error');
+      }
     }
     _clinicalNotes[patientId] ??= [];
     return _clinicalNotes[patientId]!;
   }
 
+  /// Doktor notunu backend'e veya demo cache'ine ekler.
   Future<ClinicalNote?> addClinicalNote(
     String patientId,
     String note, {
@@ -1341,7 +1446,7 @@ class AppController extends ChangeNotifier {
           'patient_id': patientId,
           'note': note,
           if (recommendation != null) 'recommendation': recommendation,
-        }) as Map<String, dynamic>;
+        });
         final created = ClinicalNote.fromJson(data);
         _clinicalNotes[patientId] = [
           created,
@@ -1349,7 +1454,10 @@ class AppController extends ChangeNotifier {
         ];
         notifyListeners();
         return created;
-      } catch (_) {}
+      } catch (error) {
+        debugPrint(
+            '[AppController] Add clinical note failed for $patientId: $error');
+      }
     }
 
     final mock = ClinicalNote(
@@ -1366,19 +1474,22 @@ class AppController extends ChangeNotifier {
     return mock;
   }
 
+  /// Backend geçmiş yanıtını mobil geçmiş modeline dönüştürür.
   static HistoryItem _historyFromApiJson(Map<String, dynamic> json) {
     return HistoryItem.fromJson(json);
   }
 
+  /// Backend bildirim yanıtını mobil bildirim modeline dönüştürür.
   static NotificationItem _notifFromApiJson(Map<String, dynamic> json) {
     return NotificationItem.fromJson(json);
   }
 
+  /// Backend alarm yanıtını mobil alarm modeline dönüştürür.
   static AlertEvent _alertFromApiJson(Map<String, dynamic> json) {
     return AlertEvent.fromJson(json);
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _alertTimer?.cancel();

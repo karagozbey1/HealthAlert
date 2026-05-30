@@ -51,6 +51,7 @@ _seen_packets: OrderedDict[str, bool] = OrderedDict()
 
 # Son gorulen paketleri seq bazinda yinelenmeye karsi tutar.
 def _is_duplicate(device_id: str, packet_seq: int) -> bool:
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     key = f"{device_id}:{packet_seq}"
     if key in _seen_packets:
         return True
@@ -62,6 +63,7 @@ def _is_duplicate(device_id: str, packet_seq: int) -> bool:
 # IMU ve gyro verisinden normalize hareket skoru uretir.
 def _compute_motion_score(ax: float, ay: float, az: float,
                           gx: float, gy: float, gz: float) -> float:
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     accel_mag = math.sqrt(ax * ax + ay * ay + az * az)
     accel_dev = abs(accel_mag - 1.0)
     gyro_mag = math.sqrt(gx * gx + gy * gy + gz * gz)
@@ -71,6 +73,7 @@ def _compute_motion_score(ax: float, ay: float, az: float,
 # HR, SpO2 ve hareketten heuristik risk skoru hesaplar.
 def _compute_risk_score(hr: float, spo2: float, hr_valid: bool,
                         spo2_valid: bool, motion: float) -> float:
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     risk = 0.0
     if hr_valid:
         if hr > 120:
@@ -89,6 +92,7 @@ def _compute_risk_score(hr: float, spo2: float, hr_valid: bool,
 
 # Risk skorunu esiklere gore watch, warning veya critical'a cevirir.
 def _risk_to_severity(risk: float, sensitivity_offset: float = 0.0) -> str | None:
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     critical_t = settings.RISK_CRITICAL_THRESHOLD + sensitivity_offset
     warning_t = settings.RISK_WARNING_THRESHOLD + sensitivity_offset
     watch_t = settings.RISK_WATCH_THRESHOLD + sensitivity_offset
@@ -102,6 +106,7 @@ def _risk_to_severity(risk: float, sensitivity_offset: float = 0.0) -> str | Non
 
 # Onem derecesine gore kullaniciya yonelik sabit onerileri dondurur.
 def _get_recommendations(severity: str) -> List[str]:
+    """Yetkili kullanıcı için cihaz paketi alımı okuma isteğini işler."""
     if severity == "critical":
         return [
             "Emergency risk detected.",
@@ -119,6 +124,7 @@ def _get_recommendations(severity: str) -> List[str]:
 # Anomali icin baskin metrik, deger ve ozet metnini secer.
 def _determine_anomaly_metric(hr: float, spo2: float, hr_valid: bool,
                                spo2_valid: bool, motion: float) -> tuple[str, float, str, str]:
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if spo2_valid and spo2 < 92:
         return ("SpO2", spo2, "%", f"Oxygen saturation critically low at {spo2:.1f}%.")
     if hr_valid and hr > 120:
@@ -140,6 +146,7 @@ async def ingest_device_packet(
     db: AsyncSession = Depends(get_db),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if _is_duplicate(pkt.device_id, pkt.packet_seq):
         logger.debug("Duplicate packet seq=%d from device=%s — skipped.",
                       pkt.packet_seq, pkt.device_id)
@@ -587,6 +594,7 @@ async def register_device(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Cihaz paketi alımı oluşturma isteğini doğrulayıp kaydeder."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="Only SELF users can register devices.")
 
@@ -620,6 +628,7 @@ async def get_device_status(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için cihaz paketi alımı okuma isteğini işler."""
     reg = await repos.devices.get_registration(device_id)
     if reg is None:
         raise HTTPException(status_code=404, detail="Device not registered.")
@@ -645,6 +654,7 @@ async def ingest_ai_result(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Cihaz paketi alımı endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     vitals = None
     if req.heart_rate is not None or req.spo2 is not None:
         vitals = {

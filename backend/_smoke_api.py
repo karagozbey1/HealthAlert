@@ -10,6 +10,7 @@ _RESULTS: list[tuple[str, bool, str]] = []
 
 # HTTP istegi gonderip JSON yaniti veya hata govdesini dondurur.
 def req(method: str, path: str, body: dict | None = None, token: str | None = None):
+    """Smoke kontrolünde kullanılan ilgili Firebase yardımcı işlemini yürütür."""
     url = BASE + path
     data = json.dumps(body).encode() if body else None
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
@@ -30,6 +31,7 @@ def req(method: str, path: str, body: dict | None = None, token: str | None = No
 
 # Test sonucunu kaydedip terminale PASS veya FAIL olarak basar.
 def check(name: str, cond: bool, detail: str = "") -> None:
+    """Smoke kontrol sonucunu okunabilir PASS veya FAIL satırı olarak yazdırır."""
     status = "PASS" if cond else "FAIL"
     _RESULTS.append((name, cond, detail))
     print(f"  [{status}] {name}" + (f" — {detail}" if detail else ""))

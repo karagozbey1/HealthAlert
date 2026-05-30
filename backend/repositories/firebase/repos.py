@@ -31,12 +31,14 @@ from repositories.base import (
 
 # Bloklayici Firestore cagrilarini varsayilan executor uzerinden calistirir.
 def _run_sync(fn, *args, **kwargs):
+    """İlgili veriyi repository katmanında okur veya yazar."""
     loop = asyncio.get_running_loop()
     return loop.run_in_executor(None, partial(fn, *args, **kwargs))
 
 
 # Firestore dokumanini id alani eklenmis duz dict yapisina cevirir.
 def _doc_to_dict(doc) -> Dict[str, Any]:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     d = doc.to_dict()
     d["id"] = doc.id
     return d
@@ -44,6 +46,7 @@ def _doc_to_dict(doc) -> Dict[str, Any]:
 
 # Python datetime nesnesini Firestore istemcisine dogrudan iletir.
 def _ts(dt: datetime | None) -> Any:
+    """İlgili veriyi repository katmanında okur veya yazar."""
     return dt
 
 
@@ -52,16 +55,20 @@ def _ts(dt: datetime | None) -> Any:
 # ===================================================================
 
 class FirebaseUserRepo(AbstractUserRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "users"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(user_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def get_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("email", "==", email))
@@ -71,12 +78,14 @@ class FirebaseUserRepo(AbstractUserRepo):
         return _doc_to_dict(docs[0]) if docs else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id") or data.get("user_id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def update(self, user_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(user_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -86,6 +95,7 @@ class FirebaseUserRepo(AbstractUserRepo):
         return _doc_to_dict(updated)
 
     async def list_by_role(self, role: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("role", "==", role))
@@ -99,16 +109,20 @@ class FirebaseUserRepo(AbstractUserRepo):
 # ===================================================================
 
 class FirebaseLinkCodeRepo(AbstractLinkCodeRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "link_codes"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_id(self, code_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(code_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def get_by_code(self, code: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("code", "==", code))
@@ -118,12 +132,14 @@ class FirebaseLinkCodeRepo(AbstractLinkCodeRepo):
         return _doc_to_dict(docs[0]) if docs else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def update(self, code_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(code_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -133,6 +149,7 @@ class FirebaseLinkCodeRepo(AbstractLinkCodeRepo):
         return _doc_to_dict(updated)
 
     async def list_by_owner(self, owner_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("owner_id", "==", owner_id))
@@ -147,22 +164,27 @@ class FirebaseLinkCodeRepo(AbstractLinkCodeRepo):
 # ===================================================================
 
 class FirebaseRelationRepo(AbstractRelationRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "user_relations"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_id(self, relation_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(relation_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def update(self, relation_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(relation_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -172,6 +194,7 @@ class FirebaseRelationRepo(AbstractRelationRepo):
         return _doc_to_dict(updated)
 
     async def find_active_by_self_user(self, self_user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("self_user_id", "==", self_user_id))
@@ -181,6 +204,7 @@ class FirebaseRelationRepo(AbstractRelationRepo):
         return [_doc_to_dict(d) for d in docs]
 
     async def find_active_by_linked_user(self, linked_user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("linked_user_id", "==", linked_user_id))
@@ -190,6 +214,7 @@ class FirebaseRelationRepo(AbstractRelationRepo):
         return [_doc_to_dict(d) for d in docs]
 
     async def find_active_link(self, self_user_id: str, linked_user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("self_user_id", "==", self_user_id))
@@ -206,16 +231,20 @@ class FirebaseRelationRepo(AbstractRelationRepo):
 # ===================================================================
 
 class FirebaseLiveStatusRepo(AbstractLiveStatusRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "live_statuses"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(user_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def upsert(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(user_id)
         merged = {"user_id": user_id, **data}
         await _run_sync(ref.set, merged, merge=True)
@@ -228,18 +257,22 @@ class FirebaseLiveStatusRepo(AbstractLiveStatusRepo):
 # ===================================================================
 
 class FirebaseAnomalyRepo(AbstractAnomalyRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "anomaly_events"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def list_by_user(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("user_id", "==", user_id))
@@ -255,22 +288,27 @@ class FirebaseAnomalyRepo(AbstractAnomalyRepo):
 # ===================================================================
 
 class FirebaseAlertRepo(AbstractAlertRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "alert_events"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_id(self, alert_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(alert_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def update(self, alert_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(alert_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -280,6 +318,7 @@ class FirebaseAlertRepo(AbstractAlertRepo):
         return _doc_to_dict(updated)
 
     async def list_by_user(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("user_id", "==", user_id))
@@ -291,6 +330,7 @@ class FirebaseAlertRepo(AbstractAlertRepo):
 
     async def get_active_by_user(self, user_id: str) -> Optional[Dict[str, Any]]:
         # Firestore doesn't support "not in", so query non-terminal statuses
+        """İlgili veriyi repository katmanında okur veya yazar."""
         for status in ("countdown", "raised", "escalated", "post_event_monitoring"):
             docs = await _run_sync(
                 self.fs.collection(self.COLLECTION)
@@ -304,6 +344,7 @@ class FirebaseAlertRepo(AbstractAlertRepo):
         return None
 
     async def get_countdown_alerts(self, user_id: str) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("user_id", "==", user_id))
@@ -318,22 +359,27 @@ class FirebaseAlertRepo(AbstractAlertRepo):
 # ===================================================================
 
 class FirebasePostEventRepo(AbstractPostEventRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "post_event_sessions"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_id(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(session_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def update(self, session_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(session_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -348,18 +394,22 @@ class FirebasePostEventRepo(AbstractPostEventRepo):
 # ===================================================================
 
 class FirebaseHistoryRepo(AbstractHistoryRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "history_items"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def list_by_user(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("user_id", "==", user_id))
@@ -375,18 +425,22 @@ class FirebaseHistoryRepo(AbstractHistoryRepo):
 # ===================================================================
 
 class FirebaseNotificationRepo(AbstractNotificationRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "notification_items"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def list_by_recipient(self, recipient_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("recipient_id", "==", recipient_id))
@@ -397,6 +451,7 @@ class FirebaseNotificationRepo(AbstractNotificationRepo):
         return [_doc_to_dict(d) for d in docs]
 
     async def mark_read(self, notif_id: str, recipient_id: str) -> bool:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(notif_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -408,6 +463,7 @@ class FirebaseNotificationRepo(AbstractNotificationRepo):
         return True
 
     async def mark_all_read(self, recipient_id: str) -> int:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("recipient_id", "==", recipient_id))
@@ -426,22 +482,27 @@ class FirebaseNotificationRepo(AbstractNotificationRepo):
 # ===================================================================
 
 class FirebaseClinicalNoteRepo(AbstractClinicalNoteRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "clinical_notes"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def get_by_id(self, note_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc = await _run_sync(self.fs.collection(self.COLLECTION).document(note_id).get)
         return _doc_to_dict(doc) if doc.exists else None
 
     async def update(self, note_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(note_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -451,6 +512,7 @@ class FirebaseClinicalNoteRepo(AbstractClinicalNoteRepo):
         return _doc_to_dict(updated)
 
     async def delete(self, note_id: str) -> bool:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(note_id)
         doc = await _run_sync(ref.get)
         if not doc.exists:
@@ -459,6 +521,7 @@ class FirebaseClinicalNoteRepo(AbstractClinicalNoteRepo):
         return True
 
     async def list_by_patient(self, patient_id: str, doctor_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         q = self.fs.collection(self.COLLECTION).where(filter=FieldFilter("patient_id", "==", patient_id))
         if doctor_id:
             q = q.where(filter=FieldFilter("doctor_id", "==", doctor_id))
@@ -472,12 +535,15 @@ class FirebaseClinicalNoteRepo(AbstractClinicalNoteRepo):
 # ===================================================================
 
 class FirebaseSettingsRepo(AbstractSettingsRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "app_settings"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(user_id)
         doc = await _run_sync(ref.get)
         if doc.exists:
@@ -495,6 +561,7 @@ class FirebaseSettingsRepo(AbstractSettingsRepo):
         return defaults
 
     async def update(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(user_id)
         clean = {k: v for k, v in data.items() if v is not None}
         await _run_sync(ref.set, clean, merge=True)
@@ -509,12 +576,15 @@ class FirebaseSettingsRepo(AbstractSettingsRepo):
 # ===================================================================
 
 class FirebaseSimulationStateRepo(AbstractSimulationStateRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "simulation_states"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(user_id)
         doc = await _run_sync(ref.get)
         if doc.exists:
@@ -531,6 +601,7 @@ class FirebaseSimulationStateRepo(AbstractSimulationStateRepo):
         return defaults
 
     async def update(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         ref = self.fs.collection(self.COLLECTION).document(user_id)
         await _run_sync(ref.set, data, merge=True)
         doc = await _run_sync(ref.get)
@@ -544,19 +615,23 @@ class FirebaseSimulationStateRepo(AbstractSimulationStateRepo):
 # ===================================================================
 
 class FirebaseDeviceRepo(AbstractDeviceRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     REG_COLLECTION = "device_registrations"
     LOG_COLLECTION = "device_packet_logs"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def register_device(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id") or data.get("device_id")
         ref = self.fs.collection(self.REG_COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
         return {**data, "id": doc_id}
 
     async def get_registration(self, device_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.REG_COLLECTION)
             .where(filter=FieldFilter("device_id", "==", device_id))
@@ -567,6 +642,7 @@ class FirebaseDeviceRepo(AbstractDeviceRepo):
         return _doc_to_dict(docs[0]) if docs else None
 
     async def update_registration(self, device_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.REG_COLLECTION)
             .where(filter=FieldFilter("device_id", "==", device_id))
@@ -581,6 +657,7 @@ class FirebaseDeviceRepo(AbstractDeviceRepo):
         return _doc_to_dict(updated)
 
     async def log_packet(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         doc_id = data.get("id")
         ref = self.fs.collection(self.LOG_COLLECTION).document(doc_id)
         await _run_sync(ref.set, data)
@@ -592,12 +669,15 @@ class FirebaseDeviceRepo(AbstractDeviceRepo):
 # ===================================================================
 
 class FirebaseBaselineRepo(AbstractBaselineRepo):
+    """İlgili veri kaynağı için repository davranışını tanımlar."""
     COLLECTION = "user_baselines"
 
     def __init__(self, fs_client):
+        """İlgili veriyi repository katmanında okur veya yazar."""
         self.fs = fs_client
 
     async def get_by_user_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("user_id", "==", user_id))
@@ -607,6 +687,7 @@ class FirebaseBaselineRepo(AbstractBaselineRepo):
         return _doc_to_dict(docs[0]) if docs else None
 
     async def create_for_user(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         from uuid import uuid4
         from datetime import datetime
         doc_id = str(uuid4())
@@ -632,12 +713,14 @@ class FirebaseBaselineRepo(AbstractBaselineRepo):
         return data
 
     async def get_or_create(self, user_id: str) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         existing = await self.get_by_user_id(user_id)
         if existing is not None:
             return existing
         return await self.create_for_user(user_id)
 
     async def update_values(self, user_id: str, values: Dict[str, Any]) -> Dict[str, Any]:
+        """İlgili veriyi repository katmanında okur veya yazar."""
         docs = await _run_sync(
             self.fs.collection(self.COLLECTION)
             .where(filter=FieldFilter("user_id", "==", user_id))

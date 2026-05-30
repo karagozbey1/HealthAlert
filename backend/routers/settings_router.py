@@ -18,6 +18,7 @@ async def get_settings(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için ayar okuma isteğini işler."""
     return await repos.app_settings.get_or_create(current_user.id)
 
 # Mevcut kullanicinin guncellenebilir ayarlarini kaydeder.
@@ -28,6 +29,7 @@ async def update_settings(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Ayar güncelleme isteğini doğrulayıp uygular."""
     updates = {}
     if body.notifications_enabled is not None:
         updates["notifications_enabled"] = body.notifications_enabled

@@ -31,6 +31,7 @@ async def get_profile(
     repos: RepoSet = Depends(get_repo_set),
     current_user: User = Depends(get_current_user),
 ):
+    """Yetkili kullanıcı için kişiselleştirme okuma isteğini işler."""
     if repos.personalization is None:
         raise HTTPException(status_code=503, detail="Personalization not available in this data mode.")
     profile = await adaptive_personalization_service.get_or_create_profile(repos, user_id)
@@ -45,6 +46,7 @@ async def get_summary(
     repos: RepoSet = Depends(get_repo_set),
     current_user: User = Depends(get_current_user),
 ):
+    """Yetkili kullanıcı için kişiselleştirme okuma isteğini işler."""
     if repos.personalization is None:
         raise HTTPException(status_code=503, detail="Personalization not available in this data mode.")
     summary = await adaptive_personalization_service.get_personalization_summary(repos, user_id)
@@ -59,6 +61,7 @@ async def get_latest_trend(
     repos: RepoSet = Depends(get_repo_set),
     current_user: User = Depends(get_current_user),
 ):
+    """Yetkili kullanıcı için kişiselleştirme okuma isteğini işler."""
     if repos.personalization is None:
         raise HTTPException(status_code=503, detail="Personalization not available in this data mode.")
     try:
@@ -80,6 +83,7 @@ async def get_risk_memory(
     repos: RepoSet = Depends(get_repo_set),
     current_user: User = Depends(get_current_user),
 ):
+    """Yetkili kullanıcı için kişiselleştirme okuma isteğini işler."""
     if repos.personalization is None:
         raise HTTPException(status_code=503, detail="Personalization not available in this data mode.")
     limit = max(1, min(500, limit))

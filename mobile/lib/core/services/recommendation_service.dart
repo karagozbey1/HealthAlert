@@ -1,7 +1,9 @@
 import '../models/enums.dart';
 import '../models/live_status.dart';
 
+/// Alarm şiddetine uygun kullanıcı önerilerini seçer.
 class RecommendationService {
+  /// Alarm şiddetine uygun öneri metinlerini döndürür.
   List<String> forSeverity(AlertSeverity severity) {
     switch (severity) {
       case AlertSeverity.normal:
@@ -26,6 +28,7 @@ class RecommendationService {
     }
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   List<Recommendation> forLiveStatus(LiveStatus? live) {
     if (live == null) {
       return [
@@ -48,7 +51,8 @@ class RecommendationService {
         urgency: live.heartRate > 130
             ? RecommendationUrgency.critical
             : RecommendationUrgency.warning,
-        action: 'Oturun, derin nefes alın. Birkaç dakika içinde tekrar kontrol edin.',
+        action:
+            'Oturun, derin nefes alın. Birkaç dakika içinde tekrar kontrol edin.',
       ));
     } else if (live.heartRate < 50) {
       recs.add(Recommendation(
@@ -56,7 +60,8 @@ class RecommendationService {
         detail:
             'Nabzınız ${live.heartRate.toStringAsFixed(0)} bpm ile düşük görünüyor.',
         urgency: RecommendationUrgency.warning,
-        action: 'Dinlenin. Belirtiler devam ederse sağlık görevlisine bildirin.',
+        action:
+            'Dinlenin. Belirtiler devam ederse sağlık görevlisine bildirin.',
       ));
     }
 
@@ -106,8 +111,7 @@ class RecommendationService {
             title: 'Kritik Risk Algılandı',
             detail: 'Sistem kritik risk senaryosu tespit etti.',
             urgency: RecommendationUrgency.critical,
-            action:
-                'Bulunduğunuz yerde kalın ve yardım isteyin.',
+            action: 'Bulunduğunuz yerde kalın ve yardım isteyin.',
           ));
     }
 
@@ -124,8 +128,10 @@ class RecommendationService {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 enum RecommendationUrgency { normal, info, warning, critical }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class Recommendation {
   final String title;
   final String detail;
@@ -139,4 +145,3 @@ class Recommendation {
     required this.action,
   });
 }
-

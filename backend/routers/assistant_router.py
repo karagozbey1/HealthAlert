@@ -27,6 +27,7 @@ async def get_assistant_summary(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     target_id = user_id or current_user.id
     role = current_user.role
 
@@ -50,6 +51,7 @@ async def get_alert_explanation(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     alert = await repos.alerts.get_by_id(alert_id)
     if alert is None:
         raise HTTPException(status_code=404, detail="Alarm bulunamadı")
@@ -70,6 +72,7 @@ async def get_daily_summary(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     target_id = user_id or current_user.id
     role = current_user.role
 
@@ -97,6 +100,7 @@ async def get_trends(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     target_id = user_id or current_user.id
 
     if target_id != current_user.id:
@@ -112,6 +116,7 @@ async def get_trends(
 
 # Tarih alanlarindan ilk gecerli datetime degerini bulur.
 def _parse_dt(item: dict) -> datetime:
+    """Asistan endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     for key in ("detected_at", "created_at", "timestamp"):
         val = item.get(key)
         if val is not None:
@@ -131,6 +136,7 @@ async def get_assistant_state(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     if user_id != current_user.id:
         link = await repos.relations.find_active_link(user_id, current_user.id)
         if link is None:
@@ -150,6 +156,7 @@ async def get_assistant_actions(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     if user_id != current_user.id:
         link = await repos.relations.find_active_link(user_id, current_user.id)
         if link is None:
@@ -168,6 +175,7 @@ async def post_assistant_ack(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Asistan güncelleme isteğini doğrulayıp uygular."""
     if body.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Erişim izni yok")
 
@@ -187,6 +195,7 @@ async def check_assistant_timeouts(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Asistan endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if repos.assistant is None:
         return {"processed": 0}
 
@@ -206,6 +215,7 @@ async def get_care_summary(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için asistan okuma isteğini işler."""
     if user_id != current_user.id:
         link = await repos.relations.find_active_link(user_id, current_user.id)
         if link is None:

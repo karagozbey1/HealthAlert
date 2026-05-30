@@ -6,15 +6,18 @@ from config import settings
 
 
 def _clamp01(value: float) -> float:
+    """ml evidence fusion servisindeki HealthAlert iş kuralını uygular."""
     return max(0.0, min(1.0, float(value)))
 
 
 # ML kanit skorunu sinirli sekilde hesaplayip risk birlesimini uygular.
 class MLEvidenceFusionService:
 
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     def compute_ml_evidence_score(
         self, ml_result: Dict[str, Any] | None, window_quality: Dict[str, Any] | None
     ) -> Dict[str, Any]:
+        """ml evidence fusion servisinde risk veya skor değerini hesaplar."""
         if not ml_result:
             return {
                 "ml_evidence_score": 0.0,
@@ -99,6 +102,7 @@ class MLEvidenceFusionService:
         model_ready: bool = True,
         sample_rate_warning: bool = False,
     ) -> Dict[str, Any]:
+        """ml evidence fusion servisindeki iş kuralı güncellemesini uygular."""
         pr = _clamp01(personalized_risk_score)
         base = {
             "personalized_risk_score": round(pr, 4),

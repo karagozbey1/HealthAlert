@@ -6,19 +6,23 @@ import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/gradient_button.dart';
 import '../screens/login_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _loaded = false;
 
+  /// Inherited bağımlılıklar değiştiğinde ekran ayarlarını günceller.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -32,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loaded = true;
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _nameController.dispose();
@@ -41,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -91,7 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: AppTheme.primary,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.edit, color: Colors.black, size: 20),
+                    child:
+                        const Icon(Icons.edit, color: Colors.black, size: 20),
                   ),
                 ],
               ),
@@ -103,10 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             Text(
               _roleLabel(profile.role),
-              style: AppTheme.darkTheme.textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
+              style: AppTheme.darkTheme.textTheme.bodyMedium
+                  ?.copyWith(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 32),
-
             GlassCard(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -122,7 +127,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
             SizedBox(
               width: double.infinity,
               child: GradientButton(
@@ -138,56 +142,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   );
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Profil başarıyla kaydedildi.')),
+                    const SnackBar(
+                        content: Text('Profil başarıyla kaydedildi.')),
                   );
                 },
               ),
             ),
             const SizedBox(height: 24),
-
             Text(
               "GÜVENLİK",
-              style: AppTheme.darkTheme.textTheme.labelSmall?.copyWith(letterSpacing: 2),
+              style: AppTheme.darkTheme.textTheme.labelSmall
+                  ?.copyWith(letterSpacing: 2),
             ),
-             const SizedBox(height: 16),
-             GlassCard(
-               onTap: () {}, // Mock change password
-               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-               child: const Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                 children: [
-                   Text("Şifre Değiştir", style: TextStyle(color: Colors.white, fontSize: 16)),
-                   Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                 ],
-               ),
-             ),
-             const SizedBox(height: 32),
-             
-             SizedBox(
-               width: double.infinity,
-               child: OutlinedButton(
-                 style: OutlinedButton.styleFrom(
-                   side: const BorderSide(color: AppTheme.critical),
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                   padding: const EdgeInsets.symmetric(vertical: 16),
-                 ),
-                 onPressed: () {
-                   app.logout();
-                   Navigator.of(context).pushAndRemoveUntil(
-                     MaterialPageRoute(builder: (_) => const LoginScreen()),
-                     (route) => false,
-                   );
-                 },
-                 child: const Text("ÇIKIŞ YAP", style: TextStyle(color: AppTheme.critical, fontWeight: FontWeight.bold)),
-               ),
-             ),
+            const SizedBox(height: 16),
+            GlassCard(
+              onTap: () {}, // Mock change password
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Şifre Değiştir",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.critical),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: () {
+                  app.logout();
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
+                child: const Text("ÇIKIŞ YAP",
+                    style: TextStyle(
+                        color: AppTheme.critical, fontWeight: FontWeight.bold)),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEditableItem(IconData icon, String title, TextEditingController controller) {
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
+  Widget _buildEditableItem(
+      IconData icon, String title, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -209,6 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildProfileItem(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -228,6 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// Ekranda gösterilecek kullanıcı dostu durum etiketini seçer.
   String _roleLabel(UserRole? role) {
     switch (role) {
       case UserRole.doctor:

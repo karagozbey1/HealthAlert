@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../core/state/app_scope.dart';
-import '../../theme/app_theme.dart';
 import '../notifications_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class RelativeNotificationsScreen extends StatelessWidget {
   const RelativeNotificationsScreen({super.key});
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) => const NotificationsScreen();
 }

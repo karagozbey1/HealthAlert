@@ -6,14 +6,17 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_button.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class ClinicalNotesScreen extends StatefulWidget {
   final UserProfile patient;
   const ClinicalNotesScreen({super.key, required this.patient});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<ClinicalNotesScreen> createState() => _ClinicalNotesScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
   List<ClinicalNote> _notes = [];
   bool _loading = true;
@@ -21,14 +24,14 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
   final _noteController = TextEditingController();
   final _recController = TextEditingController();
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
     _loadNotes();
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _noteController.dispose();
@@ -36,12 +39,14 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
     super.dispose();
   }
 
+  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _loadNotes({bool isRefresh = false}) async {
     if (!isRefresh || _notes.isEmpty) {
       if (mounted) setState(() => _loading = true);
     }
     try {
-      final notes = await AppScope.of(context).getClinicalNotes(widget.patient.id);
+      final notes =
+          await AppScope.of(context).getClinicalNotes(widget.patient.id);
       if (mounted) _notes = notes;
     } catch (e) {
       debugPrint('[ClinicalNotes] _loadNotes error: $e');
@@ -50,6 +55,7 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
     }
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _addNote() async {
     final text = _noteController.text.trim();
     if (text.isEmpty) return;
@@ -74,7 +80,7 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,14 +147,13 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
               ],
             ),
           ),
-
           Expanded(
             child: _loading
                 ? const Center(
                     child: CircularProgressIndicator(color: Colors.amberAccent))
                 : _notes.isEmpty
                     ? const Center(
-                    child: Text('Henüz klinik not yok.',
+                        child: Text('Henüz klinik not yok.',
                             style: TextStyle(color: Colors.white38)))
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -162,6 +167,7 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _noteCard(ClinicalNote note) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -173,8 +179,10 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(note.note, style: const TextStyle(color: Colors.white, fontSize: 13)),
-          if (note.recommendation != null && note.recommendation!.isNotEmpty) ...[
+          Text(note.note,
+              style: const TextStyle(color: Colors.white, fontSize: 13)),
+          if (note.recommendation != null &&
+              note.recommendation!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(8),
@@ -185,13 +193,14 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.recommend_outlined, size: 14, color: Colors.amberAccent),
+                  const Icon(Icons.recommend_outlined,
+                      size: 14, color: Colors.amberAccent),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       note.recommendation!,
-                      style:
-                          const TextStyle(color: Colors.amberAccent, fontSize: 12),
+                      style: const TextStyle(
+                          color: Colors.amberAccent, fontSize: 12),
                     ),
                   ),
                 ],
@@ -208,6 +217,7 @@ class _ClinicalNotesScreenState extends State<ClinicalNotesScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _fmt(DateTime dt) =>
       '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';

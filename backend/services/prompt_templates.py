@@ -63,4 +63,5 @@ _ROLE_PROMPTS = {
 
 # Kullanici rolune uygun sistem istemini secip dondurur.
 def get_system_prompt(role: str) -> str:
+    """prompt templates servisinde gereken veriyi okuyup çağırana döndürür."""
     return _ROLE_PROMPTS.get(role.upper(), SYSTEM_PROMPT_SELF)

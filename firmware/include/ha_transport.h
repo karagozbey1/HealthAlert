@@ -7,10 +7,13 @@
 #include "ha_ble.h"
 #include "ha_wifi_transport.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 class TransportOrchestrator {
 public:
+    /// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
     enum ActiveTransport { NONE, BLE, WIFI, SERIAL_ONLY };
 
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     void begin() {
         _mode = TRANSPORT_MODE;
 
@@ -45,10 +48,12 @@ public:
         _initialized = true;
     }
 
+    /// Taşıma katmanındaki bağlantı durumunu günceller.
     void refresh() {
         if (_initialized) _updateTransportState();
     }
 
+    /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
     bool sendPacket(const char* jsonBuf) {
         if (!_initialized) return false;
 
@@ -76,6 +81,7 @@ public:
         return sent;
     }
 
+    /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
     bool sendRawSample(const char* jsonBuf) {
         if (!_initialized) return false;
 
@@ -103,8 +109,10 @@ public:
         return sent;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     ActiveTransport getActiveTransport() const { return _activeTransport; }
 
+    /// Model penceresi ham örnek akışının açık olup olmadığını döndürür.
     bool isModelStreamEnabled() const { return _ble.isModelStreamEnabled(); }
 
     const char* getActiveTransportName() const {
@@ -116,14 +124,20 @@ public:
         }
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     HaBle& getBle() { return _ble; }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     HaWifiTransport& getWifi() { return _wifi; }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint32_t getTotalPackets() const { return _totalPackets; }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint32_t getBlePackets() const { return _blePackets; }
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint32_t getWifiPackets() const { return _wifiPackets; }
 
+    /// Aktif taşıma ve bağlantı durumunu seri porta yazar.
     void printStatus() {
         HA_SERIAL_PRINTLN("--- Transport Status ---");
         HA_SERIAL_PRINTF("  Mode:      %d (%s)\n", _mode, _getModeName());
@@ -152,6 +166,7 @@ private:
     uint32_t _blePackets = 0;
     uint32_t _wifiPackets = 0;
 
+    /// BLE ve Wi-Fi durumuna göre aktif taşıma kanalını seçer.
     void _updateTransportState() {
         if (_mode == 1 || _mode == 2 || _mode == 3) {
             return;
@@ -170,6 +185,7 @@ private:
         }
     }
 
+    /// Telemetri gönderimi için aktif kanalı Wi-Fi olarak değiştirir.
     void _switchToWifi() {
         bool connected = _wifi.begin();
         if (connected) {
@@ -180,6 +196,7 @@ private:
         }
     }
 
+    /// Telemetri gönderimi için aktif kanalı BLE olarak değiştirir.
     void _switchToBle() {
         _wifi.disconnect();
         _activeTransport = BLE;

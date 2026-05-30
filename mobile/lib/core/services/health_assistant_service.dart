@@ -1,12 +1,14 @@
 import '../models/live_status.dart';
-import '../models/enums.dart';
 import 'api_client.dart';
+import 'package:flutter/foundation.dart';
 
+/// Sağlık asistanı özet, trend ve alarm açıklama verilerini hazırlar.
 class HealthAssistantService {
   HealthAssistantService({this.apiClient});
 
   final ApiClient? apiClient;
 
+  /// Canlı veriye göre backend veya yerel sağlık asistanı özeti üretir.
   Future<AssistantSummary> getSummary({
     LiveStatus? liveStatus,
     String? userId,
@@ -20,13 +22,15 @@ class HealthAssistantService {
             : '/assistant/summary';
         final data = await apiClient!.get(path) as Map<String, dynamic>;
         return AssistantSummary.fromJson(data);
-      } catch (_) {
+      } catch (error) {
+        debugPrint('[HealthAssistantService] Summary load failed: $error');
       }
     }
 
     return _generateLocalSummary(liveStatus, role);
   }
 
+  /// Alarm için backend veya yerel açıklama ve aksiyon önerisi üretir.
   Future<AlertExplanation> explainAlert({
     required String alertId,
     required String alertTitle,
@@ -38,17 +42,26 @@ class HealthAssistantService {
   }) async {
     if (isBackendMode && apiClient != null) {
       try {
-        final data = await apiClient!.get('/assistant/alert-explanation/$alertId')
-            as Map<String, dynamic>;
+        final data =
+            await apiClient!.get('/assistant/alert-explanation/$alertId')
+                as Map<String, dynamic>;
         return AlertExplanation.fromJson(data);
-      } catch (_) {}
+      } catch (error) {
+        debugPrint(
+            '[HealthAssistantService] Alert explanation load failed: $error');
+      }
     }
 
     return _generateLocalAlertExplanation(
-      alertTitle, alertDescription, severity, status, liveStatus,
+      alertTitle,
+      alertDescription,
+      severity,
+      status,
+      liveStatus,
     );
   }
 
+  /// Günlük sağlık özetini backend'den getirir veya boş yerel özet döndürür.
   Future<DailySummary> getDailySummary({
     String? userId,
     String role = 'SELF',
@@ -61,7 +74,10 @@ class HealthAssistantService {
             : '/assistant/daily-summary';
         final data = await apiClient!.get(path) as Map<String, dynamic>;
         return DailySummary.fromJson(data);
-      } catch (_) {}
+      } catch (error) {
+        debugPrint(
+            '[HealthAssistantService] Daily summary load failed: $error');
+      }
     }
 
     return DailySummary(
@@ -73,6 +89,7 @@ class HealthAssistantService {
     );
   }
 
+  /// Canlı sağlık trendini backend'den getirir veya yerel olarak hesaplar.
   Future<TrendAnalysis> getTrends({
     String? userId,
     String role = 'SELF',
@@ -86,18 +103,23 @@ class HealthAssistantService {
             : '/assistant/trends';
         final data = await apiClient!.get(path) as Map<String, dynamic>;
         return TrendAnalysis.fromJson(data);
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[HealthAssistantService] Trends load failed: $error');
+      }
     }
 
     return _generateLocalTrend(liveStatus);
   }
 
+  /// Mevcut canlı veriden senkron trend analizi üretir.
   TrendAnalysis getTrendSync(LiveStatus? live) => _generateLocalTrend(live);
 
+  /// Canlı veriden güvenli yerel sağlık özeti ve öneri listesi üretir.
   AssistantSummary _generateLocalSummary(LiveStatus? live, String role) {
     if (live == null) {
       return AssistantSummary(
-        summary: 'Yeterli canlı veri bulunmadığı için genel öneri gösteriliyor.',
+        summary:
+            'Yeterli canlı veri bulunmadığı için genel öneri gösteriliyor.',
         recommendations: [
           const AssistantRecommendation(
             title: 'Cihaz Bağlantısı',
@@ -119,7 +141,8 @@ class HealthAssistantService {
     if (live.riskScore > 0.8) {
       riskLevel = 'critical';
       summaryLines.add('Kritik risk seviyesi tespit edildi.');
-      reasoning.add('Risk skoru %${(live.riskScore * 100).toStringAsFixed(0)} ile kritik eşiğin üzerinde.');
+      reasoning.add(
+          'Risk skoru %${(live.riskScore * 100).toStringAsFixed(0)} ile kritik eşiğin üzerinde.');
       recs.add(const AssistantRecommendation(
         title: 'Acil Durum',
         action: 'Bulunduğunuz yerde kalın. Gerekiyorsa acil yardım isteyin.',
@@ -128,7 +151,8 @@ class HealthAssistantService {
     } else if (live.riskScore > 0.6) {
       riskLevel = 'warning';
       summaryLines.add('Uyarı seviyesinde risk algılandı.');
-      reasoning.add('Risk skoru %${(live.riskScore * 100).toStringAsFixed(0)} ile uyarı bölgesinde.');
+      reasoning.add(
+          'Risk skoru %${(live.riskScore * 100).toStringAsFixed(0)} ile uyarı bölgesinde.');
       recs.add(const AssistantRecommendation(
         title: 'Dikkat',
         action: 'Oturun ve sakin olun. Vital değerlerinizi izleyin.',
@@ -142,7 +166,8 @@ class HealthAssistantService {
     }
 
     if (live.heartRate > 130) {
-      summaryLines.add('Nabız ${live.heartRate.toStringAsFixed(0)} bpm — çok yüksek.');
+      summaryLines
+          .add('Nabız ${live.heartRate.toStringAsFixed(0)} bpm — çok yüksek.');
       reasoning.add('Nabız 130 bpm üzerinde.');
       recs.add(const AssistantRecommendation(
         title: 'Yüksek Nabız',
@@ -150,7 +175,8 @@ class HealthAssistantService {
         urgency: 'critical',
       ));
     } else if (live.heartRate > 100) {
-      summaryLines.add('Nabız ${live.heartRate.toStringAsFixed(0)} bpm — yüksek.');
+      summaryLines
+          .add('Nabız ${live.heartRate.toStringAsFixed(0)} bpm — yüksek.');
       reasoning.add('Nabız normal üst sınırın üzerinde.');
       recs.add(const AssistantRecommendation(
         title: 'Yükselen Nabız',
@@ -158,7 +184,8 @@ class HealthAssistantService {
         urgency: 'warning',
       ));
     } else if (live.heartRate < 50) {
-      summaryLines.add('Nabız ${live.heartRate.toStringAsFixed(0)} bpm — düşük.');
+      summaryLines
+          .add('Nabız ${live.heartRate.toStringAsFixed(0)} bpm — düşük.');
       recs.add(const AssistantRecommendation(
         title: 'Düşük Nabız',
         action: 'Dinlenin. Belirtiler devam ederse doktorunuza bildirin.',
@@ -167,15 +194,18 @@ class HealthAssistantService {
     }
 
     if (live.spo2 < 90) {
-      summaryLines.add('Oksijen doygunluğu %${live.spo2.toStringAsFixed(1)} — kritik.');
+      summaryLines
+          .add('Oksijen doygunluğu %${live.spo2.toStringAsFixed(1)} — kritik.');
       reasoning.add('SpO2 %90 altında.');
       recs.add(const AssistantRecommendation(
         title: 'Kritik Oksijen',
-        action: 'Oturarak dinlenin ve derin nefes alın. Doktorunuza derhal haber verin.',
+        action:
+            'Oturarak dinlenin ve derin nefes alın. Doktorunuza derhal haber verin.',
         urgency: 'critical',
       ));
     } else if (live.spo2 < 94) {
-      summaryLines.add('Oksijen doygunluğu %${live.spo2.toStringAsFixed(1)} — düşük.');
+      summaryLines
+          .add('Oksijen doygunluğu %${live.spo2.toStringAsFixed(1)} — düşük.');
       recs.add(const AssistantRecommendation(
         title: 'Düşük Oksijen',
         action: 'Oturarak dinlenin ve tekrar ölçüm bekleyin.',
@@ -215,6 +245,7 @@ class HealthAssistantService {
     );
   }
 
+  /// Alarm bilgisi ve canlı ölçümlerden yerel açıklama üretir.
   AlertExplanation _generateLocalAlertExplanation(
     String title,
     String description,
@@ -230,7 +261,8 @@ class HealthAssistantService {
 
     if (severity == 'critical') {
       lines.add('Bu alarm kritik seviyededir ve acil dikkat gerektirir.');
-      actions.add('Bulunduğunuz yerde kalın ve gerekiyorsa acil yardım isteyin.');
+      actions
+          .add('Bulunduğunuz yerde kalın ve gerekiyorsa acil yardım isteyin.');
       actions.add('Yakınlarınız otomatik olarak bilgilendirilmektedir.');
     } else if (severity == 'warning') {
       lines.add('Bu alarm uyarı seviyesindedir.');
@@ -266,6 +298,7 @@ class HealthAssistantService {
     );
   }
 
+  /// Canlı risk skoruna göre yerel trend etiketi ve özetini üretir.
   TrendAnalysis _generateLocalTrend(LiveStatus? live) {
     if (live == null) {
       return const TrendAnalysis(
@@ -303,6 +336,7 @@ class HealthAssistantService {
   }
 }
 
+/// Sağlık asistanı özetini öneri, gerekçe ve risk bilgileriyle taşır.
 class AssistantSummary {
   final String summary;
   final List<AssistantRecommendation> recommendations;
@@ -317,14 +351,16 @@ class AssistantSummary {
     required this.reasoning,
     required this.riskLevel,
     required this.confidence,
-    this.disclaimer = 'Bu bilgiler sensör verileri ve algoritmalar tarafından otomatik üretilmiştir. Kesin tıbbi teşhis yerine geçmez.',
+    this.disclaimer =
+        'Bu bilgiler sensör verileri ve algoritmalar tarafından otomatik üretilmiştir. Kesin tıbbi teşhis yerine geçmez.',
   });
 
   factory AssistantSummary.fromJson(Map<String, dynamic> json) {
     return AssistantSummary(
       summary: json['summary'] as String? ?? '',
       recommendations: (json['recommendations'] as List<dynamic>?)
-              ?.map((e) => AssistantRecommendation.fromJson(e as Map<String, dynamic>))
+              ?.map((e) =>
+                  AssistantRecommendation.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       reasoning: (json['reasoning'] as List<dynamic>?)
@@ -338,6 +374,7 @@ class AssistantSummary {
   }
 }
 
+/// Asistanın kullanıcıya göstereceği kısa öneri aksiyonunu taşır.
 class AssistantRecommendation {
   final String title;
   final String action;
@@ -358,6 +395,7 @@ class AssistantRecommendation {
   }
 }
 
+/// Alarm açıklamasını önerilen aksiyonlar ve durum bilgisiyle taşır.
 class AlertExplanation {
   final String explanation;
   final List<String> suggestedActions;
@@ -370,7 +408,8 @@ class AlertExplanation {
     required this.suggestedActions,
     required this.severity,
     required this.status,
-    this.disclaimer = 'Bu bilgiler sensör verileri ve algoritmalar tarafından otomatik üretilmiştir. Kesin tıbbi teşhis yerine geçmez.',
+    this.disclaimer =
+        'Bu bilgiler sensör verileri ve algoritmalar tarafından otomatik üretilmiştir. Kesin tıbbi teşhis yerine geçmez.',
   });
 
   factory AlertExplanation.fromJson(Map<String, dynamic> json) {
@@ -387,6 +426,7 @@ class AlertExplanation {
   }
 }
 
+/// Günlük sağlık özetini alarm, anomali ve veri durumu alanlarıyla taşır.
 class DailySummary {
   final String summary;
   final String overallStatus;
@@ -413,6 +453,7 @@ class DailySummary {
   }
 }
 
+/// Canlı veriden üretilen trend etiketini ve özetini taşır.
 class TrendAnalysis {
   final String trendLabel;
   final String trendLabelTr;

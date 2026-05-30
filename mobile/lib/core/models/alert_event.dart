@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'enums.dart';
 
+/// Uygulamadaki ilgili olay bilgisini taşır.
 class AlertEvent {
   const AlertEvent({
     required this.id,
@@ -33,6 +34,7 @@ class AlertEvent {
 
   bool get isActive => status != AlertLifecycleStatus.closed;
 
+  /// Modelin seçilen alanları değişmiş yeni bir kopyasını üretir.
   AlertEvent copyWith({
     AlertSeverity? severity,
     AlertLifecycleStatus? status,
@@ -48,13 +50,15 @@ class AlertEvent {
       status: status ?? this.status,
       createdAt: createdAt,
       countdownTotalSec: countdownTotalSec,
-      countdownRemainingSec: countdownRemainingSec ?? this.countdownRemainingSec,
+      countdownRemainingSec:
+          countdownRemainingSec ?? this.countdownRemainingSec,
       recommendations: recommendations ?? this.recommendations,
       relatedAnomalyId: relatedAnomalyId,
       resolvedAt: resolvedAt,
     );
   }
 
+  /// Gelen ham veriyi uygulamanın beklediği tipe güvenli şekilde çevirir.
   static AlertLifecycleStatus _parseStatus(String? s) {
     switch (s?.toLowerCase()) {
       case 'raised':
@@ -74,6 +78,7 @@ class AlertEvent {
     }
   }
 
+  /// Gelen ham veriyi uygulamanın beklediği tipe güvenli şekilde çevirir.
   static AlertSeverity _parseSeverity(String? s) {
     return AlertSeverity.values.firstWhere(
       (e) => e.name == s?.toLowerCase(),
@@ -81,6 +86,7 @@ class AlertEvent {
     );
   }
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static AlertEvent fromJson(Map<String, dynamic> json) {
     final recsRaw = json['recommendations'];
     List<String> recs = const [];
@@ -111,6 +117,7 @@ class AlertEvent {
     );
   }
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_id': userId,

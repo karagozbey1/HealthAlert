@@ -20,9 +20,11 @@ from database import Base
 
 # ORM kayitlari icin benzersiz kimlik uretir.
 def _uuid() -> str:
+    """Yeni veritabanı kayıtları için benzersiz kimlik üretir."""
     return str(uuid4())
 
 class User(Base):
+    """Veritabanında User kaydının alanlarını temsil eder."""
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -35,6 +37,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class LinkCode(Base):
+    """Veritabanında LinkCode kaydının alanlarını temsil eder."""
     __tablename__ = "link_codes"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -47,6 +50,7 @@ class LinkCode(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class UserRelation(Base):
+    """Veritabanında UserRelation kaydının alanlarını temsil eder."""
     __tablename__ = "user_relations"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -58,6 +62,7 @@ class UserRelation(Base):
     revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
 class LiveStatus(Base):
+    """Veritabanında LiveStatus kaydının alanlarını temsil eder."""
     __tablename__ = "live_statuses"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -70,6 +75,7 @@ class LiveStatus(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class DevicePacketLog(Base):
+    """Veritabanında DevicePacketLog kaydının alanlarını temsil eder."""
     __tablename__ = "device_packet_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -102,6 +108,7 @@ class DevicePacketLog(Base):
     ingested_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class DeviceRegistration(Base):
+    """Veritabanında DeviceRegistration kaydının alanlarını temsil eder."""
     __tablename__ = "device_registrations"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -111,6 +118,7 @@ class DeviceRegistration(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 class AnomalyEvent(Base):
+    """Veritabanında AnomalyEvent kaydının alanlarını temsil eder."""
     __tablename__ = "anomaly_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -123,6 +131,7 @@ class AnomalyEvent(Base):
     summary: Mapped[str] = mapped_column(String(500))
 
 class AlertEvent(Base):
+    """Veritabanında AlertEvent kaydının alanlarını temsil eder."""
     __tablename__ = "alert_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -140,6 +149,7 @@ class AlertEvent(Base):
 
     # Saklanan onerileri liste olarak cozer.
     def get_recommendations(self) -> list[str]:
+        """Alarm kaydındaki önerileri JSON alandan liste olarak döndürür."""
         try:
             return json.loads(self.recommendations)
         except Exception:
@@ -147,9 +157,11 @@ class AlertEvent(Base):
 
     # Oneri listesini JSON metni olarak saklar.
     def set_recommendations(self, items: list[str]) -> None:
+        """Alarm öneri listesini JSON metni olarak veritabanı alanına yazar."""
         self.recommendations = json.dumps(items)
 
 class PostEventSession(Base):
+    """Veritabanında PostEventSession kaydının alanlarını temsil eder."""
     __tablename__ = "post_event_sessions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -160,6 +172,7 @@ class PostEventSession(Base):
     outcome: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
 class HistoryItem(Base):
+    """Veritabanında HistoryItem kaydının alanlarını temsil eder."""
     __tablename__ = "history_items"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -172,6 +185,7 @@ class HistoryItem(Base):
     outcome: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
 class NotificationItem(Base):
+    """Veritabanında NotificationItem kaydının alanlarını temsil eder."""
     __tablename__ = "notification_items"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -186,6 +200,7 @@ class NotificationItem(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 
 class ClinicalNote(Base):
+    """Veritabanında ClinicalNote kaydının alanlarını temsil eder."""
     __tablename__ = "clinical_notes"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -197,6 +212,7 @@ class ClinicalNote(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class AppSettings(Base):
+    """Veritabanında AppSettings kaydının alanlarını temsil eder."""
     __tablename__ = "app_settings"
 
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), primary_key=True)
@@ -207,6 +223,7 @@ class AppSettings(Base):
     alert_sensitivity: Mapped[str] = mapped_column(String(20), default="normal")
 
 class SimulationState(Base):
+    """Veritabanında SimulationState kaydının alanlarını temsil eder."""
     __tablename__ = "simulation_states"
 
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), primary_key=True)
@@ -215,6 +232,7 @@ class SimulationState(Base):
     last_updated: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class UserBaseline(Base):
+    """Veritabanında UserBaseline kaydının alanlarını temsil eder."""
     __tablename__ = "user_baselines"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -234,6 +252,7 @@ class UserBaseline(Base):
 
 
 class DeviceToken(Base):
+    """Veritabanında DeviceToken kaydının alanlarını temsil eder."""
     __tablename__ = "device_tokens"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -245,6 +264,7 @@ class DeviceToken(Base):
 
 # Ogrenme dongusu icin zaman penceresi oturumlarini saklar.
 class LearningCaptureSession(Base):
+    """Veritabanında LearningCaptureSession kaydının alanlarını temsil eder."""
     __tablename__ = "learning_capture_sessions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -270,6 +290,7 @@ class LearningCaptureSession(Base):
 
 class LearningWindow(Base):
     # Egitim icin tek bir zaman penceresi ornegini saklar.
+    """Veritabanında LearningWindow kaydının alanlarını temsil eder."""
     __tablename__ = "learning_windows"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -302,6 +323,7 @@ class LearningWindow(Base):
 
 class UserFeedbackEvent(Base):
     # Kullanici geri bildirimlerini ve bagli pencere bilgisini saklar.
+    """Veritabanında UserFeedbackEvent kaydının alanlarını temsil eder."""
     __tablename__ = "user_feedback_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -318,6 +340,7 @@ class UserFeedbackEvent(Base):
 
 class ModelVersionRegistry(Base):
     # Aktif model surumunu ve egitim kaynagini kayit altina alir.
+    """Veritabanında ModelVersionRegistry kaydının alanlarını temsil eder."""
     __tablename__ = "model_version_registry"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -335,6 +358,7 @@ class ModelVersionRegistry(Base):
 
 # Kullaniciya ozel saglik profilini ve kisilestirme istatistiklerini saklar.
 class PersonalHealthProfile(Base):
+    """Veritabanında PersonalHealthProfile kaydının alanlarını temsil eder."""
     __tablename__ = "personal_health_profiles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -375,6 +399,7 @@ class PersonalHealthProfile(Base):
 
 class PersonalRiskMemory(Base):
     # Gecmis risk olaylarini ve verilen tepkileri saklar.
+    """Veritabanında PersonalRiskMemory kaydının alanlarını temsil eder."""
     __tablename__ = "personal_risk_memories"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -389,6 +414,7 @@ class PersonalRiskMemory(Base):
 
 class PersonalTrendSnapshot(Base):
     # Kullanici icin kisa ve orta vadeli trend ozetlerini saklar.
+    """Veritabanında PersonalTrendSnapshot kaydının alanlarını temsil eder."""
     __tablename__ = "personal_trend_snapshots"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -406,6 +432,7 @@ class PersonalTrendSnapshot(Base):
 
 class ModelWindowLog(Base):
     # Ham ornekleri tutmadan model penceresi ustverisini saklar.
+    """Veritabanında ModelWindowLog kaydının alanlarını temsil eder."""
     __tablename__ = "model_window_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -433,6 +460,7 @@ class ModelWindowLog(Base):
 
 # Bakim asistani durumunu kullanici bazinda saklar.
 class AssistantState(Base):
+    """Veritabanında AssistantState kaydının alanlarını temsil eder."""
     __tablename__ = "assistant_states"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -460,6 +488,7 @@ class AssistantState(Base):
 
 class AssistantAction(Base):
     # Bakim asistaninin kullanici icin urettigi aksiyonu saklar.
+    """Veritabanında AssistantAction kaydının alanlarını temsil eder."""
     __tablename__ = "assistant_actions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -482,6 +511,7 @@ class AssistantAction(Base):
 
 class AssistantAcknowledgement(Base):
     # Kullanici yanitlarini ve aksiyon baglantisini saklar.
+    """Veritabanında AssistantAcknowledgement kaydının alanlarını temsil eder."""
     __tablename__ = "assistant_acknowledgements"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)

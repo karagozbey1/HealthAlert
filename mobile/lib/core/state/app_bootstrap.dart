@@ -12,11 +12,13 @@ import '../services/recommendation_service.dart';
 import '../services/transport_orchestrator.dart';
 import 'app_controller.dart';
 
+/// İlgili veri yapısını çağıranın kullanacağı biçimde hazırlar.
 Future<AppController> buildAppController({
   bool demoMode = true,
   AppConfig? config,
 }) async {
-  final appConfig = config ?? (demoMode ? AppConfig.mockDefault : AppConfig.backendDefault);
+  final appConfig =
+      config ?? (demoMode ? AppConfig.mockDefault : AppConfig.backendDefault);
 
   final historyRepository = MockHistoryRepository();
   await historyRepository.init();
@@ -106,4 +108,6 @@ Future<AppController> buildAppController({
   );
 }
 
-Future<AppController> buildMockAppController() => buildAppController(demoMode: true);
+/// İlgili veri yapısını çağıranın kullanacağı biçimde hazırlar.
+Future<AppController> buildMockAppController() =>
+    buildAppController(demoMode: true);

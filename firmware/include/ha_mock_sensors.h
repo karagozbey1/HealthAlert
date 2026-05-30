@@ -8,6 +8,7 @@
 #include "ha_debug.h"
 #include "ha_types.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 enum MockScenario : uint8_t {
     SCENARIO_NORMAL            = 0,
     SCENARIO_ELEVATED_HR       = 1,
@@ -29,6 +30,7 @@ static const char* SCENARIO_NAMES[] = {
     "recovery_state",
 };
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 struct ScenarioProfile {
     float hr_center;
     float hr_amplitude;
@@ -53,9 +55,11 @@ static const ScenarioProfile PROFILES[SCENARIO_COUNT] = {
     { 80.0f, 4.0f,  96.5f, 0.8f,  0.08f, 0.04f, 1.5f,  0.85f, true,  77000, 73000 },
 };
 
+/// Sensör okuma sonucunu firmware içinde taşır.
 class MockSensors {
 public:
     // Sensörü başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     void begin() {
         _scenario = SCENARIO_NORMAL;
         _tick = 0;
@@ -64,6 +68,7 @@ public:
         HA_SERIAL_PRINTLN("[MOCK] Mock sensor engine initialized.");
     }
 
+    /// Firmware çalışma ayarı veya senaryo seçimini günceller.
     void setScenario(MockScenario s) {
         if (s >= SCENARIO_COUNT) return;
         if (s == _scenario) return;
@@ -73,10 +78,12 @@ public:
         HA_SERIAL_PRINTF("[MOCK] Scenario -> %s\n", SCENARIO_NAMES[s]);
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     MockScenario getScenario() const { return _scenario; }
     const char* getScenarioName() const { return SCENARIO_NAMES[_scenario]; }
 
     // IMU verisini okur ve ImuSample döndürür.
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     ImuSample readImu() {
         ImuSample s;
         const ScenarioProfile& p = _blended_profile();
@@ -94,6 +101,7 @@ public:
     }
 
     // PPG verisini okur ve PpgSample döndürür.
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     PpgSample readPpg() {
         PpgSample s = {
             0, 0,
@@ -141,16 +149,19 @@ public:
         return s;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void tick() {
         _tick++;
         if (_transition_ticks > 0) _transition_ticks--;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void enableAutoCycle(bool enable, uint32_t ticks_per_scenario = 150) {
         _auto_cycle = enable;
         _auto_cycle_interval = ticks_per_scenario;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void updateAutoCycle() {
         if (!_auto_cycle) return;
         if ((_tick % _auto_cycle_interval) == 0 && _tick > 0) {
@@ -191,10 +202,12 @@ private:
         return _blended_cache;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     static float _lerp(float a, float b, float t) {
         return b + (a - b) * t;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     static float _noise(float amplitude) {
         return ((float)random(-1000, 1001) / 1000.0f) * amplitude;
     }

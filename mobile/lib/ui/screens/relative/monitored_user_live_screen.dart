@@ -8,21 +8,25 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/live_value_card.dart';
 import '../../widgets/severity_badge.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class MonitoredUserLiveScreen extends StatefulWidget {
   final UserProfile user;
   const MonitoredUserLiveScreen({super.key, required this.user});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
-  State<MonitoredUserLiveScreen> createState() => _MonitoredUserLiveScreenState();
+  State<MonitoredUserLiveScreen> createState() =>
+      _MonitoredUserLiveScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
   LiveStatus? _live;
   bool _loading = true;
   Timer? _timer;
   StreamSubscription<LiveStatus?>? _firestoreSub;
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
@@ -31,6 +35,7 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _setupLiveUpdates());
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _setupLiveUpdates() {
     if (!mounted) return;
     final app = AppScope.of(context);
@@ -50,11 +55,12 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     _ensureTimerRunning();
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _ensureTimerRunning() {
-    _timer ??= Timer.periodic(
-        const Duration(seconds: 5), (_) => _fetchLive());
+    _timer ??= Timer.periodic(const Duration(seconds: 5), (_) => _fetchLive());
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _onFirestoreLive(LiveStatus? status) {
     if (!mounted || status == null) return;
     setState(() {
@@ -63,7 +69,7 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     });
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _timer?.cancel();
@@ -71,10 +77,12 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     super.dispose();
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   Future<void> _fetchLive() async {
     if (!mounted) return;
     try {
-      final status = await AppScope.of(context).getLiveStatusForUser(widget.user.id);
+      final status =
+          await AppScope.of(context).getLiveStatusForUser(widget.user.id);
       if (mounted) {
         setState(() {
           _live = status;
@@ -95,7 +103,7 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
       _live != null &&
       DateTime.now().difference(_live!.timestamp).inSeconds > 30;
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final live = _live;
@@ -120,7 +128,8 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.warning_amber_rounded, size: 14, color: AppTheme.critical),
+                  Icon(Icons.warning_amber_rounded,
+                      size: 14, color: AppTheme.critical),
                   SizedBox(width: 4),
                   Text('ALARM',
                       style: TextStyle(
@@ -133,7 +142,8 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
+          ? const Center(
+              child: CircularProgressIndicator(color: Colors.greenAccent))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -167,14 +177,14 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
                                     fontSize: 16)),
                             if (widget.user.phone != null)
                               Text(widget.user.phone!,
-                                  style: const TextStyle(color: Colors.white38, fontSize: 13)),
+                                  style: const TextStyle(
+                                      color: Colors.white38, fontSize: 13)),
                           ],
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   if (live != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -200,9 +210,8 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
                                     ? 'Sinyal yavaş — ${_timeAgo(live.timestamp)}'
                                     : 'Son güncelleme: ${_timeAgo(live.timestamp)}',
                             style: TextStyle(
-                              color: _isStale
-                                  ? AppTheme.warning
-                                  : Colors.white38,
+                              color:
+                                  _isStale ? AppTheme.warning : Colors.white38,
                               fontSize: 12,
                             ),
                           ),
@@ -210,24 +219,32 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
                           Text(
                             live.scenarioLabel,
                             style: TextStyle(
-                              color: isAlert ? AppTheme.warning : Colors.white30,
+                              color:
+                                  isAlert ? AppTheme.warning : Colors.white30,
                               fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                     ),
-
                   if (live != null) ...[
                     Row(
                       children: [
-                        Expanded(child: SizedBox(height: 130, child: LiveValueCard.heartRate(live))),
+                        Expanded(
+                            child: SizedBox(
+                                height: 130,
+                                child: LiveValueCard.heartRate(live))),
                         const SizedBox(width: 12),
-                        Expanded(child: SizedBox(height: 130, child: LiveValueCard.spo2(live))),
+                        Expanded(
+                            child: SizedBox(
+                                height: 130, child: LiveValueCard.spo2(live))),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(width: double.infinity, height: 130, child: LiveValueCard.riskScore(live)),
+                    SizedBox(
+                        width: double.infinity,
+                        height: 130,
+                        child: LiveValueCard.riskScore(live)),
                   ] else
                     GlassCard(
                       padding: const EdgeInsets.all(32),
@@ -242,6 +259,7 @@ class _MonitoredUserLiveScreenState extends State<MonitoredUserLiveScreen> {
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inSeconds < 60) return '${diff.inSeconds} sn önce';

@@ -15,6 +15,7 @@ import 'ui/screens/post_event_monitor_screen.dart';
 import 'ui/screens/relative/relative_home_container.dart';
 import 'ui/screens/doctor/doctor_home_container.dart';
 
+/// Firebase ve uygulama bağımlılıklarını hazırlayıp mobil uygulamayı başlatır.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -29,12 +30,13 @@ void main() async {
   runApp(MyApp(controller: controller));
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.controller});
 
   final AppController controller;
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -77,9 +79,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class RoleAwareHome extends StatelessWidget {
   const RoleAwareHome({super.key});
 
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -89,7 +93,6 @@ class RoleAwareHome extends StatelessWidget {
       case UserRole.doctor:
         return const DoctorHomeContainer();
       case UserRole.self:
-      default:
         return const HomeContainer();
     }
   }

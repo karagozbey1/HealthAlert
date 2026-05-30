@@ -12,6 +12,7 @@ def generate_assistant_summary(
     role: str = "SELF",
 ) -> Dict[str, Any]:
 
+    """assistant servisindeki HealthAlert iş kuralını uygular."""
     has_live = live_status is not None
     hr = live_status.get("heart_rate", 0) if has_live else None
     spo2 = live_status.get("spo2", 0) if has_live else None
@@ -142,6 +143,7 @@ def generate_alert_explanation(
     live_status: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
 
+    """assistant servisindeki HealthAlert iş kuralını uygular."""
     severity = alert.get("severity", "normal")
     title = alert.get("title", "Alarm")
     description = alert.get("description", "")
@@ -201,6 +203,7 @@ def generate_daily_summary(
     role: str = "SELF",
 ) -> Dict[str, Any]:
 
+    """assistant servisindeki HealthAlert iş kuralını uygular."""
     total_anomalies = len(anomalies_24h)
     total_alerts = len(alerts_24h)
     critical_alerts = len([a for a in alerts_24h if a.get("severity") == "critical"])
@@ -261,6 +264,7 @@ def _build_response(
     role: str,
 ) -> Dict[str, Any]:
 
+    """assistant servisinde kullanılacak kayıt veya bağlamı hazırlar."""
     role_prefix = ""
     if role == "RELATIVE":
         role_prefix = "İzlediğiniz kişi için: "

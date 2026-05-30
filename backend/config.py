@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 logger = logging.getLogger("healthalert.config")
 
 class Settings(BaseSettings):
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     APP_MODE: Literal["demo", "staging", "production"] = "demo"
 
     SECRET_KEY: str = "healthalert-demo-secret-key-2024-local"
@@ -268,6 +269,7 @@ class Settings(BaseSettings):
     ASSISTANT_NOTIFY_DOCTORS_ON_NO_RESPONSE: bool = True
 
     class Config:
+        """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
         env_file = ".env"
         extra = "ignore"
 
@@ -275,6 +277,7 @@ settings = Settings()
 
 # Kritik config uyumsuzluklari icin startup uyarilari uretir.
 def validate_settings() -> list[str]:
+    """Ortam ayarlarını kontrol edip eksik veya riskli değerleri listeler."""
     import os
     warnings: list[str] = []
 
@@ -319,6 +322,7 @@ def validate_settings() -> list[str]:
 
 # Ortama gore simulasyon akisinin calisip calismayacagini belirler.
 def should_run_simulation() -> bool:
+    """Backend başlangıcında demo simülasyonunun çalışıp çalışmayacağını belirler."""
     if settings.SIMULATION_ENABLED == "on":
         return True
     if settings.SIMULATION_ENABLED == "off":
@@ -329,6 +333,7 @@ def should_run_simulation() -> bool:
 
 # Uygulama acilisinda temel config ozetini log'a yazar.
 def log_startup_config() -> None:
+    """Başlangıçta aktif çalışma modu ve önemli ayarları loglar."""
     sim = "ON" if should_run_simulation() else "OFF"
     logger.info("=" * 60)
     logger.info("  HealthAlert Configuration Summary")

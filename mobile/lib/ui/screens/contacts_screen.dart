@@ -3,16 +3,18 @@ import '../../core/state/app_scope.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/glass_card.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<ContactsScreen> createState() => _ContactsScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _ContactsScreenState extends State<ContactsScreen> {
-
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -28,7 +30,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(
+            SnackBar(
+                content: Text(
               app.isBackendMode
                   ? 'Kişi ekleme özelliği yakında aktif olacak.'
                   : 'Demo modu: kişi ekleme akışı örnek olarak gösteriliyor.',
@@ -42,14 +45,17 @@ class _ContactsScreenState extends State<ContactsScreen> {
         padding: const EdgeInsets.all(16),
         children: contacts
             .map(
-              (c) => _buildContactCard(c.name, c.relation, c.phone, c.isPrimary),
+              (c) =>
+                  _buildContactCard(c.name, c.relation, c.phone, c.isPrimary),
             )
             .toList(),
       ),
     );
   }
 
-  Widget _buildContactCard(String name, String relation, String phone, bool isPrimary) {
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
+  Widget _buildContactCard(
+      String name, String relation, String phone, bool isPrimary) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
@@ -60,7 +66,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
               backgroundColor: AppTheme.primary.withOpacity(0.2),
               child: Text(
                 name.substring(0, 1),
-                style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: AppTheme.primary, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(width: 16),
@@ -89,7 +96,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 ),
                 child: const Text(
                   "Öncelikli",
-                  style: TextStyle(color: AppTheme.primary, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: AppTheme.primary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             IconButton(

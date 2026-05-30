@@ -25,10 +25,12 @@ router = APIRouter(prefix="/link-codes", tags=["link-codes"])
 
 # Sayisal baglanti kodu uretir.
 def _generate_numeric_code(length: int = 6) -> str:
+    """Bağlantı kodu oluşturma isteğini doğrulayıp kaydeder."""
     return "".join(random.choices(string.digits, k=length))
 
 # Cakismayan yeni bir baglanti kodu bulur.
 async def _unique_code(repos: RepoSet) -> str:
+    """Bağlantı kodu endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     for _ in range(20):
         code = _generate_numeric_code(6)
         existing = await repos.link_codes.get_by_code(code)
@@ -44,6 +46,7 @@ async def generate_code(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Bağlantı kodu oluşturma isteğini doğrulayıp kaydeder."""
     if current_user.role != "SELF":
         raise HTTPException(status_code=403, detail="Sadece SELF kullanicisi kod uretebilir")
 
@@ -72,6 +75,7 @@ async def get_my_codes(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için bağlantı kodu okuma isteğini işler."""
     return await repos.link_codes.list_by_owner(current_user.id)
 
 # Kod kaydini pasife alip kullanim haklarini sifirlar.
@@ -82,6 +86,7 @@ async def revoke_code(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Bağlantı kodu endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     code = await repos.link_codes.get_by_id(code_id)
     if code is None or code["owner_id"] != current_user.id:
         raise HTTPException(status_code=404, detail="Code not found")
@@ -96,6 +101,7 @@ async def redeem_code(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Bağlantı kodu endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if current_user.role not in ("RELATIVE", "DOCTOR"):
         raise HTTPException(status_code=403, detail="Sadece RELATIVE veya DOCTOR kullanicisi kod girebilir")
 
@@ -178,6 +184,7 @@ async def get_my_relations(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için bağlantı kodu okuma isteğini işler."""
     if current_user.role == "SELF":
         relations = await repos.relations.find_active_by_self_user(current_user.id)
         out = []
@@ -217,6 +224,7 @@ async def remove_relation(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Bağlantı kodu silme veya kapatma isteğini doğrulayıp uygular."""
     rel = await repos.relations.get_by_id(relation_id)
     if rel is None:
         raise HTTPException(status_code=404, detail="Relation not found")

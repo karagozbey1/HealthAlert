@@ -2,26 +2,46 @@ import 'dart:math' as math;
 
 import '../models/live_status.dart';
 
+const double _normalizedQualityMax = 1.0;
+const double _percentQualityScale = 100.0;
+const double _gyroDeadbandDps = 10.0;
+const double _accDynamicDeadbandG = 0.04;
+const double _stationaryAccLimitG = 0.22;
+const double _stationaryMotionScale = 0.30;
+const double _stationaryMotionMax = 0.07;
+const double _accMotionScale = 120.0;
+const double _gyroMotionScale = 0.8;
+const double _motionPercentMax = 100.0;
+
+/// Dinamik değeri sayıysa double değere çevirir, değilse null döndürür.
 double? _numOrNull(dynamic value) => value is num ? value.toDouble() : null;
 
+/// Dinamik BLE alanını güvenli int değere çevirir.
 int _intValue(dynamic value, [int fallback = 0]) {
   if (value is bool) return value ? 1 : 0;
   if (value is num) return value.toInt();
   return fallback;
 }
 
+/// Dinamik BLE bayrak alanını güvenli bool değere çevirir.
 bool _boolValue(dynamic value, [bool fallback = false]) {
   if (value is bool) return value;
   if (value is num) return value != 0;
   return fallback;
 }
 
+/// Sinyal kalitesini 0 ile 1 aralığında normalize eder.
 double _quality01(dynamic value) {
   final q = _numOrNull(value) ?? 0;
-  if (q > 1) return (q / 100.0).clamp(0.0, 1.0).toDouble();
-  return q.clamp(0.0, 1.0).toDouble();
+  if (q > _normalizedQualityMax) {
+    return (q / _percentQualityScale)
+        .clamp(0.0, _normalizedQualityMax)
+        .toDouble();
+  }
+  return q.clamp(0.0, _normalizedQualityMax).toDouble();
 }
 
+/// Dinamik JSON alanını güvenli Map<String, dynamic> yapısına çevirir.
 Map<String, dynamic> _mapValue(dynamic value) {
   if (value is Map<String, dynamic>) return value;
   if (value is Map) {
@@ -30,6 +50,7 @@ Map<String, dynamic> _mapValue(dynamic value) {
   return const {};
 }
 
+/// Firmware BLE paketini mobil uygulamada kullanılan ölçüm modeline taşır.
 class BlePacket {
   const BlePacket({
     required this.deviceId,
@@ -253,6 +274,7 @@ class BlePacket {
     );
   }
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'device_id': deviceId,
         'timestamp_ms': timestampMs,
@@ -280,6 +302,7 @@ class BlePacket {
         'state_hint': stateHint,
       };
 
+  /// BLE telemetri paketini canlı sağlık durumu modeline dönüştürür.
   LiveStatus toLiveStatus(String userId) {
     // BLE packet only carries measurements. Personalized risk interpretation
     // must be done by backend/model/personalization layer.
@@ -317,10 +340,7 @@ class BlePacket {
     );
   }
 
-  /// Computes a 0–1 motion intensity score from acc/gyro totals.
-  /// Deadbands filter out physiological noise (heartbeat vibrations):
-  ///   - acc:  ignore <0.05 g dynamic component (micro-tremors)
-  ///   - gyro: ignore <15 °/s (typical ballistocardiographic effect when stationary)
+  /// İvme ve jiroskop toplamlarından 0 ile 1 arasında hareket skoru hesaplar.
   static double _computeMotionScore(
     double accTotal,
     double gyroTotal, {
@@ -328,20 +348,24 @@ class BlePacket {
   }) {
     if (!imuOk || (accTotal == 0.0 && gyroTotal == 0.0)) return 0.0;
 
-    const gyroDeadband = 10.0;
-    final accDynamic = math.max(0.0, (accTotal - 1.0).abs() - 0.04);
-    final gyroDynamic = math.max(0.0, gyroTotal - gyroDeadband);
+    final accDynamic =
+        math.max(0.0, (accTotal - 1.0).abs() - _accDynamicDeadbandG);
+    final gyroDynamic = math.max(0.0, gyroTotal - _gyroDeadbandDps);
 
     // Finger pressure can bias the static accelerometer total. With no
     // rotational energy, keep that low and avoid a sticky 20% display.
-    if (gyroDynamic == 0.0 && accDynamic <= 0.22) {
-      return (accDynamic * 0.30).clamp(0.0, 0.07).toDouble();
+    if (gyroDynamic == 0.0 && accDynamic <= _stationaryAccLimitG) {
+      return (accDynamic * _stationaryMotionScale)
+          .clamp(0.0, _stationaryMotionMax)
+          .toDouble();
     }
 
-    final movementRaw = (accDynamic * 120.0) + (gyroDynamic * 0.8);
-    return movementRaw.clamp(0.0, 100.0) / 100.0;
+    final movementRaw =
+        (accDynamic * _accMotionScale) + (gyroDynamic * _gyroMotionScale);
+    return movementRaw.clamp(0.0, _motionPercentMax) / _motionPercentMax;
   }
 
+  /// Üç eksenli sensör değerleri için vektör büyüklüğünü hesaplar.
   static double _vectorTotal(double x, double y, double z) {
     return math.sqrt((x * x) + (y * y) + (z * z));
   }

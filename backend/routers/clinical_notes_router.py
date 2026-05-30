@@ -22,6 +22,7 @@ async def create_note(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Klinik not oluşturma isteğini doğrulayıp kaydeder."""
     if current_user.role != "DOCTOR":
         raise HTTPException(status_code=403, detail="Only DOCTOR users can create notes")
 
@@ -48,6 +49,7 @@ async def get_notes_for_patient(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için klinik not okuma isteğini işler."""
     if current_user.role == "DOCTOR":
         return await repos.clinical_notes.list_by_patient(patient_id, doctor_id=current_user.id)
     elif current_user.role == "SELF" and current_user.id == patient_id:
@@ -64,6 +66,7 @@ async def update_note(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Klinik not güncelleme isteğini doğrulayıp uygular."""
     existing = await repos.clinical_notes.get_by_id(note_id)
     if existing is None or existing.get("doctor_id") != current_user.id:
         raise HTTPException(status_code=404, detail="Note not found")
@@ -86,6 +89,7 @@ async def delete_note(
     current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Klinik not silme veya kapatma isteğini doğrulayıp uygular."""
     existing = await repos.clinical_notes.get_by_id(note_id)
     if existing is None or existing.get("doctor_id") != current_user.id:
         raise HTTPException(status_code=404, detail="Note not found")

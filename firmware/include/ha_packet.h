@@ -8,9 +8,11 @@
 #include "ha_config.h"
 #include "ha_types.h"
 
+/// Firmware ile mobil uygulama arasında taşınan telemetri verisini temsil eder.
 class PacketFormatter {
 public:
     // Paket verisini JSON satirina donusturur.
+    /// Cihaz telemetri paketini seri veya HTTP için JSON satırına dönüştürür.
     static void toJsonLine(const DevicePacket& pkt, char* buf, size_t buf_size) {
         JsonDocument doc;
 
@@ -59,6 +61,7 @@ public:
 
     // Final demo BLE summary payload. This carries measurements only:
     // personalized risk interpretation stays in the mobile/backend/model layer.
+    /// Mobil BLE parser sözleşmesine uygun kısa canlı özet paketini oluşturur.
     static void toBleSummaryJson(const DevicePacket& pkt, char* buf, size_t buf_size) {
         JsonDocument doc;
 
@@ -119,6 +122,7 @@ public:
     }
 
     // RawSensorSample yapÄ±sÄ±nÄ± JSON satÄ±rÄ±na dÃ¶nÃ¼ÅŸtÃ¼rÃ¼r.
+    /// Ham sensör örneğini model penceresi akışı için JSON satırına dönüştürür.
     static void rawToJsonLine(const RawSensorSample& s, char* buf, size_t buf_size) {
         JsonDocument doc;
 
@@ -161,8 +165,11 @@ public:
     }
 
 private:
+    /// Ölçüm değerini tek ondalık basamağa yuvarlar.
     static float _round1(float v) { return roundf(v * 10.0f) / 10.0f; }
+    /// Ölçüm değerini iki ondalık basamağa yuvarlar.
     static float _round2(float v) { return roundf(v * 100.0f) / 100.0f; }
+    /// Skor değerini 0 ile 1 aralığında sınırlar.
     static float _clamp01(float v) {
         if (v < 0.0f) return 0.0f;
         if (v > 1.0f) return 1.0f;

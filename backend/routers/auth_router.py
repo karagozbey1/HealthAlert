@@ -20,6 +20,7 @@ async def register(
     db: AsyncSession = Depends(get_db),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Kimlik doğrulama oluşturma isteğini doğrulayıp kaydeder."""
     existing = await repos.users.get_by_email(body.email.lower())
     if existing is not None:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -56,6 +57,7 @@ async def login(
     db: AsyncSession = Depends(get_db),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Kimlik doğrulama endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     user = await repos.users.get_by_email(body.email.lower())
     if user is None or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")

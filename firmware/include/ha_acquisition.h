@@ -10,11 +10,13 @@
 #include "ha_max30102.h"
 #include "ha_mock_sensors.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 class AcquisitionManager {
 public:
 
     
     // Sensörü başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     void begin(bool useMock) {
         _useMock = useMock;
         _packetSeq = 0;
@@ -34,6 +36,7 @@ public:
 
     
     // Gerçek donanım sensörlerini başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool initRealSensors() {
         bool any_ok = false;
 
@@ -71,6 +74,7 @@ public:
 
     
     // Sensörleri yeniden başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool reinitSensors() {
         if (_useMock) return true;
 
@@ -95,6 +99,7 @@ public:
 
     
     // Mock/gerçek sensör modunu çalışma anında değiştirir.
+    /// Demo senaryosu için sahte sensör davranışını günceller.
     void setMockMode(bool useMock) {
         if (_useMock == useMock) return;
         _useMock = useMock;
@@ -113,6 +118,7 @@ public:
 
     
     // Tum sensor verilerini tek paket icinde toplar.
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     DevicePacket collect() {
         DevicePacket pkt;
 
@@ -132,6 +138,7 @@ public:
     }
 
     // Model-window hattÄ± iÃ§in 50Hz ham ornek toplar.
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     RawSensorSample collectRawSample(uint16_t sampleRateHz) {
         DevicePacket pkt;
         pkt.device_id = HA_DEVICE_ID;
@@ -171,10 +178,13 @@ public:
         return raw;
     }
 
+    /// Demo senaryosu için sahte sensör davranışını günceller.
     MockSensors&  getMock()   { return _mock; }
     // Sensör durum yapısını döndürür.
+    /// Firmware çalışma durumunu güncel ölçüm ve bağlantı bilgisiyle yeniler.
     SensorStatus& getStatus() { return _status; }
 
+    /// Demo senaryosu için sahte sensör davranışını günceller.
     bool isMockMode() const { return _useMock; }
 
 private:
@@ -187,6 +197,7 @@ private:
     MockSensors   _mock;
     SensorStatus  _status;
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void _collectReal(DevicePacket& pkt) {
         if (_status.imu_ok) {
             ImuSample imu = _imu.read();
@@ -276,6 +287,7 @@ private:
 #endif
     }
 
+    /// Demo senaryosu için sahte sensör davranışını günceller.
     void _collectMock(DevicePacket& pkt) {
         _mock.updateAutoCycle();
 
@@ -306,6 +318,7 @@ private:
         _mock.tick();
     }
 
+    /// Firmware çalışma ayarı veya senaryo seçimini günceller.
     void _setImuFailed(DevicePacket& pkt) {
         pkt.accel_x = 0.0f;
         pkt.accel_y = 0.0f;
@@ -318,6 +331,7 @@ private:
         _status.last_error |= 0x01;
     }
 
+    /// Firmware çalışma ayarı veya senaryo seçimini günceller.
     void _setPpgFailed(DevicePacket& pkt) {
         pkt.red_value        = 0;
         pkt.ir_value         = 0;

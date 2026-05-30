@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../core/models/enums.dart';
 import '../../core/state/app_scope.dart';
 import '../theme/app_theme.dart';
@@ -9,13 +9,16 @@ import 'register_screen.dart';
 import 'relative/relative_home_container.dart';
 import 'doctor/doctor_home_container.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
@@ -27,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _checkedSession = false;
   bool _obscurePass = true;
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
@@ -35,11 +38,12 @@ class _LoginScreenState extends State<LoginScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _fadeAnimation =
+        CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     _controller.forward();
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _controller.dispose();
@@ -48,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _roleHomeFor(UserRole role) {
     switch (role) {
       case UserRole.relative:
@@ -59,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Future<void> _handleLogin() async {
     if (_loading) return;
     setState(() {
@@ -66,7 +72,8 @@ class _LoginScreenState extends State<LoginScreen>
       _error = null;
     });
     final app = AppScope.of(context);
-    final ok = await app.login(_emailController.text.trim(), _passwordController.text);
+    final ok =
+        await app.login(_emailController.text.trim(), _passwordController.text);
     if (!mounted) return;
     setState(() => _loading = false);
 
@@ -84,6 +91,7 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _error = 'E-posta veya şifre hatalı.');
   }
 
+  /// Inherited bağımlılıklar değiştiğinde ekran ayarlarını günceller.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -100,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,7 +127,8 @@ class _LoginScreenState extends State<LoginScreen>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppTheme.surface.withOpacity(0.5),
-                      border: Border.all(color: AppTheme.primary.withOpacity(0.5)),
+                      border:
+                          Border.all(color: AppTheme.primary.withOpacity(0.5)),
                       boxShadow: [
                         BoxShadow(
                           color: AppTheme.primary.withOpacity(0.2),
@@ -135,14 +144,14 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Text('HealthAlert', style: AppTheme.darkTheme.textTheme.displayLarge),
+                  Text('HealthAlert',
+                      style: AppTheme.darkTheme.textTheme.displayLarge),
                   const SizedBox(height: 8),
                   Text(
                     'Akıllı sağlık izleme sistemi',
                     style: AppTheme.darkTheme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 48),
-
                   GlassCard(
                     padding: const EdgeInsets.all(28),
                     child: Column(
@@ -153,7 +162,8 @@ class _LoginScreenState extends State<LoginScreen>
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             labelText: 'E-posta',
-                            prefixIcon: const Icon(Icons.email_outlined, color: Colors.white54),
+                            prefixIcon: const Icon(Icons.email_outlined,
+                                color: Colors.white54),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -171,13 +181,17 @@ class _LoginScreenState extends State<LoginScreen>
                           onFieldSubmitted: (_) => _handleLogin(),
                           decoration: InputDecoration(
                             labelText: 'Şifre',
-                            prefixIcon: const Icon(Icons.lock_outline, color: Colors.white54),
+                            prefixIcon: const Icon(Icons.lock_outline,
+                                color: Colors.white54),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePass ? Icons.visibility_off : Icons.visibility,
+                                _obscurePass
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 color: Colors.white54,
                               ),
-                              onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                              onPressed: () =>
+                                  setState(() => _obscurePass = !_obscurePass),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -200,7 +214,8 @@ class _LoginScreenState extends State<LoginScreen>
                         if (_error != null) ...[
                           const SizedBox(height: 12),
                           Text(_error!,
-                              style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                              style: const TextStyle(
+                                  color: Colors.redAccent, fontSize: 13)),
                         ],
                         const SizedBox(height: 16),
                         const Divider(color: Colors.white12),
@@ -208,9 +223,10 @@ class _LoginScreenState extends State<LoginScreen>
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            icon: const Icon(Icons.person_add_outlined, color: AppTheme.primary),
+                            icon: const Icon(Icons.person_add_outlined,
+                                color: AppTheme.primary),
                             label: const Text(
-                                'HESAP OLUŞTUR',
+                              'HESAP OLUŞTUR',
                               style: TextStyle(
                                   color: AppTheme.primary,
                                   fontWeight: FontWeight.bold,
@@ -218,41 +234,48 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(color: AppTheme.primary.withOpacity(0.5)),
+                              side: BorderSide(
+                                  color: AppTheme.primary.withOpacity(0.5)),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             onPressed: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const RegisterScreen()),
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
                   if (!AppScope.of(context).isBackendMode)
-                  GlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Demo Hesaplar',
-                            style: AppTheme.darkTheme.textTheme.labelSmall
-                                ?.copyWith(color: AppTheme.primary, letterSpacing: 1)),
-                        const SizedBox(height: 8),
-                        _demoCredRow(Icons.person, 'self@demo.com', 'Hasta/Kendim'),
-                        _demoCredRow(Icons.family_restroom, 'relative@demo.com', 'Yakın'),
-                        _demoCredRow(Icons.medical_services, 'doctor@demo.com', 'Doktor'),
-                        const SizedBox(height: 4),
-                        Text('Şifre: demo1234',
-                            style: TextStyle(color: Colors.white38, fontSize: 11)),
-                      ],
+                    GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Demo Hesaplar',
+                              style: AppTheme.darkTheme.textTheme.labelSmall
+                                  ?.copyWith(
+                                      color: AppTheme.primary,
+                                      letterSpacing: 1)),
+                          const SizedBox(height: 8),
+                          _demoCredRow(
+                              Icons.person, 'self@demo.com', 'Hasta/Kendim'),
+                          _demoCredRow(Icons.family_restroom,
+                              'relative@demo.com', 'Yakın'),
+                          _demoCredRow(Icons.medical_services,
+                              'doctor@demo.com', 'Doktor'),
+                          const SizedBox(height: 4),
+                          Text('Şifre: demo1234',
+                              style: TextStyle(
+                                  color: Colors.white38, fontSize: 11)),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -262,6 +285,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   Widget _demoCredRow(IconData icon, String email, String role) {
     return InkWell(
       onTap: () {
@@ -274,15 +298,17 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             Icon(icon, size: 14, color: Colors.white38),
             const SizedBox(width: 8),
-            Text(email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+            Text(email,
+                style: const TextStyle(color: Colors.white54, fontSize: 12)),
             const Spacer(),
             Text(role,
                 style: const TextStyle(
-                    color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic)),
+                    color: Colors.white38,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic)),
           ],
         ),
       ),
     );
   }
 }
-

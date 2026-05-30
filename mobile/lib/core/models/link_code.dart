@@ -1,3 +1,4 @@
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class LinkCode {
   const LinkCode({
     required this.id,
@@ -17,6 +18,7 @@ class LinkCode {
   final DateTime expiresAt;
   final DateTime createdAt;
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static LinkCode fromJson(Map<String, dynamic> json) => LinkCode(
         id: json['id'] as String,
         code: json['code'] as String,

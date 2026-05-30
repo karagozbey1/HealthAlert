@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:math';
+
+import 'package:flutter/foundation.dart';
+
 import '../models/live_status.dart';
 
+/// Demo veya backend kaynaklı canlı sağlık verisini periyodik olarak yayınlar.
 class LiveDataService {
   LiveDataService({this.demoMode = false});
 
@@ -11,6 +15,7 @@ class LiveDataService {
 
   Stream<LiveStatus> get stream => _controller.stream;
 
+  /// Servisin periyodik veri akışını başlatır.
   void start({
     required String userId,
     required int intervalSeconds,
@@ -28,19 +33,22 @@ class LiveDataService {
         if (status != null && !_controller.isClosed) {
           _controller.add(status);
         }
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[LiveDataService] Live data tick failed: $error');
+      }
     });
     if (demoMode || fetchFn == null) {
       _controller.add(_generateDemoStatus(userId));
     }
   }
 
+  /// Servisin çalışan periyodik veri akışını durdurur.
   void stop() {
     _timer?.cancel();
     _timer = null;
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   void dispose() {
     stop();
     _controller.close();
@@ -61,6 +69,7 @@ class LiveDataService {
 
   static const _ticksPerScenario = 8;
 
+  /// Demo modunda sıradaki senaryoya göre canlı durum örneği üretir.
   static LiveStatus _generateDemoStatus(String userId) {
     _tick++;
     final scenarioIdx = (_tick ~/ _ticksPerScenario) % _scenarios.length;
@@ -82,6 +91,7 @@ class LiveDataService {
   }
 }
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class _DemoScenario {
   const _DemoScenario(
     this.name,

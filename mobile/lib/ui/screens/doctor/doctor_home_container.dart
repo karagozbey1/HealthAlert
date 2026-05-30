@@ -8,13 +8,16 @@ import 'doctor_overview_screen.dart';
 import 'doctor_settings_screen.dart';
 import 'doctor_generate_code_screen.dart';
 
+/// HealthAlert içinde bu dosyanın ana sorumluluğunu taşıyan yapıdır.
 class DoctorHomeContainer extends StatefulWidget {
   const DoctorHomeContainer({super.key});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<DoctorHomeContainer> createState() => _DoctorHomeContainerState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _DoctorHomeContainerState extends State<DoctorHomeContainer> {
   int _currentIndex = 0;
 
@@ -26,7 +29,7 @@ class _DoctorHomeContainerState extends State<DoctorHomeContainer> {
     const DoctorSettingsScreen(),
   ];
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
@@ -48,9 +51,10 @@ class _DoctorHomeContainerState extends State<DoctorHomeContainer> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.medical_services, size: 14, color: Colors.amberAccent),
+                  Icon(Icons.medical_services,
+                      size: 14, color: Colors.amberAccent),
                   SizedBox(width: 6),
-                    Text('Doktor',
+                  Text('Doktor',
                       style: TextStyle(
                           color: Colors.amberAccent,
                           fontSize: 12,
@@ -64,8 +68,10 @@ class _DoctorHomeContainerState extends State<DoctorHomeContainer> {
           IconButton(
             tooltip: 'Kod Gir',
             onPressed: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const DoctorGenerateCodeScreen()));
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const DoctorGenerateCodeScreen()));
               if (context.mounted) AppScope.of(context).loadMonitoredUsers();
             },
             icon: const Icon(Icons.link, color: Colors.amberAccent),

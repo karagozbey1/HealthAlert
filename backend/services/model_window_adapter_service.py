@@ -4,13 +4,16 @@ from typing import Any, Dict, List
 
 
 def _clamp01(value: float) -> float:
+    """model window adapter servisindeki HealthAlert iş kuralını uygular."""
     return max(0.0, min(1.0, float(value)))
 
 
 # Host tarafindan gelen pencere verisini model girdisine donusturur.
 class ModelWindowAdapterService:
 
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     def validate_model_window(self, payload) -> Dict[str, Any]:
+        """model window adapter servisindeki HealthAlert iş kuralını uygular."""
         sample_count = int(payload.sample_count)
         sample_rate = int(payload.sample_rate_hz)
         duration_ms = int(payload.window_duration_ms)
@@ -41,6 +44,7 @@ class ModelWindowAdapterService:
         }
 
     def compute_model_window_quality(self, payload) -> Dict[str, Any]:
+        """model window adapter servisinde risk veya skor değerini hesaplar."""
         qs = payload.quality_summary or {}
 
         sample_count = int(payload.sample_count)
@@ -78,6 +82,7 @@ class ModelWindowAdapterService:
         }
 
     def select_ppg_channel(self, payload) -> List[float]:
+        """model window adapter servisindeki HealthAlert iş kuralını uygular."""
         ppg_samples = payload.ppg_samples or []
         if not ppg_samples:
             return []
@@ -89,11 +94,13 @@ class ModelWindowAdapterService:
         return [float(row[0]) for row in ppg_samples]
 
     def normalize_window_if_needed(self, payload) -> Dict[str, Any]:
+        """model window adapter servisindeki HealthAlert iş kuralını uygular."""
         imu_samples = [[float(v) for v in row] for row in payload.imu_samples]
         ppg_samples = [[float(v) for v in row] for row in payload.ppg_samples]
         return {"imu_samples": imu_samples, "ppg_samples": ppg_samples}
 
     def to_model_input(self, payload) -> Dict[str, Any]:
+        """model window adapter servisindeki HealthAlert iş kuralını uygular."""
         normalized = self.normalize_window_if_needed(payload)
         imu_samples = normalized["imu_samples"]
         ppg_channel = self.select_ppg_channel(payload)

@@ -47,11 +47,13 @@ SUGGESTIONS: Dict[str, List[str]] = {
 
 @dataclass
 class UIAction:
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     label: str
     route: str
 
     # Arayuzde kullanilacak eylem bilgisini API yanitina uygun bicime cevirir.
     def to_dict(self) -> Dict[str, str]:
+        """chat servisindeki HealthAlert iş kuralını uygular."""
         return {"label": self.label, "route": self.route}
 
 MAX_SESSIONS = 500
@@ -59,16 +61,19 @@ MAX_MESSAGES_PER_SESSION = 20
 
 @dataclass
 class ChatMessage:
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     role: str
     content: str
     timestamp: float = field(default_factory=time.time)
 
     # Mesaji LLM istemcisinin bekledigi rol-icerik yapisina donusturur.
     def to_llm_format(self) -> Dict[str, str]:
+        """chat servisindeki HealthAlert iş kuralını uygular."""
         return {"role": self.role, "content": self.content}
 
 @dataclass
 class ChatSession:
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     session_id: str
     user_id: str
     target_user_id: str
@@ -78,23 +83,28 @@ class ChatSession:
 
     # Sohbet oturumuna yeni bir mesaj ekler ve gecmis boyutunu sinirlar.
     def add_message(self, role: str, content: str) -> None:
+        """chat servisindeki HealthAlert iş kuralını uygular."""
         self.messages.append(ChatMessage(role=role, content=content))
         if len(self.messages) > MAX_MESSAGES_PER_SESSION:
             self.messages = self.messages[-MAX_MESSAGES_PER_SESSION:]
 
     # Oturum gecmisini LLM istemcisine gonderilecek listeye donusturur.
     def conversation_for_llm(self) -> List[Dict[str, str]]:
+        """chat servisindeki HealthAlert iş kuralını uygular."""
         return [m.to_llm_format() for m in self.messages]
 
 class SessionStore:
 
     # Oturum deposunu belirlenen kapasiteyle baslatir.
+    """HealthAlert backend içinde ilgili sorumluluğu bir arada tutar."""
     def __init__(self, max_size: int = MAX_SESSIONS) -> None:
+        """chat servisindeki HealthAlert iş kuralını uygular."""
         self._store: OrderedDict[str, ChatSession] = OrderedDict()
         self._max = max_size
 
     # Kimlige gore oturumu getirir ve kullanildiysa sona tasir.
     def get(self, session_id: str) -> Optional[ChatSession]:
+        """chat servisinde gereken veriyi okuyup çağırana döndürür."""
         session = self._store.get(session_id)
         if session:
             self._store.move_to_end(session_id)
@@ -102,6 +112,7 @@ class SessionStore:
 
     # Yeni bir sohbet oturumu olusturur ve kapasite doluysa en eskisini siler.
     def create(self, user_id: str, target_user_id: str, role: str) -> ChatSession:
+        """chat servisinde kullanılacak kayıt veya bağlamı hazırlar."""
         sid = str(uuid4())
         session = ChatSession(
             session_id=sid,
@@ -118,6 +129,7 @@ class SessionStore:
     def get_or_create(
         self, session_id: Optional[str], user_id: str, target_user_id: str, role: str
     ) -> ChatSession:
+        """chat servisinde gereken veriyi okuyup çağırana döndürür."""
         if session_id:
             existing = self.get(session_id)
             if existing and existing.user_id == user_id:
@@ -146,6 +158,7 @@ async def process_chat_message(
     llm: Optional[LLMClient] = None,
 ) -> Dict[str, Any]:
 
+    """chat servisindeki HealthAlert iş kuralını uygular."""
     llm = llm or get_llm_client()
 
     session = session_store.get_or_create(session_id, user_id, target_user_id, role)
@@ -205,6 +218,7 @@ async def process_chat_message(
 
 # Rolle iliskili hazir sohbet onerilerini dondurur.
 def get_suggestions(role: str) -> List[str]:
+    """chat servisinde gereken veriyi okuyup çağırana döndürür."""
     return SUGGESTIONS.get(role.upper(), SUGGESTIONS["SELF"])
 
 # Mevcut kullanici baglamini metinsel bir onizleme olarak uretir.
@@ -220,6 +234,7 @@ def get_context_preview(
     clinical_notes: Optional[List[Dict[str, Any]]] = None,
     is_demo_mode: bool = False,
 ) -> str:
+    """chat servisinde gereken veriyi okuyup çağırana döndürür."""
     trend = analyze_trends(recent_history or [], recent_anomalies or [], live_status, role)
     return build_chat_context(
         role=role,
@@ -244,6 +259,7 @@ def _rule_based_fallback(
     recent_anomalies: List[Dict[str, Any]],
     recent_history: List[Dict[str, Any]],
 ) -> str:
+    """chat servisindeki HealthAlert iş kuralını uygular."""
     summary = generate_assistant_summary(
         live_status, recent_anomalies, recent_alerts, recent_history, role
     )
@@ -288,6 +304,7 @@ def _suggest_ui_actions(
     live_status: Optional[Dict[str, Any]],
     alerts: Optional[List[Dict[str, Any]]],
 ) -> List[UIAction]:
+    """chat servisindeki HealthAlert iş kuralını uygular."""
     actions: List[UIAction] = []
     msg = message.lower()
 
@@ -312,6 +329,7 @@ def _brief_context_summary(
     alerts: Optional[List[Dict[str, Any]]],
     trend: Optional[Dict[str, Any]],
 ) -> str:
+    """chat servisindeki HealthAlert iş kuralını uygular."""
     parts = []
     if live:
         hr = live.get("heart_rate", 0)

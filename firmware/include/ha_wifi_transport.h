@@ -8,11 +8,14 @@
 #include "ha_config.h"
 #include "ha_debug.h"
 
+/// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
 class HaWifiTransport {
 public:
+    /// Firmware tarafındaki ilgili donanım veya taşıma sorumluluğunu temsil eder.
     enum State { OFF, CONNECTING, CONNECTED, FAILED };
 
     // Sensörü başlatır.
+    /// İlgili sensör veya iletişim bileşenini kullanıma hazırlar.
     bool begin() {
         if (strlen(WIFI_SSID) == 0) {
             HA_SERIAL_PRINTLN("[WiFi] No SSID configured. Wi-Fi transport disabled.");
@@ -48,6 +51,7 @@ public:
         return true;
     }
 
+    /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
     bool sendPacket(const char* jsonBuf) {
         if (_state != CONNECTED || WiFi.status() != WL_CONNECTED) {
             if (millis() - _lastConnectAttempt > WIFI_RECONNECT_INTERVAL_MS) {
@@ -83,18 +87,24 @@ public:
         }
     }
 
+    /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
     bool sendRawSample(const char* jsonBuf) {
+        /// Hazırlanan telemetri paketini seçili bağlantı üzerinden gönderir.
         return sendPacket(jsonBuf);
     }
 
+    /// Firmware durum bayrağını çağırana sade bool değer olarak döndürür.
     bool isConnected() const {
         return _state == CONNECTED && WiFi.status() == WL_CONNECTED;
     }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     State getState() const { return _state; }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     uint32_t getPacketsSent() const { return _packetsSent; }
 
+    /// Sensör, BLE veya Wi-Fi akışındaki yardımcı firmware adımını yürütür.
     void disconnect() {
         WiFi.disconnect(true);
         WiFi.mode(WIFI_OFF);
@@ -102,6 +112,7 @@ public:
         HA_SERIAL_PRINTLN("[WiFi] Disconnected.");
     }
 
+    /// Firmware çalışma ayarı veya senaryo seçimini günceller.
     void setAuthToken(const char* token) {
         strncpy(_authToken, token, sizeof(_authToken) - 1);
         _authToken[sizeof(_authToken) - 1] = '\0';

@@ -35,6 +35,7 @@ async def list_learning_windows(
     _current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için öğrenme döngüsü okuma isteğini işler."""
     if repos.learning is None:
         raise HTTPException(status_code=503, detail="Learning repository unavailable")
     windows = await repos.learning.list_windows(
@@ -53,6 +54,7 @@ async def get_learning_window(
     _current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için öğrenme döngüsü okuma isteğini işler."""
     if repos.learning is None:
         raise HTTPException(status_code=503, detail="Learning repository unavailable")
     window = await repos.learning.get_window(window_id)
@@ -68,6 +70,7 @@ async def submit_feedback(
     _current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Öğrenme döngüsü endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if repos.learning is None:
         raise HTTPException(status_code=503, detail="Learning repository unavailable")
     try:
@@ -93,6 +96,7 @@ async def export_training_data(
     _current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Öğrenme döngüsü endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if repos.learning is None:
         raise HTTPException(status_code=503, detail="Learning repository unavailable")
     try:
@@ -121,6 +125,7 @@ async def learning_summary(
     _current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Öğrenme döngüsü endpoint isteğini doğrulayıp ilgili katmana yönlendirir."""
     if repos.learning is None:
         return {
             "user_id": user_id,
@@ -139,6 +144,7 @@ async def list_model_versions(
     _current_user: User = Depends(get_current_user),
     repos: RepoSet = Depends(get_repo_set),
 ):
+    """Yetkili kullanıcı için öğrenme döngüsü okuma isteğini işler."""
     if repos.learning is None:
         raise HTTPException(status_code=503, detail="Learning repository unavailable")
     return await repos.learning.list_model_versions()

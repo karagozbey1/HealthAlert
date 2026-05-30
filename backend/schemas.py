@@ -6,6 +6,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 class RegisterRequest(BaseModel):
+    """API sözleşmesindeki RegisterRequest veri alanlarını doğrular."""
     email: str
     password: str
     role: str
@@ -17,15 +18,18 @@ class RegisterRequest(BaseModel):
     @field_validator("role")
     @classmethod
     def validate_role(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         if v not in ("SELF", "RELATIVE", "DOCTOR"):
             raise ValueError("role must be SELF, RELATIVE, or DOCTOR")
         return v
 
 class LoginRequest(BaseModel):
+    """API sözleşmesindeki LoginRequest veri alanlarını doğrular."""
     email: str
     password: str
 
 class TokenResponse(BaseModel):
+    """API sözleşmesindeki TokenResponse veri alanlarını doğrular."""
     access_token: str
     token_type: str = "bearer"
     user_id: str
@@ -33,6 +37,7 @@ class TokenResponse(BaseModel):
     full_name: str
 
 class UserResponse(BaseModel):
+    """API sözleşmesindeki UserResponse veri alanlarını doğrular."""
     id: str
     email: str
     role: str
@@ -42,14 +47,17 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class UpdateProfileRequest(BaseModel):
+    """API sözleşmesindeki UpdateProfileRequest veri alanlarını doğrular."""
     full_name: Optional[str] = None
     phone: Optional[str] = None
     birth_date: Optional[str] = None
 
 class LinkCodeResponse(BaseModel):
+    """API sözleşmesindeki LinkCodeResponse veri alanlarını doğrular."""
     id: str
     code: str
     code_type: str
@@ -59,24 +67,29 @@ class LinkCodeResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class LinkCodeGenerateRequest(BaseModel):
+    """API sözleşmesindeki LinkCodeGenerateRequest veri alanlarını doğrular."""
     relation_type: str = "RELATIVE"
 
     # Uretilen baglanti kodunun iliski tipini dogrular.
     @field_validator("relation_type")
     @classmethod
     def validate_relation_type(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         relation_type = v.upper()
         if relation_type not in ("RELATIVE", "DOCTOR"):
             raise ValueError("relation_type must be RELATIVE or DOCTOR")
         return relation_type
 
 class RedeemCodeRequest(BaseModel):
+    """API sözleşmesindeki RedeemCodeRequest veri alanlarını doğrular."""
     code: str
 
 class RedeemCodeResponse(BaseModel):
+    """API sözleşmesindeki RedeemCodeResponse veri alanlarını doğrular."""
     relation_id: str
     self_user_id: str
     linked_user_id: str
@@ -84,6 +97,7 @@ class RedeemCodeResponse(BaseModel):
     linked_user_name: str
 
 class UserRelationResponse(BaseModel):
+    """API sözleşmesindeki UserRelationResponse veri alanlarını doğrular."""
     id: str
     self_user_id: str
     linked_user_id: str
@@ -93,9 +107,11 @@ class UserRelationResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class LiveStatusResponse(BaseModel):
+    """API sözleşmesindeki LiveStatusResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     heart_rate: float
@@ -123,11 +139,12 @@ class LiveStatusResponse(BaseModel):
     source: Optional[str] = None
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class PatientSummaryResponse(BaseModel):
-    """Compact summary of a patient's latest health data for doctor/relative views."""
+    """API sözleşmesindeki PatientSummaryResponse veri alanlarını doğrular."""
     patient_id: str
     display_name: str
     email: str
@@ -147,6 +164,7 @@ class PatientSummaryResponse(BaseModel):
     source: Optional[str] = None
 
 class AnomalyResponse(BaseModel):
+    """API sözleşmesindeki AnomalyResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     metric: str
@@ -157,9 +175,11 @@ class AnomalyResponse(BaseModel):
     summary: str
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class AlertResponse(BaseModel):
+    """API sözleşmesindeki AlertResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     title: str
@@ -174,17 +194,21 @@ class AlertResponse(BaseModel):
     resolved_at: Optional[datetime]
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class AlertRespondRequest(BaseModel):
+    """API sözleşmesindeki AlertRespondRequest veri alanlarını doğrular."""
     action: str
 
 class HelpRequestResponse(BaseModel):
+    """API sözleşmesindeki HelpRequestResponse veri alanlarını doğrular."""
     alert_id: str
     notified_count: int
     message: str
 
 class PostEventSessionResponse(BaseModel):
+    """API sözleşmesindeki PostEventSessionResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     alert_id: str
@@ -193,12 +217,15 @@ class PostEventSessionResponse(BaseModel):
     outcome: Optional[str]
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class ClosePostEventRequest(BaseModel):
+    """API sözleşmesindeki ClosePostEventRequest veri alanlarını doğrular."""
     outcome: str
 
 class HistoryResponse(BaseModel):
+    """API sözleşmesindeki HistoryResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     item_type: str
@@ -209,9 +236,11 @@ class HistoryResponse(BaseModel):
     outcome: Optional[str]
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class NotificationResponse(BaseModel):
+    """API sözleşmesindeki NotificationResponse veri alanlarını doğrular."""
     id: str
     recipient_id: str
     sender_id: Optional[str]
@@ -224,18 +253,22 @@ class NotificationResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class ClinicalNoteCreate(BaseModel):
+    """API sözleşmesindeki ClinicalNoteCreate veri alanlarını doğrular."""
     patient_id: str
     note: str
     recommendation: Optional[str] = None
 
 class ClinicalNoteUpdate(BaseModel):
+    """API sözleşmesindeki ClinicalNoteUpdate veri alanlarını doğrular."""
     note: Optional[str] = None
     recommendation: Optional[str] = None
 
 class ClinicalNoteResponse(BaseModel):
+    """API sözleşmesindeki ClinicalNoteResponse veri alanlarını doğrular."""
     id: str
     doctor_id: str
     patient_id: str
@@ -245,9 +278,11 @@ class ClinicalNoteResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class SettingsResponse(BaseModel):
+    """API sözleşmesindeki SettingsResponse veri alanlarını doğrular."""
     user_id: str
     notifications_enabled: bool
     battery_mode: str
@@ -256,9 +291,11 @@ class SettingsResponse(BaseModel):
     alert_sensitivity: str = "normal"
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class SettingsUpdate(BaseModel):
+    """API sözleşmesindeki SettingsUpdate veri alanlarını doğrular."""
     notifications_enabled: Optional[bool] = None
     battery_mode: Optional[str] = None
     background_monitoring: Optional[bool] = None
@@ -266,6 +303,7 @@ class SettingsUpdate(BaseModel):
     alert_sensitivity: Optional[str] = None
 
 class DevicePacketRequest(BaseModel):
+    """API sözleşmesindeki DevicePacketRequest veri alanlarını doğrular."""
     device_id: str
     timestamp_ms: int
     mode: str
@@ -296,11 +334,13 @@ class DevicePacketRequest(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         if v not in ("real", "mock"):
             raise ValueError("mode must be 'real' or 'mock'")
         return v
 
 class DevicePacketResponse(BaseModel):
+    """API sözleşmesindeki DevicePacketResponse veri alanlarını doğrular."""
     status: str
     packet_seq: int
     device_id: str
@@ -321,6 +361,7 @@ class DevicePacketResponse(BaseModel):
 
 
 class DeviceModelWindowRequest(BaseModel):
+    """API sözleşmesindeki DeviceModelWindowRequest veri alanlarını doğrular."""
     device_id: str
     mode: str
     window_seq: int
@@ -338,12 +379,14 @@ class DeviceModelWindowRequest(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         if v not in ("real", "mock"):
             raise ValueError("mode must be 'real' or 'mock'")
         return v
 
     @model_validator(mode="after")
     def validate_shapes(self):
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         if self.sample_count != len(self.imu_samples):
             raise ValueError("sample_count must match imu_samples length")
         if self.sample_count != len(self.ppg_samples):
@@ -360,6 +403,7 @@ class DeviceModelWindowRequest(BaseModel):
 
 
 class DeviceModelWindowResponse(BaseModel):
+    """API sözleşmesindeki DeviceModelWindowResponse veri alanlarını doğrular."""
     status: str
     device_id: str
     user_id: Optional[str] = None
@@ -373,6 +417,7 @@ class DeviceModelWindowResponse(BaseModel):
 
 
 class UserBaselineResponse(BaseModel):
+    """API sözleşmesindeki UserBaselineResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     hr_mean: float
@@ -389,10 +434,12 @@ class UserBaselineResponse(BaseModel):
     last_updated: Optional[datetime] = None
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class BaselineStatusResponse(BaseModel):
+    """API sözleşmesindeki BaselineStatusResponse veri alanlarını doğrular."""
     user_id: str
     is_ready: bool
     sample_count: int
@@ -400,6 +447,7 @@ class BaselineStatusResponse(BaseModel):
     spo2_mean: float
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
@@ -408,6 +456,7 @@ class BaselineStatusResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class LearningCaptureSessionResponse(BaseModel):
+    """API sözleşmesindeki LearningCaptureSessionResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     device_id: str
@@ -426,10 +475,12 @@ class LearningCaptureSessionResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class LearningWindowResponse(BaseModel):
+    """API sözleşmesindeki LearningWindowResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     device_id: str
@@ -454,10 +505,12 @@ class LearningWindowResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class UserFeedbackCreate(BaseModel):
+    """API sözleşmesindeki UserFeedbackCreate veri alanlarını doğrular."""
     user_id: str
     related_window_id: Optional[str] = None
     related_alert_id: Optional[str] = None
@@ -469,6 +522,7 @@ class UserFeedbackCreate(BaseModel):
     @field_validator("feedback_type")
     @classmethod
     def validate_feedback_type(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         allowed = {"ok", "not_ok", "false_alarm", "fall_confirmed", "sensor_error", "other"}
         if v not in allowed:
             raise ValueError(f"feedback_type must be one of {allowed}")
@@ -478,6 +532,7 @@ class UserFeedbackCreate(BaseModel):
     @field_validator("feedback_source")
     @classmethod
     def validate_feedback_source(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         allowed = {"mobile", "relative", "doctor", "system"}
         if v not in allowed:
             raise ValueError(f"feedback_source must be one of {allowed}")
@@ -485,6 +540,7 @@ class UserFeedbackCreate(BaseModel):
 
 
 class UserFeedbackResponse(BaseModel):
+    """API sözleşmesindeki UserFeedbackResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     related_window_id: Optional[str]
@@ -495,10 +551,12 @@ class UserFeedbackResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class TrainingExportRequest(BaseModel):
+    """API sözleşmesindeki TrainingExportRequest veri alanlarını doğrular."""
     user_id: Optional[str] = None
     training_status: Optional[str] = None
     min_quality_confidence: Optional[float] = None
@@ -507,6 +565,7 @@ class TrainingExportRequest(BaseModel):
 
 
 class TrainingExportResponse(BaseModel):
+    """API sözleşmesindeki TrainingExportResponse veri alanlarını doğrular."""
     export_dir: str
     window_count: int
     feedback_count: int
@@ -514,6 +573,7 @@ class TrainingExportResponse(BaseModel):
 
 
 class ModelVersionResponse(BaseModel):
+    """API sözleşmesindeki ModelVersionResponse veri alanlarını doğrular."""
     id: str
     model_name: str
     version: str
@@ -525,6 +585,7 @@ class ModelVersionResponse(BaseModel):
     activated_at: Optional[datetime]
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
@@ -533,6 +594,7 @@ class ModelVersionResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class PersonalHealthProfileResponse(BaseModel):
+    """API sözleşmesindeki PersonalHealthProfileResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     baseline_id: Optional[str]
@@ -567,10 +629,12 @@ class PersonalHealthProfileResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class PersonalRiskMemoryResponse(BaseModel):
+    """API sözleşmesindeki PersonalRiskMemoryResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     event_type: str
@@ -580,10 +644,12 @@ class PersonalRiskMemoryResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class PersonalTrendSnapshotResponse(BaseModel):
+    """API sözleşmesindeki PersonalTrendSnapshotResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     window_minutes: int
@@ -596,10 +662,12 @@ class PersonalTrendSnapshotResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class PersonalizationSummaryResponse(BaseModel):
+    """API sözleşmesindeki PersonalizationSummaryResponse veri alanlarını doğrular."""
     user_id: str
     personalization_level: str
     total_valid_samples: int
@@ -612,6 +680,7 @@ class PersonalizationSummaryResponse(BaseModel):
 
 
 class RiskBreakdownResponse(BaseModel):
+    """API sözleşmesindeki RiskBreakdownResponse veri alanlarını doğrular."""
     global_risk_score: float
     final_risk_score: float
     personal_deviation_score: float
@@ -620,9 +689,11 @@ class RiskBreakdownResponse(BaseModel):
     quality_warning: Optional[str] = None
 
 class DeviceRegistrationRequest(BaseModel):
+    """API sözleşmesindeki DeviceRegistrationRequest veri alanlarını doğrular."""
     device_id: str
 
 class DeviceRegistrationResponse(BaseModel):
+    """API sözleşmesindeki DeviceRegistrationResponse veri alanlarını doğrular."""
     id: str
     device_id: str
     user_id: str
@@ -630,9 +701,11 @@ class DeviceRegistrationResponse(BaseModel):
     is_active: bool
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 class AIInferenceRequest(BaseModel):
+    """API sözleşmesindeki AIInferenceRequest veri alanlarını doğrular."""
     user_id: str
 
     fall_probability: float = 0.0
@@ -655,11 +728,13 @@ class AIInferenceRequest(BaseModel):
     @field_validator("final_risk_level")
     @classmethod
     def validate_risk_level(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         if v not in ("normal", "watch", "warning", "critical"):
             raise ValueError("final_risk_level must be normal|watch|warning|critical")
         return v
 
 class AIInferenceResponse(BaseModel):
+    """API sözleşmesindeki AIInferenceResponse veri alanlarını doğrular."""
     status: str
     risk_level: str
     anomaly_id: Optional[str] = None
@@ -667,6 +742,7 @@ class AIInferenceResponse(BaseModel):
     notifications_sent: int = 0
 
 class RegisterDeviceTokenRequest(BaseModel):
+    """API sözleşmesindeki RegisterDeviceTokenRequest veri alanlarını doğrular."""
     token: str
     platform: str
 
@@ -674,11 +750,13 @@ class RegisterDeviceTokenRequest(BaseModel):
     @field_validator("platform")
     @classmethod
     def validate_platform(cls, v: str) -> str:
+        """schemas şemasındaki yardımcı doğrulama adımını yürütür."""
         if v not in ("android", "ios", "web"):
             raise ValueError("platform must be android, ios, or web")
         return v
 
 class DeviceTokenResponse(BaseModel):
+    """API sözleşmesindeki DeviceTokenResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     token: str
@@ -686,6 +764,7 @@ class DeviceTokenResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
@@ -694,6 +773,7 @@ class DeviceTokenResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class AssistantStateResponse(BaseModel):
+    """API sözleşmesindeki AssistantStateResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     current_mode: str
@@ -714,10 +794,12 @@ class AssistantStateResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class AssistantActionResponse(BaseModel):
+    """API sözleşmesindeki AssistantActionResponse veri alanlarını doğrular."""
     id: str
     user_id: str
     state_id: Optional[str] = None
@@ -733,10 +815,12 @@ class AssistantActionResponse(BaseModel):
     metadata_json: Optional[dict] = None
 
     class Config:
+        """API sözleşmesindeki Config veri alanlarını doğrular."""
         from_attributes = True
 
 
 class AssistantAckRequest(BaseModel):
+    """API sözleşmesindeki AssistantAckRequest veri alanlarını doğrular."""
     user_id: str
     response: str   # ok | not_ok | false_alarm
     note: Optional[str] = None
@@ -744,6 +828,7 @@ class AssistantAckRequest(BaseModel):
 
 
 class AssistantAckResponse(BaseModel):
+    """API sözleşmesindeki AssistantAckResponse veri alanlarını doğrular."""
     success: bool
     new_mode: str
     message: str
@@ -751,6 +836,7 @@ class AssistantAckResponse(BaseModel):
 
 
 class AssistantSummaryResponse(BaseModel):
+    """API sözleşmesindeki AssistantSummaryResponse veri alanlarını doğrular."""
     user_id: str
     current_mode: str
     monitoring_intensity: str

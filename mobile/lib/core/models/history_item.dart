@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Mobil uygulamada kullanılan ilgili veri modelini temsil eder.
 class HistoryItem {
   const HistoryItem({
     required this.id,
@@ -17,6 +18,7 @@ class HistoryItem {
   final DateTime timestamp;
   final AlertSeverity severity;
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'id': id,
         'type': type.name,
@@ -26,10 +28,15 @@ class HistoryItem {
         'severity': severity.name,
       };
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static HistoryItem fromJson(Map<String, dynamic> json) => HistoryItem(
         id: json['id'] as String,
         type: HistoryItemType.values.firstWhere(
-          (e) => e.name == (json['item_type'] ?? json['type'] as String?)?.toString().toLowerCase(),
+          (e) =>
+              e.name ==
+              (json['item_type'] ?? json['type'] as String?)
+                  ?.toString()
+                  .toLowerCase(),
           orElse: () => HistoryItemType.status,
         ),
         title: json['title'] as String? ?? '',

@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 import 'api_client.dart';
 
+/// Asistan sohbetinde gösterilecek mesaj içeriğini ve kaynağını taşır.
 class ChatMessage {
   final String role;
   final String content;
@@ -25,6 +28,7 @@ class ChatMessage {
   bool get isUser => role == 'user';
 }
 
+/// Asistan yanıtından açılabilecek arayüz hedefini temsil eder.
 class UIAction {
   final String label;
   final String route;
@@ -41,6 +45,7 @@ class UIAction {
   }
 }
 
+/// Asistan sohbet yanıtını mesaj, kaynak ve aksiyon bilgileriyle taşır.
 class ChatResponse {
   final String sessionId;
   final String message;
@@ -75,6 +80,7 @@ class ChatResponse {
   }
 }
 
+/// Asistan servisinin LLM ve fallback çalışma durumunu taşır.
 class ChatStatus {
   final bool llmConfigured;
   final String llmModel;
@@ -100,6 +106,7 @@ class ChatStatus {
   }
 }
 
+/// Asistan sohbet mesajlarını backend veya yerel fallback ile yanıtlar.
 class ChatService {
   /// Sohbet isteklerini API varsa sunucuya, yoksa yerel yedek akişa yonlendirir.
   ChatService({this.apiClient});
@@ -110,7 +117,7 @@ class ChatService {
   /// Etkin sohbet oturumunun kimligini dondurur.
   String? get sessionId => _sessionId;
 
-  /// Mesaji sunucuya gonderir ve gerekiyorsa yerel yedek yanit uretir.
+  /// Asistan mesajını backend'e gönderir veya yerel fallback yanıtı üretir.
   Future<ChatResponse> sendMessage({
     required String message,
     String? targetUserId,
@@ -132,7 +139,8 @@ class ChatService {
       final resp = ChatResponse.fromJson(data);
       _sessionId = resp.sessionId;
       return resp;
-    } catch (e) {
+    } catch (error) {
+      debugPrint('[ChatService] Send message failed: $error');
       return _localFallback(message);
     }
   }
@@ -144,14 +152,16 @@ class ChatService {
     }
     try {
       final data = await apiClient!.get('/assistant/suggestions');
-      final list = (data as Map<String, dynamic>)['suggestions'] as List<dynamic>?;
+      final list =
+          (data as Map<String, dynamic>)['suggestions'] as List<dynamic>?;
       return list?.map((e) => e.toString()).toList() ?? _defaultSuggestions();
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[ChatService] Suggestions load failed: $error');
       return _defaultSuggestions();
     }
   }
 
-  /// Asistan servisinin baglanti durumunu sorgular.
+  /// Asistan sohbet servisinin backend çalışma durumunu getirir.
   Future<ChatStatus> getStatus() async {
     if (apiClient == null || !apiClient!.hasToken) {
       return const ChatStatus(
@@ -163,7 +173,8 @@ class ChatService {
     try {
       final data = await apiClient!.get('/assistant/chat-status');
       return ChatStatus.fromJson(data as Map<String, dynamic>);
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[ChatService] Status load failed: $error');
       return const ChatStatus(
         llmConfigured: false,
         llmModel: '',
@@ -172,15 +183,15 @@ class ChatService {
     }
   }
 
-  /// Gecerli sohbet oturumunu sifirlar.
+  /// Aktif asistan sohbet oturumu kimliğini temizler.
   void resetSession() => _sessionId = null;
 
-  /// Sunucuya ulasilamadiginda kullaniciya gosterilecek yerel yaniti uretir.
+  /// Backend yokken kullanıcıya güvenli yerel asistan yanıtı üretir.
   ChatResponse _localFallback(String message) {
     return ChatResponse(
       sessionId: _sessionId ?? '',
       message: 'Su an asistan sunucusuna ulasilamiyor. '
-        'Lutfen internet baglantinizi kontrol edin veya daha sonra tekrar deneyin.',
+          'Lutfen internet baglantinizi kontrol edin veya daha sonra tekrar deneyin.',
       source: 'local_fallback',
       disclaimer:
           'Bu degerlendirme sensor ve sistem verilerine dayali otomatik bir yorumdur. '
@@ -188,7 +199,7 @@ class ChatService {
     );
   }
 
-  /// Sunucuya baglanilamadiginda varsayilan soru onerilerini saglar.
+  /// Asistan için yerel hazır soru önerilerini döndürür.
   List<String> _defaultSuggestions() {
     return [
       'Bugunku durumumu ozetle',

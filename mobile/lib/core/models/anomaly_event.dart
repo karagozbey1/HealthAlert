@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Uygulamadaki ilgili olay bilgisini taşır.
 class AnomalyEvent {
   const AnomalyEvent({
     required this.id,
@@ -21,6 +22,7 @@ class AnomalyEvent {
   final DateTime detectedAt;
   final String summary;
 
+  /// API, BLE veya Firestore verisini uygulama modeline dönüştürür.
   static AnomalyEvent fromJson(Map<String, dynamic> json) => AnomalyEvent(
         id: json['id'] as String,
         userId: json['user_id'] as String?,
@@ -37,6 +39,7 @@ class AnomalyEvent {
         summary: json['summary'] as String? ?? '',
       );
 
+  /// Uygulama modelini API veya Firestore payload formatına dönüştürür.
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_id': userId,

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/models/alert_event.dart';
-import '../../../core/models/clinical_note.dart';
 import '../../../core/models/history_item.dart';
 import '../../../core/models/live_status.dart';
 import '../../../core/models/user_profile.dart';
@@ -12,14 +11,17 @@ import '../../widgets/live_value_card.dart';
 import '../../widgets/severity_badge.dart';
 import 'clinical_notes_screen.dart';
 
+/// HealthAlert ekranının kullanıcı arayüzünü ve etkileşimlerini oluşturur.
 class PatientDetailScreen extends StatefulWidget {
   final UserProfile patient;
   const PatientDetailScreen({super.key, required this.patient});
 
+  /// Stateful ekran için kullanılacak durum nesnesini oluşturur.
   @override
   State<PatientDetailScreen> createState() => _PatientDetailScreenState();
 }
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class _PatientDetailScreenState extends State<PatientDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -30,7 +32,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   Timer? _liveTimer;
   StreamSubscription<LiveStatus?>? _firestoreSub;
 
-  /// Widget durumunu başlatır.
+  /// Ekran açıldığında başlangıç verilerini ve dinleyicileri hazırlar.
   @override
   void initState() {
     super.initState();
@@ -39,31 +41,34 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) => _setupLiveUpdates());
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _setupLiveUpdates() {
     if (!mounted) return;
     final app = AppScope.of(context);
     if (app.isFirestoreSyncAvailable) {
       final stream = app.getFirestoreLiveStatusStream(widget.patient.id);
       if (stream != null) {
-        _firestoreSub = stream
-            .listen(_onFirestoreLive, onError: (_) => _ensureTimerRunning());
+        _firestoreSub = stream.listen(_onFirestoreLive,
+            onError: (_) => _ensureTimerRunning());
         return;
       }
     }
     _ensureTimerRunning();
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   void _ensureTimerRunning() {
-    _liveTimer ??= Timer.periodic(
-        const Duration(seconds: 5), (_) => _fetchLive());
+    _liveTimer ??=
+        Timer.periodic(const Duration(seconds: 5), (_) => _fetchLive());
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   void _onFirestoreLive(LiveStatus? status) {
     if (!mounted || status == null) return;
     setState(() => _live = status);
   }
 
-  /// Kaynakları serbest bırakır.
+  /// Ekran veya servis kapanırken timer, stream ve diğer kaynakları serbest bırakır.
   @override
   void dispose() {
     _tabController.dispose();
@@ -72,6 +77,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     super.dispose();
   }
 
+  /// Ekranda kullanılacak verileri ilgili kaynaktan yükler.
   Future<void> _load() async {
     final app = AppScope.of(context);
     try {
@@ -92,16 +98,20 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     }
   }
 
+  /// Canlı sağlık verisiyle ilgili okuma veya güncelleme işlemini yürütür.
   Future<void> _fetchLive() async {
     if (!mounted) return;
     try {
-      final live = await AppScope.of(context).getLiveStatusForUser(widget.patient.id);
+      final live =
+          await AppScope.of(context).getLiveStatusForUser(widget.patient.id);
       if (mounted) setState(() => _live = live);
-    } catch (_) {
+    } catch (error) {
+      debugPrint(
+          '[PatientDetail] Live fetch failed for ${widget.patient.id}: $error');
     }
   }
 
-  /// Widget ağacını oluşturur.
+  /// Mevcut ekran durumuna göre Flutter arayüzünü oluşturur.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,8 +127,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               MaterialPageRoute(
                   builder: (_) => ClinicalNotesScreen(patient: widget.patient)),
             ),
-            icon: const Icon(Icons.note_add_outlined, color: Colors.amberAccent, size: 18),
-            label: const Text('Notlar', style: TextStyle(color: Colors.amberAccent)),
+            icon: const Icon(Icons.note_add_outlined,
+                color: Colors.amberAccent, size: 18),
+            label: const Text('Notlar',
+                style: TextStyle(color: Colors.amberAccent)),
           ),
         ],
         bottom: TabBar(
@@ -134,7 +146,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Colors.amberAccent))
+          ? const Center(
+              child: CircularProgressIndicator(color: Colors.amberAccent))
           : TabBarView(
               controller: _tabController,
               children: [
@@ -146,6 +159,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildLiveTab() {
     final live = _live;
     return SingleChildScrollView(
@@ -157,7 +171,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppTheme.surface.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(10),
@@ -170,14 +185,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 child: Row(
                   children: [
                     Icon(
-                      live.isAlert ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                      live.isAlert
+                          ? Icons.warning_amber_rounded
+                          : Icons.check_circle_outline,
                       size: 14,
                       color: live.isAlert ? AppTheme.warning : AppTheme.success,
                     ),
                     const SizedBox(width: 8),
                     Text(live.scenarioLabel,
                         style: TextStyle(
-                            color: live.isAlert ? AppTheme.warning : Colors.white54,
+                            color: live.isAlert
+                                ? AppTheme.warning
+                                : Colors.white54,
                             fontSize: 12)),
                   ],
                 ),
@@ -185,9 +204,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             Row(
               children: [
                 Expanded(
-                    child: SizedBox(height: 130, child: LiveValueCard.heartRate(live))),
+                    child: SizedBox(
+                        height: 130, child: LiveValueCard.heartRate(live))),
                 const SizedBox(width: 12),
-                Expanded(child: SizedBox(height: 130, child: LiveValueCard.spo2(live))),
+                Expanded(
+                    child:
+                        SizedBox(height: 130, child: LiveValueCard.spo2(live))),
               ],
             ),
             const SizedBox(height: 12),
@@ -208,11 +230,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildHistoryTab() {
     if (_history.isEmpty) {
       return const Center(
-          child:
-            Text('Geçmiş verisi mevcut değil', style: TextStyle(color: Colors.white38)));
+          child: Text('Geçmiş verisi mevcut değil',
+              style: TextStyle(color: Colors.white38)));
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -240,9 +263,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                             fontSize: 13)),
                     if (item.subtitle.isNotEmpty)
                       Text(item.subtitle,
-                          style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 11)),
                     Text(_fmt(item.timestamp),
-                        style: const TextStyle(color: Colors.white30, fontSize: 10)),
+                        style: const TextStyle(
+                            color: Colors.white30, fontSize: 10)),
                   ],
                 ),
               ),
@@ -254,11 +279,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
+  /// Ekranda gösterilecek ilgili arayüz bölümünü oluşturur.
   Widget _buildAlertsTab() {
     if (_alerts.isEmpty) {
       return const Center(
-          child:
-            Text('Kayıtlı alarm yok', style: TextStyle(color: Colors.white38)));
+          child: Text('Kayıtlı alarm yok',
+              style: TextStyle(color: Colors.white38)));
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -286,13 +312,16 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                             fontSize: 13)),
                     if (alert.description.isNotEmpty)
                       Text(alert.description,
-                          style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 11)),
                     Text(_fmt(alert.createdAt),
-                        style: const TextStyle(color: Colors.white30, fontSize: 10)),
+                        style: const TextStyle(
+                            color: Colors.white30, fontSize: 10)),
                     const SizedBox(height: 4),
                     Text(
                       'Durum: ${alert.status.name}',
-                      style: const TextStyle(color: Colors.white38, fontSize: 11),
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 11),
                     ),
                   ],
                 ),
@@ -305,6 +334,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
+  /// Ekranın ilgili kullanıcı etkileşimini veya arayüz parçasını hazırlar.
   String _fmt(DateTime dt) =>
       '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} '
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';

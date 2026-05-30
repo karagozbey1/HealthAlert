@@ -1,5 +1,6 @@
 import 'enums.dart';
 
+/// Ekranın yerel durumunu ve kullanıcı etkileşimlerini yönetir.
 class DeviceState {
   const DeviceState({
     required this.batteryPercent,
@@ -13,6 +14,7 @@ class DeviceState {
   final BatteryMode mode;
   final DateTime lastSync;
 
+  /// Modelin seçilen alanları değişmiş yeni bir kopyasını üretir.
   DeviceState copyWith({
     int? batteryPercent,
     bool? isConnected,
